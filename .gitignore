@@ -1,0 +1,18 @@
+# Visual Studio
+.vs/
+*.vcxproj*
+*.sln
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+out/
+*.obj
+*.pdb
+*.exe
+*.log
+
+
+# Compiled libraries
+external/glfw/build/
+external/assimp/build/
