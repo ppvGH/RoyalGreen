@@ -38,6 +38,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(stb)
 
+# GLM (header-only)
+FetchContent_Declare(
+  glm
+  GIT_REPOSITORY https://github.com/g-truc/glm.git
+  GIT_TAG 0.9.9.8
+)
+FetchContent_MakeAvailable(glm)
+
 # OpenGL
 find_package(OpenGL REQUIRED)
 
@@ -68,8 +76,9 @@ add_executable(royalgreen
 
 target_include_directories(royalgreen PRIVATE
   src
-  ${stb_SOURCE_DIR}  
+  ${stb_SOURCE_DIR}
   external/glad/include
+  ${glm_SOURCE_DIR}
 )
 
 target_link_libraries(royalgreen PRIVATE
@@ -78,4 +87,3 @@ target_link_libraries(royalgreen PRIVATE
   imgui_lib
   OpenGL::GL
 )
-
