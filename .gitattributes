@@ -1,0 +1,10 @@
+# Consistent management of line endings
+* text=auto
+
+# C++ files
+*.cpp text eol=lf
+*.h   text eol=lf
+
+# Scripts
+*.sh  text eol=lf
+*.bat text eol=crlf
