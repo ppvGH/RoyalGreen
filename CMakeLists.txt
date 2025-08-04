@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-# GLFW
+# GLFW ------------------------------------------------------------------------
 FetchContent_Declare(
   glfw
   GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -14,7 +14,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glfw)
 
-# ImGui (fetch + build manuale libreria)
+# ImGui -----------------------------------------------------------------------
 FetchContent_Declare(
   imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui.git
@@ -22,15 +22,30 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
-# Assimp
+# Assimp ----------------------------------------------------------------------
 FetchContent_Declare(
   assimp
-  GIT_REPOSITORY https://github.com/assimp/assimp.git
-  GIT_TAG v6.0.2
+  URL https://github.com/assimp/assimp/archive/refs/tags/v6.0.2.tar.gz
 )
+
+# Lighter build without tests / samples / tools
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)         
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)      
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE) 
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)            
+
+# Importers
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
+
+# Exporters
+set(ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_OBJ_EXPORTER OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_GLTF_EXPORTER OFF CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(assimp)
 
-# stb (header-only)
+# stb (header-only) ------------------------------------------------------------
 FetchContent_Declare(
   stb
   GIT_REPOSITORY https://github.com/nothings/stb.git
@@ -38,7 +53,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(stb)
 
-# GLM (header-only)
+# GLM (header-only) ------------------------------------------------------------
 FetchContent_Declare(
   glm
   GIT_REPOSITORY https://github.com/g-truc/glm.git
@@ -46,10 +61,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
-# OpenGL
+# OpenGL -----------------------------------------------------------------------
 find_package(OpenGL REQUIRED)
 
-# Crea libreria ImGui manualmente (con sorgenti)
+# Create ImGui lib -------------------------------------------------------------
 add_library(imgui_lib
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_demo.cpp
@@ -67,13 +82,14 @@ target_include_directories(imgui_lib PUBLIC
 
 target_link_libraries(imgui_lib PUBLIC glfw)
 
-# Eseguibile
+# Exe --------------------------------------------------------------------------
 add_executable(royalgreen
   src/main.cpp
   src/core/callbacks.cpp
   external/glad/src/glad.c
 )
 
+# Include dirs -----------------------------------------------------------------
 target_include_directories(royalgreen PRIVATE
   src
   ${stb_SOURCE_DIR}
@@ -81,6 +97,7 @@ target_include_directories(royalgreen PRIVATE
   ${glm_SOURCE_DIR}
 )
 
+# Link -------------------------------------------------------------------------
 target_link_libraries(royalgreen PRIVATE
   glfw
   assimp
