@@ -4,56 +4,78 @@ project(royalgreen)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Compiled directories (they have their own CMakeLists.txt)
-add_subdirectory(external/glfw)
-add_subdirectory(external/assimp)
+include(FetchContent)
 
-# Create ImGui library (static library)
-add_library(imgui
-	external/imgui/imgui.cpp
-	external/imgui/imgui_demo.cpp
-	external/imgui/imgui_draw.cpp
-	external/imgui/imgui_tables.cpp
-	external/imgui/imgui_widgets.cpp
-	external/imgui/backends/imgui_impl_glfw.cpp
-	external/imgui/backends/imgui_impl_opengl3.cpp
+# GLFW
+FetchContent_Declare(
+  glfw
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
+  GIT_TAG 3.4
 )
-target_include_directories(imgui PUBLIC
-	external/imgui
-	external/imgui/backends
+FetchContent_MakeAvailable(glfw)
+
+# ImGui (fetch + build manuale libreria)
+FetchContent_Declare(
+  imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui.git
+  GIT_TAG v1.91.9
 )
-target_link_libraries(imgui PUBLIC glfw)
+FetchContent_MakeAvailable(imgui)
 
-# Create glad library
-add_library(glad 
-	external/glad/src/glad.c
+# Assimp
+FetchContent_Declare(
+  assimp
+  GIT_REPOSITORY https://github.com/assimp/assimp.git
+  GIT_TAG v6.0.2
 )
-target_include_directories(glad PUBLIC external/glad/include)
+FetchContent_MakeAvailable(assimp)
 
-# Executable
-add_executable(royalgreen
-	src/main.cpp
-	src/core/callbacks.cpp
+# stb (header-only)
+FetchContent_Declare(
+  stb
+  GIT_REPOSITORY https://github.com/nothings/stb.git
+  GIT_TAG master
 )
+FetchContent_MakeAvailable(stb)
 
-# External directories (not needed for compiled directories)
-target_include_directories(royalgreen 
-	PRIVATE
-	${CMAKE_SOURCE_DIR}/external/glm
-	${CMAKE_SOURCE_DIR}/external/stb
-
-	${CMAKE_SOURCE_DIR}/src
-)
-
-
-# Linking
+# OpenGL
 find_package(OpenGL REQUIRED)
-target_link_libraries(royalgreen
-	PRIVATE
-	assimp
-	glad
-	glfw
-	imgui
-	OpenGL::GL
+
+# Crea libreria ImGui manualmente (con sorgenti)
+add_library(imgui_lib
+  ${imgui_SOURCE_DIR}/imgui.cpp
+  ${imgui_SOURCE_DIR}/imgui_demo.cpp
+  ${imgui_SOURCE_DIR}/imgui_draw.cpp
+  ${imgui_SOURCE_DIR}/imgui_tables.cpp
+  ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui_lib PUBLIC
+  ${imgui_SOURCE_DIR}
+  ${imgui_SOURCE_DIR}/backends
+)
+
+target_link_libraries(imgui_lib PUBLIC glfw)
+
+# Eseguibile
+add_executable(royalgreen
+  src/main.cpp
+  src/core/callbacks.cpp
+  external/glad/src/glad.c
+)
+
+target_include_directories(royalgreen PRIVATE
+  src
+  ${stb_SOURCE_DIR}  
+  external/glad/include
+)
+
+target_link_libraries(royalgreen PRIVATE
+  glfw
+  assimp
+  imgui_lib
+  OpenGL::GL
 )
 

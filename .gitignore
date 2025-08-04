@@ -1,18 +1,40 @@
-# Visual Studio
+# Build directory
+/build/
+/bin/
+/lib/
+/out/
+
+# Visual Studio specific
 .vs/
 *.vcxproj*
 *.sln
+*.user
+*.suo
+*.vcxproj.filters
 
-# CMake
+# CMake files
 CMakeFiles/
 CMakeCache.txt
-out/
-*.obj
-*.pdb
+cmake_install.cmake
+Makefile
+Testing/
+
+# Executables and object files
 *.exe
+*.dll
+*.obj
+*.o
+*.pdb
+*.idb
+
+# Logs and temporary files
 *.log
+*.tmp
 
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Compiled libraries
-external/glfw/build/
-external/assimp/build/
+# IDE files
+*.idea/
+*.vscode/

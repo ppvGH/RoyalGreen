@@ -1,10 +1,11 @@
-# Consistent management of line endings
+# Rilevazione automatica testo e normalizzazione fine riga
 * text=auto
 
-# C++ files
-*.cpp text eol=lf
-*.h   text eol=lf
-
-# Scripts
+# Script
 *.sh  text eol=lf
 *.bat text eol=crlf
+
+# File binari (evitare conversioni)
+*.png binary
+*.jpg binary
+*.exe binary
