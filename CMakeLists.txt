@@ -82,12 +82,16 @@ target_include_directories(imgui_lib PUBLIC
 
 target_link_libraries(imgui_lib PUBLIC glfw)
 
+# ------------------------------------------------------------------------------
+# @?!@?!@?!@?!@?!############### TARGET DEFINITION ##############!?@!?@!?@!?@!?@
+# ------------------------------------------------------------------------------
+
 # Exe --------------------------------------------------------------------------
 add_executable(royalgreen
   src/main.cpp
   src/core/callbacks.cpp
   src/core/utilities.cpp
-
+  src/core/shader.cpp
 
   external/glad/src/glad.c
 )
@@ -106,4 +110,8 @@ target_link_libraries(royalgreen PRIVATE
   assimp
   imgui_lib
   OpenGL::GL
+)
+# Shaders directory definition -------------------------------------------------
+target_compile_definitions(royalgreen PRIVATE
+  SHADERS_DIR="${CMAKE_SOURCE_DIR}/res/shaders/"
 )
