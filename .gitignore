@@ -3,6 +3,7 @@
 /bin/
 /lib/
 /out/
+/vs_build/
 
 # Visual Studio specific
 .vs/

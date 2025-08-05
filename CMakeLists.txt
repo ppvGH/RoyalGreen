@@ -86,6 +86,9 @@ target_link_libraries(imgui_lib PUBLIC glfw)
 add_executable(royalgreen
   src/main.cpp
   src/core/callbacks.cpp
+  src/core/utilities.cpp
+
+
   external/glad/src/glad.c
 )
 
