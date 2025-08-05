@@ -9,39 +9,25 @@
 
 
 #include "core/callbacks.h"
+#include "core/utilities.h"
+
+// Runs on GPU
+extern "C"
+{
+    _declspec(dllexport) int NvOptimusEnablement = 1;
+}
+
+
+
+
 
 
 
 int main()
 {
-    // 1. Inizializza GLFW
-    if (!glfwInit())
-    {
-        std::cerr << "Errore: impossibile inizializzare GLFW\n";
-        return -1;
-    }
-
-    // Versione OpenGL (3.3 core profile)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // Crea finestra
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Royal Green", nullptr, nullptr);
-    if (window == nullptr)
-    {
-        std::cerr << "Errore: impossibile creare la finestra GLFW\n";
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-
-    // Carica funzioni OpenGL con GLAD
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cerr << "Errore: impossibile inizializzare GLAD\n";
-        return -1;
-    }
+    GLFWwindow* window = initGLFWwindow(800, 800, "Royal Green");
+    
+    if(!initGLAD(window)) return -1;
 
     // Initialize callbacks
     Callbacks::initCallbacks(window);
