@@ -93,6 +93,7 @@ add_executable(royalgreen
   src/core/utilities.cpp
   src/core/shader.cpp
   src/core/resource_manager.cpp
+  src/core/camera.cpp
 
   external/glad/src/glad.c
 )
