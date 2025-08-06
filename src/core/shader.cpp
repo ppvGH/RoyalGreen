@@ -14,10 +14,10 @@ Shader& Shader::linkProgram(const std::string& srcVert, const std::string& srcFr
 	unsigned int fs = compile(GL_FRAGMENT_SHADER, srcFrag);
 
 	// create and link shader program
-	this->ID = glCreateProgram();
-	glAttachShader(ID, vs);
-	glAttachShader(ID, fs);
-	glLinkProgram(ID);
+	this->m_ID = glCreateProgram();
+	glAttachShader(m_ID, vs);
+	glAttachShader(m_ID, fs);
+	glLinkProgram(m_ID);
 
 	// link error check
 	linkErrorCheck();
@@ -31,27 +31,27 @@ Shader& Shader::linkProgram(const std::string& srcVert, const std::string& srcFr
 
 Shader& Shader::use()
 {
-	glUseProgram(ID);
+	glUseProgram(m_ID);
 	// returns *this for chaining [e.g. shader.use().setInt(...)]
 	return *this;
 }
 
 unsigned int Shader::getID() const
 {
-	return ID;
+	return m_ID;
 }
 
 void Shader::setUniformMatrix4fv(const std::string& name, int count, bool transpose, const glm::mat4& matrix) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), count, transpose, glm::value_ptr(matrix));
+	glUniformMatrix4fv(glGetUniformLocation(m_ID, name.c_str()), count, transpose, glm::value_ptr(matrix));
 }
 
 Shader::~Shader()
 {
 	// if exists it deletes it
-	if (ID != 0) 
+	if (m_ID != 0) 
 	{
-		glDeleteProgram(ID);
+		glDeleteProgram(m_ID);
 	}
 }
 
@@ -100,10 +100,10 @@ void Shader::linkErrorCheck() const
 	int success;
 	char infoLog[1024];
 
-	glGetProgramiv(ID, GL_LINK_STATUS, &success);
+	glGetProgramiv(m_ID, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		glGetProgramInfoLog(ID, 1024, NULL, infoLog);
+		glGetProgramInfoLog(m_ID, 1024, NULL, infoLog);
 		std::cerr << "ERROR::SHADER: Link-time error: SHADER PROGRAM FAILURE\n" << infoLog
 			<< "\n -- --------------------------------- --" << std::endl;
 	}

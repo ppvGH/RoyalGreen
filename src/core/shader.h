@@ -7,7 +7,7 @@ class Shader
 {
 public:
 	/* Default constructor: initalizes ID to 0 */
-	Shader() : ID(0) {};
+	Shader() : m_ID(0) {};
 
 	/* Creates, compiles and links shader program from vertex and fragment in a string format 
 	 - arguments are given one by one to the compile private member function 
@@ -30,7 +30,7 @@ public:
 
 private:
 	// shader program identifier	
-	unsigned int ID;
+	unsigned int m_ID;
 
 	/* Creates and compiles a shader from a string
 	 > returns the shader id;
