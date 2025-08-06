@@ -15,6 +15,7 @@
 #include "core/utilities.h"
 #include "core/shader.h"
 #include "core/resource_manager.h"
+#include "core/camera.h"
 
 // Runs on GPU (only nvidia for now)
 extern "C"
@@ -24,7 +25,6 @@ extern "C"
 
 
 
-constexpr float deg2rad =  0.017453292519943295;     // pi/180 in decimals
 constexpr int width = 800;
 constexpr int height = 800;
 
@@ -114,42 +114,45 @@ int main()
     // shaders
     Shader& basic = ResourceManager::loadShader(pathVert, pathFrag, "basic");
 
-    /* perspective projection matrix. all args should have same type (float, double)
-     - (arg1) FOVY: angle between top and bottom planes [0,180]
-     - (arg2) aspect: ratio between width and height 
-     - (arg3) near: near distance plane
-     - (arg4) far: far distance plane */
-    glm::mat4 proj = glm::perspective(45.0f * deg2rad, float(width) / float(height), 0.2f, 200.0f);
-
-    /* lookAt camera view matrix. all args are glm::vec3
-     - (arg1) eye: position of camera's viewpoint
-     - (arg2) up: vector that determines unique world orientation.
-     - (arg3) at: where you are looking at. it's a point in the 3D space, but if
-                  one wants to use a direction unit vec D, can use eye + D */
-    glm::vec3 eye = glm::vec3(7.0f, 7.0f, 7.0f);
+    // Camera setup.
+    glm::vec3 eye = glm::vec3(14.0f);
     glm::vec3 at = glm::vec3(0.0f);
-    /* computing up.
-     * w_raw = eye - at ------> w = w_raw/norm(w_raw)
-     * u_raw = vecprod(z,w) --> u = u_raw/norm(u_raw)
-     * up = vecprod(w,u). it is already normalized */
-    glm::vec3 w = (eye - at) / glm::length(eye - at);
-    glm::vec3 u = glm::cross(glm::vec3(0, 0, 1), w) / glm::length(glm::cross(glm::vec3(0, 0, 1), w));
-    glm::vec3 up = glm::cross(w, u);
-    // view matrix
-    glm::mat4 view = glm::lookAt(eye, at, up);
+    Camera cam(eye, at, 45.0f, float(width) / float(height), 0.2f, 100.0f);
 
-    // shallow model transform matrix
-    glm::mat4 model = glm::mat4(1.0f);
+    // Model matrix.
+    glm::mat4 model = glm::mat4(1.0);
+    model = glm::scale(model, glm::vec3(2));
 
     // setting uniforms for shader
     basic.use();
     basic.setUniformMatrix4fv("model", 1, GL_FALSE, model);
-    basic.setUniformMatrix4fv("view", 1, GL_FALSE, view);
-    basic.setUniformMatrix4fv("proj", 1, GL_FALSE, proj);
+    basic.setUniformMatrix4fv("view", 1, GL_FALSE, cam.getViewMatrix());
+    basic.setUniformMatrix4fv("proj", 1, GL_FALSE, cam.getPerspectiveProjMatrix());
     
+
     // 3. Loop principale
+    int n = 0;
+    float dt = 0.0f;
+    float lastFrameTime = 0.0f;
     while (!glfwWindowShouldClose(window))
     {
+        // Time stuff.
+        float currentFrameTime = glfwGetTime();
+        dt = currentFrameTime - lastFrameTime;
+        lastFrameTime = currentFrameTime;
+
+        static int frameCount = 0;
+        static float fpsTimer = 0.0f;
+        frameCount++;
+        fpsTimer += dt;
+
+        if (fpsTimer >= 1.0f)
+        {
+            //std::cout << "FPS: " << frameCount << std::endl;
+            frameCount = 0;
+            fpsTimer = 0.0f;
+        }
+
         // Rendering OpenGL
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -168,7 +171,12 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        // Physics logic.
+        std::cout << glm::sin(n * 0.08) << std::endl;
+        model = glm::translate(model, glm::vec3(glm::sin(0.01*n++)*0.01, 0.0, 0.0));
+        basic.setUniformMatrix4fv("model", 1, GL_FALSE, model);
 
+        // Rendering.
         basic.use();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
