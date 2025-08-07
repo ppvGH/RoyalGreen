@@ -63,61 +63,77 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    // testing shaders with fake vbo, vao
-    float vertices[] = 
-    {
-        // x      y     z
-        // top face
-        -0.5f, -0.5f,  0.5f,          // 0
-         0.5f, -0.5f,  0.5f,          // 1 
-         0.5f,  0.5f,  0.5f,          // 2
-        -0.5f,  0.5f,  0.5f,          // 3
-        // bottom face                // 4
-        -0.5f, -0.5f, -0.5f,          // 5
-         0.5f, -0.5f, -0.5f,          // 6
-         0.5f,  0.5f, -0.5f,          // 7
-        -0.5f,  0.5f, -0.5f,          // 8
-    };                                  
 
-    unsigned int indices[] = 
-    {
-    // 1st triangle   2nd triangle
-        1, 5, 0,        5, 4, 0,      // left face
-        1, 5, 2,        5, 6, 2,      // front face
-        2, 6, 3,        6, 7, 3,      // right face
-        0, 4, 3,        4, 7, 3,      // back face
-        0, 1, 3,        1, 2, 3,      // top face
-        4, 5, 7,        5, 6, 7       // bottom face
+    struct Cube {
+        // testing shaders with fake vbo, vao
+        float vertices[24] =
+        {
+            // x      y     z
+            // top face
+            -0.5f, -0.5f,  0.5f,          // 0
+             0.5f, -0.5f,  0.5f,          // 1 
+             0.5f,  0.5f,  0.5f,          // 2
+            -0.5f,  0.5f,  0.5f,          // 3
+            // bottom face                // 4
+            -0.5f, -0.5f, -0.5f,          // 5
+             0.5f, -0.5f, -0.5f,          // 6
+             0.5f,  0.5f, -0.5f,          // 7
+            -0.5f,  0.5f, -0.5f,          // 8
+        };
 
+        unsigned int indices[36] =
+        {
+            // 1st triangle   2nd triangle
+                1, 5, 0,        5, 4, 0,      // left face
+                1, 5, 2,        5, 6, 2,      // front face
+                2, 6, 3,        6, 7, 3,      // right face
+                0, 4, 3,        4, 7, 3,      // back face
+                0, 1, 3,        1, 2, 3,      // top face
+                4, 5, 7,        5, 6, 7       // bottom face
+
+        };
     };
-
-
-    unsigned int VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     
+    Cube testCube1, testCube2;
     
+
+    unsigned int VAO1, VBO1, EBO1;
+    unsigned int VAO2, VBO2, EBO2;
+
+    glGenVertexArrays(1, &VAO1);
+    glGenBuffers(1, &VBO1);
+    glGenBuffers(1, &EBO1);
+
+    glGenVertexArrays(1, &VAO2);
+    glGenBuffers(1, &VBO2);
+    glGenBuffers(1, &EBO2);
+
+    glBindVertexArray(VAO1);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(testCube1.vertices), testCube1.vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO1);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(testCube1.indices), testCube1.indices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    
+    glBindVertexArray(0);
+
+    glBindVertexArray(VAO2);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(testCube2.vertices), testCube2.vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(testCube2.indices), testCube2.indices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBindVertexArray(0);
 
 
     // shaders
     Shader& basic = ResourceManager::loadShader(pathVert, pathFrag, "basic");
 
     // Camera setup.
-    glm::vec3 eye = glm::vec3(14.0f);
+    glm::vec3 eye = glm::vec3(21.0f);
     glm::vec3 at = glm::vec3(0.0f);
-    Camera cam(eye, at, 45.0f, float(width) / float(height), 0.2f, 100.0f);
+    Camera cam(eye, at, 45.0f, float(width) / float(height), 10.0f, 100.0f);
 
     // Model matrix.
     glm::mat4 model = glm::mat4(1.0);
@@ -128,6 +144,12 @@ int main()
     basic.setUniformMatrix4fv("model", 1, GL_FALSE, model);
     basic.setUniformMatrix4fv("view", 1, GL_FALSE, cam.getViewMatrix());
     basic.setUniformMatrix4fv("proj", 1, GL_FALSE, cam.getPerspectiveProjMatrix());
+
+    // Models customized for cubes.
+    glm::mat4 model1 = glm::translate(model, glm::vec3(2.0, 0.0, 0.0));
+    glm::mat4 model2 = glm::translate(model, glm::vec3(-2.0, 0.0, 0.0));
+    model2 = glm::scale(model2, glm::vec3(2.0));
+
     
 
     // 3. Loop principale
@@ -153,6 +175,10 @@ int main()
             fpsTimer = 0.0f;
         }
 
+        // Camera management.
+        //cam.setTarget(glm::vec3(2*glm::cos(currentFrameTime), 2*glm::sin(currentFrameTime), 0.0));
+        //basic.setUniformMatrix4fv("view", 1, GL_FALSE, cam.getViewMatrix());
+
         // Rendering OpenGL
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -171,16 +197,19 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Physics logic.
-        std::cout << glm::sin(n * 0.08) << std::endl;
-        model = glm::translate(model, glm::vec3(glm::sin(0.01*n++)*0.01, 0.0, 0.0));
-        basic.setUniformMatrix4fv("model", 1, GL_FALSE, model);
+
 
         // Rendering.
         basic.use();
-        glBindVertexArray(VAO);
+
+        glBindVertexArray(VAO1);
+        model1 = glm::translate(model1, glm::vec3(0.1*glm::cos(currentFrameTime), 0.1*glm::sin(currentFrameTime), 0.0));
+        basic.setUniformMatrix4fv("model", 1, GL_FALSE, model1);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
+        glBindVertexArray(VAO2);
+        basic.setUniformMatrix4fv("model", 1, GL_FALSE, model2);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
