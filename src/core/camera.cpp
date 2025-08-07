@@ -12,13 +12,8 @@ Camera::Camera(const glm::vec3& position, const glm::vec3& target, const float& 
 	m_near(near),
 	m_far(far)
 {
-	// Computing up.
-	// w = normalize(position - target);
-	glm::vec3 w = glm::normalize(position - target);
-	// u = normalize(cross(VUP,w)); by openGL conventions the VUP is j, the y-axis unit vector (0,1,0);
-	glm::vec3 u = glm::normalize(glm::cross(m_VUP, w));
-	// up = cross(w,u); it is already normalized. */
-	m_up = glm::cross(w, u);
+	// Calculate up.
+	m_up = calculateUpVec();
 }
 
 glm::mat4 Camera::getPerspectiveProjMatrix() const
@@ -34,6 +29,34 @@ glm::mat4 Camera::getOrthoProj(const int& width, const int& height) const
 glm::mat4 Camera::getViewMatrix() const
 {
 	return glm::lookAt(m_position, m_target, m_up);
+}
+
+void Camera::setPosition(const glm::vec3& position)
+{
+	// Sets member variable m_position to input position.
+	m_position = position;
+
+	// Recalculate the up vector.
+	m_up = calculateUpVec();
+}
+
+void Camera::setTarget(const glm::vec3& target)
+{
+	// Sets member variable m_target to input target.
+	m_target = target;
+
+	// Recalculate the up vector.
+	m_up = calculateUpVec();
+}
+
+glm::vec3 Camera::calculateUpVec()
+{
+	// w = normalize(position - target);
+	glm::vec3 w = glm::normalize(m_position - m_target);
+	// u = normalize(cross(VUP,w)); by openGL conventions the VUP is j, the y-axis unit vector (0,1,0);
+	glm::vec3 u = glm::normalize(glm::cross(m_VUP, w));
+	// returns up = cross(w,u); it is already normalized. */
+	return glm::cross(w, u);
 }
 
 

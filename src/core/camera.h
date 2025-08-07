@@ -14,22 +14,39 @@ public:
 	Camera() = delete;
 
 	/* Parametric constructor. 
-	 + fovy: expressed in degrees, NOT radians; */
+	 + position: camera position in WCS (eye);
+	 + target: where the camera is looking at in WCS;
+	 + fovy: expressed in degrees, NOT radians;
+	 + aspect: width/height ratio. better cast both to float if they are not;
+	 + near: near distance plane;
+	 + far: far distance plane; */
 	Camera(const glm::vec3& position, const glm::vec3& target, const float& fovy, const float& aspect, const float& near, const float& far);
 
 
 
 
-	// Getters
+	// Getters.
 
 	/* Returns prospective projection matrix. */
 	glm::mat4 getPerspectiveProjMatrix() const;
 
-	/* TODO: Returns orthogonal projection matrix.*/
+	/* TODO: Returns orthogonal projection matrix.
+	 + args: viewport width and height. They get static casted into floats inside the function. */
 	glm::mat4 getOrthoProj(const int& width, const int& height) const;
 
 	/* Returns view matrix. */
 	glm::mat4 getViewMatrix() const;
+
+
+	// Setters. The ones that modify position or target must recalculate up vector.
+
+	/* Modifies camera position and recalculates camera up vector. 
+	 * To apply changes modify the view uniform in the shader. */
+	void setPosition(const glm::vec3& position);
+
+	/* Modifies camera target and recalculates camera up vector. 
+	 * To apply changes modify the view uniform in the shader. */
+	void setTarget(const glm::vec3& target);
 
 
 
@@ -44,7 +61,8 @@ private:
 	/* By OpenGL convention, VUP corresponds to the y-axis unit vector (0,1,0). */
 	const glm::vec3 m_VUP = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	/* Defines the inclination and the orientation of the camera. */
+	/* Defines the inclination and the orientation of the camera.
+	 * Gets computed initially in the constructor and must be calculated again in the setters. */
 	glm::vec3 m_up;
 	
 	/* Angle from the bottom to the top of the view frustum.
@@ -59,4 +77,11 @@ private:
 
 	/* Far distance plane of the frustum. */
 	float m_far;
+
+
+	/* Computes up vector. 
+	 * w = normalize(position - target);
+	 * u = normalize(cross(VUP,w)); by openGL conventions the VUP is j, the y-axis unit vector (0,1,0);
+	 * up = cross(w,u); it is already normalized. */
+	glm::vec3 calculateUpVec();
 };
