@@ -21,8 +21,11 @@ public:
 	/* Getter for the shader program's ID */
 	unsigned int getID() const;
 
-	/* TODO: Uniforms */
-	void Shader::setUniformMatrix4fv(const std::string& name, int count, bool transpose, const glm::mat4& matrix) const;
+	/* Uniforms */
+	void setFloat(const std::string& name, const float& value);
+	void setVector3f(const std::string& name, const glm::vec3& vec);
+	void setMatrix4fv(const std::string& name, int count, bool transpose, const glm::mat4& matrix) const;
+
 	
 	/* Destructor */
 	~Shader();

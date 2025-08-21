@@ -41,10 +41,21 @@ unsigned int Shader::getID() const
 	return m_ID;
 }
 
-void Shader::setUniformMatrix4fv(const std::string& name, int count, bool transpose, const glm::mat4& matrix) const
+void Shader::setFloat(const std::string& name, const float& value)
+{
+	glUniform1f(glGetUniformLocation(m_ID, name.c_str()), value);
+}
+
+void Shader::setVector3f(const std::string& name, const glm::vec3& vec)
+{
+	glUniform3f(glGetUniformLocation(m_ID, name.c_str()), vec.x, vec.y, vec.z);
+}
+
+void Shader::setMatrix4fv(const std::string& name, int count, bool transpose, const glm::mat4& matrix) const
 {
 	glUniformMatrix4fv(glGetUniformLocation(m_ID, name.c_str()), count, transpose, glm::value_ptr(matrix));
 }
+
 
 Shader::~Shader()
 {
