@@ -119,4 +119,5 @@ target_link_libraries(royalgreen PRIVATE
 # Shaders directory definition -------------------------------------------------
 target_compile_definitions(royalgreen PRIVATE
   SHADERS_DIR="${CMAKE_SOURCE_DIR}/res/shaders/"
+  MESHES_DIR="${CMAKE_SOURCE_DIR}/res/meshes/"
 )
