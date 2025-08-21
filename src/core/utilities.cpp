@@ -42,3 +42,24 @@ bool initGLAD(GLFWwindow* window)
 
     return true;
 }
+
+void handleCameraInput(GLFWwindow* window, Scene* scene)
+{
+    if (!scene || !scene->use3D) return;
+
+    float camSpeed = 0.025f;
+    // Movement
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) scene->cam3D.moveForward(camSpeed);
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) scene->cam3D.moveBackward(camSpeed);
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) scene->cam3D.moveLeft(camSpeed);
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) scene->cam3D.moveRight(camSpeed);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) scene->cam3D.moveUp(camSpeed);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) scene->cam3D.moveDown(camSpeed);
+
+    // Rotation
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) scene->cam3D.turnLeft(5*camSpeed);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) scene->cam3D.turnRight(5*camSpeed);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) scene->cam3D.turnUp(5*camSpeed);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) scene->cam3D.turnDown(5*camSpeed);
+}

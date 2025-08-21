@@ -65,7 +65,7 @@ void Camera::updateCameraVectors()
 	 * Updates up = cross(front,right); it is already normalized. */
 	m_right = glm::normalize(glm::cross(m_front, m_VUP));
 	m_up = glm::cross(m_right, m_front);
-
+	
 }
 
 
