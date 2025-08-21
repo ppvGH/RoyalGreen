@@ -4,7 +4,7 @@
 
 
 Camera::Camera():
-	m_position(glm::vec3(5.0f)),
+	m_position(glm::vec3(2.0f, 3.0f, 0.0f)),
 	m_front(glm::normalize(-m_position)),						// Initialized at -position (target at origin)
 	m_right(glm::normalize(glm::cross(m_front, m_VUP))),		// If direction instead of front: cross(VUP, dir)
 	m_up(glm::cross(m_right, m_front)), 						// If direction instead of front: cross(dir, right)
