@@ -39,6 +39,7 @@ glm::mat4 Camera::getPerspectiveProjMatrix() const
 
 glm::mat4 Camera::getOrthoProj(const int& width, const int& height) const
 {
+	/*TODO: still hardcoded, might review later. */
 	return glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), -1.0f, 1.0f);
 }
 
