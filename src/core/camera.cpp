@@ -2,7 +2,23 @@
 
 #include<glm/gtx/transform.hpp>
 
-Camera::Camera(const glm::vec3& position, const glm::vec3& target, const float& fovy, const float& aspect, const float& near, const float& far):
+
+Camera::Camera():
+	m_position(glm::vec3(5.0f)),
+	m_front(glm::normalize(-m_position)),						// Initialized at -position (target at origin)
+	m_right(glm::normalize(glm::cross(m_front, m_VUP))),		// If direction instead of front: cross(VUP, dir)
+	m_up(glm::cross(m_right, m_front)), 						// If direction instead of front: cross(dir, right)
+	m_pitch(std::asinf(m_front.y)),								// atan2 considers all 4 quadrants and returns radians 
+	m_yaw(std::atan2f(m_front.x, m_front.z)),					// asin returns radians
+	m_fovy(45.0f),												// In degrees.
+	m_aspect(1.0f),
+	m_near(0.1f),
+	m_far(200.0f)
+{ 
+}
+
+
+Camera::Camera(const glm::vec3& position, const float& fovy, const float& aspect, const float& near, const float& far) :
 	m_position(position),
 	m_front(glm::normalize(-position)),							// FRONT: opposite of classic direction (dir) vector of cameras
 	m_right(glm::normalize(glm::cross(m_front, m_VUP))),		// If direction instead of front: cross(VUP, dir)

@@ -10,10 +10,10 @@ class Camera
 {
 public:
 
-	/* No default constructor allowed. */
-	Camera() = delete;
+	/* TODO: documentation. */
+	Camera();
 
-	/* Parametric constructor. 
+	/* TODO: update documentation for Parametric constructor. 
 	 + position: camera position in WCS (eye);
 	 + target: where the camera is looking at in WCS;
 	 + fovy: expressed in degrees, NOT radians;
