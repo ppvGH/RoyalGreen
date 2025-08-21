@@ -1,14 +1,15 @@
 #include "model.h"
 #include <iostream>
+#include <cassert>
 
 void Model::loadModel(const std::string& filepath)
 {
 	/* Importer reads the model file into a scene. */
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filepath,
-		aiProcess_Triangulate |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_FlipUVs);
+		aiProcess_Triangulate |							// meshes' polygons are decomposed into triangles
+		aiProcess_JoinIdenticalVertices |				// reduce significantly memory space usage
+		aiProcess_FlipUVs);								// some models have the V coord flipped upside down
 
 	/* Error checker. */
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -17,13 +18,27 @@ void Model::loadModel(const std::string& filepath)
 		return;
 	}
 
-
+	/* Need to pupulate m_materials before processNode to ensure a correct 
+	 * naming in the processMesh function. */
 	loadMaterial(scene);
 
+	/* Populate m_meshes. */
 	processNode(scene->mRootNode, scene);
 
+	/* Populates the map with the (reference of) last inserted mesh and its name. */
+	for (auto& mesh : m_meshes) m_meshMap[mesh.m_meshName] = &mesh;
 
 	}
+
+Mesh& Model::getMesh(const std::string& name)
+{
+	auto it = m_meshMap.find(name);
+	if (it == m_meshMap.end())
+	{
+		throw std::runtime_error("Mesh \"" + name + "\" doesn't exist.");
+	}
+	return *(it->second);
+}
 
 
 void Model::draw(Shader& shader) const
@@ -32,6 +47,7 @@ void Model::draw(Shader& shader) const
 	{
 		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size())
 		{
+			/* Note that materialIndex = 0 is reserved for the Default Material. */
 			m_materials[mesh.m_matIndex].apply(shader);
 		}
 		mesh.draw();
@@ -46,7 +62,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	for (int nm = 0; nm < node->mNumMeshes; nm++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[nm]];
-		m_meshes.push_back(processMesh(mesh, node, scene));
+		m_meshes.push_back(processMesh(mesh, node));
 	}
 	
 	for (int nc = 0; nc < node->mNumChildren; nc++)
@@ -56,7 +72,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 
 }
 
-Mesh Model::processMesh(aiMesh* mesh, aiNode* node, const aiScene* scene)
+Mesh Model::processMesh(aiMesh* mesh, aiNode* node)
 {
 	
 	/* Temporary mesh object. */
@@ -70,14 +86,13 @@ Mesh Model::processMesh(aiMesh* mesh, aiNode* node, const aiScene* scene)
 	 * Anyway, it doesn't even enter the processNode loop as it has mNumMeshes = 0. */
 	tMesh.m_meshName = std::string(node->mName.C_Str());
 
-	/* The material suffix is useful only if the node has 2 or more meshes. */
-	if ((mesh->mMaterialIndex < scene->mNumMaterials) && node->mNumMeshes > 1)
+	/* The first condition already ensures that m_materials is not empty. 
+	 * In the second condition the material suffix is useful only if the node has 2 or more meshes. */
+	if (mesh->mMaterialIndex < m_materials.size())
 	{
-		aiString matName;
-		scene->mMaterials[mesh->mMaterialIndex]->Get(AI_MATKEY_NAME, matName);
-		tMesh.m_meshName += "_" + std::string(matName.C_Str());
+		tMesh.m_meshName += "_" + m_materials[mesh->mMaterialIndex].m_matName;
 	}
-
+	
 	/* Loop over vertices. */
 	for (int nv = 0; nv < mesh->mNumVertices; nv++)
 	{
@@ -125,7 +140,7 @@ void Model::loadMaterial(const aiScene* scene)
 		Material tMat;
 		/* Get the material from the scene. */
 		aiMaterial* aiMat = scene->mMaterials[nMat];
-
+		
 		/* Temporary aiColor3D and aiString.
 		 * Needed to match the return type of the AI_MATKEYs. */
 		aiColor3D tCol(0.f, 0.f, 0.f);
@@ -158,7 +173,7 @@ void Model::loadMaterial(const aiScene* scene)
 
 		/* Storing the material. */
 		m_materials.push_back(tMat);
-		std::cout << m_materials.back().m_matName << std::endl;
+		
 	}
 }
 
