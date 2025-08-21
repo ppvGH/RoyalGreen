@@ -23,7 +23,6 @@ Testing/
 # Executables and object files
 *.exe
 *.dll
-*.obj
 *.o
 *.pdb
 *.idb
@@ -39,3 +38,4 @@ Thumbs.db
 # IDE files
 *.idea/
 *.vscode/
+/deleted_code
