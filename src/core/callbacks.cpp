@@ -1,5 +1,6 @@
 #include "callbacks.h"
 
+
 void Callbacks::initCallbacks(GLFWwindow* window)
 {
 	// Framebuffer
@@ -18,8 +19,9 @@ void Callbacks::framebufferSizeCallback(GLFWwindow* window, int width, int heigh
 void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// ESC key to close window
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
 }
 
 
