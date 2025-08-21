@@ -20,17 +20,13 @@ public:
 	 + aspect: width/height ratio. better cast both to float if they are not;
 	 + near: near distance plane;
 	 + far: far distance plane; */
-	Camera(const glm::vec3& position, const glm::vec3& target, const float& fovy, const float& aspect, const float& near, const float& far);
-
-
-
+	Camera(const glm::vec3& position, const float& fovy, const float& aspect, const float& near, const float& far);
 
 	// Getters.
-
 	/* Returns prospective projection matrix. */
 	glm::mat4 getPerspectiveProjMatrix() const;
 
-	/* TODO: Returns orthogonal projection matrix.
+	/* Returns orthogonal projection matrix.
 	 + args: viewport width and height. They get static casted into floats inside the function. */
 	glm::mat4 getOrthoProj(const int& width, const int& height) const;
 
@@ -54,34 +50,35 @@ public:
 private:
 	/* The eye of the camera. */
 	glm::vec3 m_position;
-
-	/* Where the camera looks at. */
-	glm::vec3 m_target;
-	
+	/* Direction of camera. Target - Position.*/
+	glm::vec3 m_front;
 	/* By OpenGL convention, VUP corresponds to the y-axis unit vector (0,1,0). */
 	const glm::vec3 m_VUP = glm::vec3(0.0f, 1.0f, 0.0f);
-
+	/* RHS of the camera. r = norm(cross(front, VUP)); */
+	glm::vec3 m_right;
 	/* Defines the inclination and the orientation of the camera.
 	 * Gets computed initially in the constructor and must be calculated again in the setters. */
 	glm::vec3 m_up;
 	
+	/* Vertical inclination. */
+	float m_pitch;
+	/* Horizontal inclination. */
+	float m_yaw;
+
 	/* Angle from the bottom to the top of the view frustum.
 	 * Expressed in degrees, must be in the interval [0, 180]. */
 	float m_fovy;
-
 	/* Ratio between width and height of the viewplane (near plane of the frustum). */
 	float m_aspect;
-
 	/* Near distance plane of the frustum. */
 	float m_near;
-
 	/* Far distance plane of the frustum. */
 	float m_far;
 
 
-	/* Computes up vector. 
-	 * w = normalize(position - target);
-	 * u = normalize(cross(VUP,w)); by openGL conventions the VUP is j, the y-axis unit vector (0,1,0);
-	 * up = cross(w,u); it is already normalized. */
-	glm::vec3 calculateUpVec();
+
+	/*TODO: documentation here*/
+	void updateCameraVectors();
+
+
 };
