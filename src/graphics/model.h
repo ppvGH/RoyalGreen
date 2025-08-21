@@ -24,7 +24,7 @@ public:
 private:
 
 	void processNode(aiNode* node, const aiScene* scene);
-	Mesh processMesh(aiMesh* mesh);
+	Mesh processMesh(aiMesh* mesh, aiNode* node, const aiScene* scene);
 	void loadMaterial(const aiScene* scene);
 
 

@@ -22,7 +22,8 @@ void Model::loadModel(const std::string& filepath)
 
 	processNode(scene->mRootNode, scene);
 
-}
+
+	}
 
 
 void Model::draw(Shader& shader) const
@@ -39,15 +40,15 @@ void Model::draw(Shader& shader) const
 
 
 
-
 void Model::processNode(aiNode* node, const aiScene* scene)
 {
+	
 	for (int nm = 0; nm < node->mNumMeshes; nm++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[nm]];
-		m_meshes.push_back(processMesh(mesh));
+		m_meshes.push_back(processMesh(mesh, node, scene));
 	}
-
+	
 	for (int nc = 0; nc < node->mNumChildren; nc++)
 	{
 		processNode(node->mChildren[nc], scene);
@@ -55,12 +56,27 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 
 }
 
-Mesh Model::processMesh(aiMesh* mesh)
+Mesh Model::processMesh(aiMesh* mesh, aiNode* node, const aiScene* scene)
 {
+	
 	/* Temporary mesh object. */
 	Mesh tMesh;
 	/* Setup the material index of the temporary mesh with. */
 	tMesh.m_matIndex = mesh->mMaterialIndex;
+
+	/* Naming setup. */
+	/* Assimp gives object (o) name to the first submesh and material (usemtl) name to the subsequent submeshes.
+	 * Node name is always the o name, besides the root one that is named after the .obj filename. 
+	 * Anyway, it doesn't even enter the processNode loop as it has mNumMeshes = 0. */
+	tMesh.m_meshName = std::string(node->mName.C_Str());
+
+	/* The material suffix is useful only if the node has 2 or more meshes. */
+	if ((mesh->mMaterialIndex < scene->mNumMaterials) && node->mNumMeshes > 1)
+	{
+		aiString matName;
+		scene->mMaterials[mesh->mMaterialIndex]->Get(AI_MATKEY_NAME, matName);
+		tMesh.m_meshName += "_" + std::string(matName.C_Str());
+	}
 
 	/* Loop over vertices. */
 	for (int nv = 0; nv < mesh->mNumVertices; nv++)
@@ -142,6 +158,7 @@ void Model::loadMaterial(const aiScene* scene)
 
 		/* Storing the material. */
 		m_materials.push_back(tMat);
+		std::cout << m_materials.back().m_matName << std::endl;
 	}
 }
 
