@@ -16,6 +16,8 @@
 #include "core/shader.h"
 #include "core/resource_manager.h"
 #include "core/camera.h"
+#include "app/scene.h"
+#include "graphics/model.h"
 
 /////////////// TEST ASSIMP///////////////////
 #include<assimp/Importer.hpp>
