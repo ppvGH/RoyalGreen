@@ -94,6 +94,9 @@ add_executable(royalgreen
   src/core/shader.cpp
   src/core/resource_manager.cpp
   src/core/camera.cpp
+  src/graphics/mesh.cpp 
+  src/graphics/material.cpp
+  src/graphics/model.cpp
 
   external/glad/src/glad.c
 )
