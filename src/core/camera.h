@@ -33,18 +33,24 @@ public:
 	/* Returns view matrix. */
 	glm::mat4 getViewMatrix() const;
 
-
-	// Setters. The ones that modify position or target must recalculate up vector.
-
-	/* Modifies camera position and recalculates camera up vector. 
-	 * To apply changes modify the view uniform in the shader. */
-	void setPosition(const glm::vec3& position);
-
-	/* Modifies camera target and recalculates camera up vector. 
-	 * To apply changes modify the view uniform in the shader. */
-	void setTarget(const glm::vec3& target);
+	/* Returns camera position.*/
+	inline glm::vec3 getPosition() const { return m_position; };
 
 
+	// Camera movements. Documentation TODO
+	inline void moveForward(const float& dx) { m_position += m_front * dx; }
+	inline void moveBackward(const float& dx) { m_position -= m_front * dx; }
+
+	inline void moveRight(const float& dx) { m_position += m_right * dx; }
+	inline void moveLeft(const float& dx) { m_position -= m_right * dx; }
+	inline void moveUp(const float& dx) { m_position += m_up * dx; }
+	inline void moveDown(const float& dx) { m_position -= m_up * dx; }
+
+	inline void turnRight(const float& psi) { m_yaw -= glm::radians(psi); updateCameraVectors();}
+	inline void turnLeft(const float& psi) { m_yaw += glm::radians(psi); updateCameraVectors();}
+
+	inline void turnUp(const float& theta) { m_pitch += glm::radians(theta); updateCameraVectors(); }
+	inline void turnDown(const float& theta) { m_pitch -= glm::radians(theta); updateCameraVectors(); }
 
 
 private:
