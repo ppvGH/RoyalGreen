@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include <filesystem> // std::filesystem::current_path(), useful for debug
+#include <stdexcept> //runtimeerror
 
 #include "core/callbacks.h"
 #include "core/utilities.h"
@@ -89,7 +90,14 @@ int main()
     // Models customized for cubes.
     glm::mat4 model1 = glm::scale(model, glm::vec3(20.0));
 
-    
+    try
+    {
+        //std::cout << arcadeCabinet.getMesh("cabinet_display").m_matIndex << std::endl;
+    }
+    catch (const std::runtime_error e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
 
     /* Render Loop. */
     
@@ -99,6 +107,14 @@ int main()
         glfwPollEvents();
         handleCameraInput(window, &scene);
         
+        if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+        {
+            Mesh& powerButton = arcadeCabinet.getMesh("power_button_power_button");
+            Material& matPowerButton = arcadeCabinet.m_materials[powerButton.m_matIndex];
+            matPowerButton.m_emission = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+        
+
         /* Setting shaders and camera. */
         basic.use();
         basic.setMatrix4fv("model", 1, GL_FALSE, model);
