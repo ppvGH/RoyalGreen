@@ -41,6 +41,11 @@ unsigned int Shader::getID() const
 	return m_ID;
 }
 
+void Shader::setInt(const std::string& name, const int& value)
+{
+	glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
+}
+
 void Shader::setFloat(const std::string& name, const float& value)
 {
 	glUniform1f(glGetUniformLocation(m_ID, name.c_str()), value);
