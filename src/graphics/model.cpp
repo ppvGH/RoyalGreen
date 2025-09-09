@@ -8,8 +8,8 @@ void Model::loadModel(const std::string& filepath)
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filepath,
 		aiProcess_Triangulate |							// meshes' polygons are decomposed into triangles
-		aiProcess_JoinIdenticalVertices |				// reduce significantly memory space usage
-		aiProcess_FlipUVs);								// some models have the V coord flipped upside down
+		aiProcess_JoinIdenticalVertices);// |				// reduce significantly memory space usage
+		//aiProcess_FlipUVs);								// some models have the V coord flipped upside down (not needed for now)
 
 	/* Error checker. */
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -28,7 +28,7 @@ void Model::loadModel(const std::string& filepath)
 	/* Populates the map with the (reference of) last inserted mesh and its name. */
 	for (auto& mesh : m_meshes) m_meshMap[mesh.m_meshName] = &mesh;
 
-	}
+}
 
 Mesh& Model::getMesh(const std::string& name)
 {
@@ -51,6 +51,18 @@ void Model::draw(Shader& shader) const
 			m_materials[mesh.m_matIndex].apply(shader);
 		}
 		mesh.draw();
+	}
+}
+
+void Model::drawExclude(const std::string name, Shader& shader) const
+{
+	for (const auto& mesh : m_meshes)
+	{
+		if(mesh.m_meshName != name)
+		{
+			m_materials[mesh.m_matIndex].apply(shader);
+			mesh.draw();
+		}
 	}
 }
 
@@ -86,9 +98,9 @@ Mesh Model::processMesh(aiMesh* mesh, aiNode* node)
 	 * Anyway, it doesn't even enter the processNode loop as it has mNumMeshes = 0. */
 	tMesh.m_meshName = std::string(node->mName.C_Str());
 
-	/* The first condition already ensures that m_materials is not empty. 
+	/* The first condition also ensures that m_materials is not empty. 
 	 * In the second condition the material suffix is useful only if the node has 2 or more meshes. */
-	if (mesh->mMaterialIndex < m_materials.size())
+	if ( (mesh->mMaterialIndex < m_materials.size()) && (node->mNumMeshes > 1) )
 	{
 		tMesh.m_meshName += "_" + m_materials[mesh->mMaterialIndex].m_matName;
 	}

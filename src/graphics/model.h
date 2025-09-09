@@ -25,7 +25,11 @@ public:
 	
 	Mesh& getMesh(const std::string& name);
 
+	/* Draws all meshes. */
 	void draw(Shader& shader) const;
+
+	/* Draws all meshes besides the one indicated. */
+	void drawExclude(const std::string name, Shader& shader) const;
 
 private:
 
@@ -36,7 +40,9 @@ private:
 	/* Has to be called before processNode in loadModel. */
 	void loadMaterial(const aiScene* scene);
 
-	/* O(1) */
+	/* Map of the meshes of the model. 
+	 * Key is the mesh's <node name>_<material name>.
+	 * If node has just one material the key is just <node name>. */
 	std::unordered_map<std::string, Mesh*> m_meshMap;
 
 };
