@@ -8,4 +8,17 @@ void Material::apply(Shader& shader) const
 	shader.setVector3f("matSpecular", m_specular);
 	shader.setVector3f("matEmission", m_emission);
 	shader.setFloat("matShininess", m_shininess);
+
+
+	if (m_useTex && m_overrideTex!=nullptr)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		m_overrideTex->bind();
+		shader.setInt("useScreenTex", 1);
+		shader.setInt("screenTex", 0);
+	}
+	else 
+	{
+		shader.setInt("useScreenTex", 0);
+	}
 }
