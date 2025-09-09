@@ -8,6 +8,13 @@ struct Vertex
 	glm::vec3 position;
 	glm::vec3 normal;
 	glm::vec2 texCoords;
+
+	Vertex() :
+		position(glm::vec3(0.0f)),
+		normal(glm::vec3(0.0f)),
+		texCoords(glm::vec2(0.0f))
+	{
+	}
 };
 
 /* Struct over class choice is for simplicity and because of
