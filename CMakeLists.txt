@@ -89,11 +89,18 @@ target_link_libraries(imgui_lib PUBLIC glfw)
 # Exe --------------------------------------------------------------------------
 add_executable(royalgreen
   src/main.cpp
+
   src/core/callbacks.cpp
   src/core/utilities.cpp
-  src/core/shader.cpp
   src/core/resource_manager.cpp
-  src/core/camera.cpp
+
+  src/graphics/shader.cpp
+  src/graphics/texture.cpp
+
+  src/graphics/framebuffer.cpp
+
+  src/graphics/camera.cpp
+
   src/graphics/mesh.cpp 
   src/graphics/material.cpp
   src/graphics/model.cpp
@@ -120,4 +127,5 @@ target_link_libraries(royalgreen PRIVATE
 target_compile_definitions(royalgreen PRIVATE
   SHADERS_DIR="${CMAKE_SOURCE_DIR}/res/shaders/"
   MESHES_DIR="${CMAKE_SOURCE_DIR}/res/meshes/"
+  TEXTURE_DIR="${CMAKE_SOURCE_DIR}/res/textures/"
 )
