@@ -1,6 +1,18 @@
 #include "mesh.h"
 #include <glad/glad.h>
 
+
+Mesh::Mesh() :
+	m_VAO(0),
+	m_VBO(0),
+	m_EBO(0),
+	m_matIndex(-1)
+{
+
+}
+
+
+
 void Mesh::setup()
 {
 	// Generate the Vertex Array Object.

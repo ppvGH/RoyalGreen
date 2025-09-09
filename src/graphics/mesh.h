@@ -17,14 +17,20 @@ public:
 	/* Needed for DrawElements. */
 	std::vector<unsigned int> m_indices;
 	/* Associates the mesh with a material stored in the model.
-	 * Initialized at -1 to avoid wrong assignments. */
-	int m_matIndex = -1;
+	 * Initialized at -1 in the default constructor to avoid wrong assignments. */
+	int m_matIndex;
+
+	/* Default constructor. */
+	Mesh();
 
 	/* Initializes VAO, VBO, EBO. */
 	void setup();
 
 	/* Draws the mesh. */
 	void draw() const;
+
+	/* VAO getter. */
+	inline unsigned int getVAO() const { return m_VAO; };
 
 
 private:
