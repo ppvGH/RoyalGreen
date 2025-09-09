@@ -33,7 +33,7 @@ public:
 
 
 private:
-	// shader program identifier	
+	/* Shader program identifier. */
 	unsigned int m_ID;
 
 	/* Creates and compiles a shader from a string
