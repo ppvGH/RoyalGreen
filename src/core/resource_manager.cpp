@@ -4,6 +4,11 @@
 #include <sstream>
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#define STBI_ONLY_JPEG
+#include "stb_image.h" 
+
 Shader& ResourceManager::loadShader(const std::string& pathVert, const std::string& pathFrag, const std::string& name)
 {
 	// loads vertex and fragment shader source code as two strings from filepaths
@@ -11,13 +16,44 @@ Shader& ResourceManager::loadShader(const std::string& pathVert, const std::stri
 	std::string srcFrag = loadFileToString(pathFrag);
 
 	// stores the shader with its name
-	shadersMap[name].linkProgram(srcVert, srcFrag);;
+	shadersMap[name].linkProgram(srcVert, srcFrag);
 	
 	// returns the shader stored in the unordered map
 	return shadersMap[name];
 }
 
-Shader& ResourceManager::GetShader(const std::string& name)
+Texture& ResourceManager::loadTexture(const std::string& pathTex, TexParams& params, const std::string& name)
+{
+	const char* path = pathTex.c_str();
+
+	/* Retrieve data from stbi. */
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+
+	if (data)
+	{
+		/* Correct parameters for the texture retrieved from data.*/
+		params.m_width = width;
+		params.m_height = height;
+
+		GLenum format = (nrChannels == 3) ? GL_RGB : GL_RGBA;
+		params.m_format = format;
+
+		/* Storing the texture in the map. */
+		texturesMap[name] = Texture(params, data);
+
+		stbi_image_free(data);
+	}
+	else
+	{
+		std::cout << "Failed to load texture: " << path << std::endl;
+		stbi_image_free(data);
+	}
+
+	return texturesMap[name];
+}
+
+Shader& ResourceManager::getShader(const std::string& name)
 {
 	// iterates through the map to find the shader with its name
 	auto it = shadersMap.find(name);
@@ -27,9 +63,22 @@ Shader& ResourceManager::GetShader(const std::string& name)
 	}
 	else
 	{
-		std::cerr << "ERROR::RESOURCE_MANAGER::GetShader: Shader \"" << name << "\" not found." << std::endl;
-		throw std::runtime_error("GetShader fail.");
+		std::cerr << "ERROR::RESOURCE_MANAGER::getShader: Shader \"" << name << "\" not found." << std::endl;
+		throw std::runtime_error("GetShader failure.");
+	}
+}
 
+Texture& ResourceManager::getTexture(const std::string& name)
+{
+	auto it = texturesMap.find(name);
+	if (it != texturesMap.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		std::cerr << "ERROR::RESOURCE_MANAGER::getTexture: Testure\"" << name << "\" not found." << std::endl;
+		throw std::runtime_error("getTexture failure.");
 	}
 }
 

@@ -3,25 +3,39 @@
 #include<unordered_map>
 #include<string>
 
-#include "shader.h"
+#include "../graphics/shader.h"
+#include "../graphics/texture.h"
 
 /* Static singleton class to load shaders and textures.*/
 class ResourceManager
 {
 public:
 
-	/* shader programs storage.
+	/* Shader programs storage.
 	 - key: logic name of the shader program
-	 - value: shader program id */
+	 - value: shader object */
 	inline static std::unordered_map<std::string, Shader> shadersMap;
+
+	/* Textures storage.
+	 - key: logic name of the texture
+	 - value: texture object */
+	inline static std::unordered_map<std::string, Texture> texturesMap;
 
 	/* creates a shader program and stores it in the shadersMap 
 	 - pathVert and pathFrag are the filepaths of vertex and fragment shader stages 
 	 - name is the logic name of the shader program used as key in the shadersMap */
 	static Shader& ResourceManager::loadShader(const std::string& pathVert, const std::string& pathFrag, const std::string& name);
 
-	/* shader getter */
-	static Shader& ResourceManager::GetShader(const std::string& name);
+	/* Creates a texture and stores it in the texturesMap.
+	 - pathTex is the filepath of the image file;
+	 - params is a struct containing the wrap and filter parameters of the texture;
+	 - name is the logic name of the texture object used as key in the texturesMap. */
+	static Texture& ResourceManager::loadTexture(const std::string& pathTex, TexParams& params, const std::string& name);
+
+	/* Object getters. */
+	static Shader& ResourceManager::getShader(const std::string& name);
+	static Texture& ResourceManager::getTexture(const std::string& name);
+
 
 private:
 
