@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/camera.h"
+#include "../graphics/camera.h"
 
 struct Scene
 {
