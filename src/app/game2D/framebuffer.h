@@ -6,19 +6,22 @@ class Framebuffer
 {
 public:
 
-	Framebuffer(int width, int height);
+	Framebuffer(const int& width, const int& height);
 
 	void bind();
 	void unbind();
 
 	unsigned int getID() const { return m_ID; }
 	const Texture& getTex() const { return m_tex; }
-	const int* getDims() const { const int ret[2] = { m_width, m_height };  return ret; }
+	const int getWidth() const { return m_width; }
+	const int getHeight() const { return m_height; }
 
 private:
+	/* Identifier of the FB object. */
 	unsigned int m_ID;
-	int m_width;
-	int m_height;
+	/* Sizes of the Texture object. */
+	int m_width, m_height;
 
+	/* The FBO content gets drawn into a Texture object. */
 	Texture m_tex;
 };

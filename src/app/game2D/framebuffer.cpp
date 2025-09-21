@@ -1,8 +1,8 @@
 #include "framebuffer.h"
-
+#include <glad/glad.h>
 #include <iostream>
 
-Framebuffer::Framebuffer(int width, int height) :
+Framebuffer::Framebuffer(const int& width, const int& height) :
 	m_ID(0),
 	m_width(width),
 	m_height(height),
