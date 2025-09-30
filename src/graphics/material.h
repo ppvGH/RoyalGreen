@@ -6,12 +6,32 @@
 #include "../graphics/shader.h"
 #include "../graphics/texture.h"
 
-struct Material
+class Material
 {
+public:
 	/* Name of the material (from the .obj file). */
-	std::string m_matName;
+	std::string m_matName;	
 
-	// Base vector colors.
+	/* Default constructor. */
+	Material();
+
+	/* Method to set uniforms in the shader. */
+	void apply(Shader& shader) const;
+
+	/* Setters. */
+	void setUseTex(const bool& useTex) { m_useTex = useTex; }
+	void setAmbient(const glm::vec3& ambient) { m_ambient = ambient; }
+	void setDiffuse(const glm::vec3& diffuse) { m_diffuse = diffuse; }
+	void setSpecular(const glm::vec3& specular) { m_specular = specular; }
+	void setEmission(const glm::vec3& emission) { m_emission = emission; }
+	void setShininess(float shininess) { m_shininess = shininess; }
+	
+	/* Texture overriding methods. */
+	void toggleTex() { m_useTex = !m_useTex; }
+	void overrideTex(const Texture& texture) { m_texture = &texture; }
+
+private:
+
 	/* Ambiental light color[k_a]. */
 	glm::vec3 m_ambient;
 	/* Main color (albedo) [k_d]. */
@@ -21,28 +41,12 @@ struct Material
 	/* Self-lighting color [k_e]. */
 	glm::vec3 m_emission;
 	/* Shiny factor. */
-	float m_shininess; 
+	float m_shininess;
 
 	/* Override texture pointer (cause of nullptr). */
-	const Texture* m_overrideTex;
+	const Texture* m_texture;
+	/* Flag for overriding texture. */
 	bool m_useTex;
-
-	/* Method to set uniforms in the shader. */
-	void apply(Shader& shader) const;
-
-	/* Default constructor. */
-	Material(): 
-		m_matName(""),
-		m_ambient(glm::vec3(0.0f)),
-		m_diffuse(glm::vec3(0.0f)),
-		m_specular(glm::vec3(0.0f)),
-		m_emission(glm::vec3(0.0f)),
-		m_shininess(0.0f),
-		m_overrideTex(nullptr),
-		m_useTex(false)
-	{
-	}
-	
 };
 
 
