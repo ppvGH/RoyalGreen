@@ -1,21 +1,28 @@
 #pragma once
 
-#include <glad/glad.h>
+#include "../core/commonGL.h"
 
-struct TexParams
+/* Parameters for textures. */
+
+
+class TexParams
 {
+public:
+
+	// not needed from input
 	int m_width;
+	// not needed from input
 	int m_height;
-	GLenum m_format;
-	GLenum m_wrapS = GL_REPEAT;
-	GLenum m_wrapT = GL_REPEAT;
-	GLenum m_minFilter = GL_LINEAR;
-	GLenum m_magFilter = GL_LINEAR;
+	unsigned int m_format;
+	unsigned int m_wrapS;			// GL_REPEAT 
+	unsigned int m_wrapT;			// GL_REPEAT 
+	unsigned int m_minFilter;		// GL_LINEAR
+	unsigned int m_magFilter;		// GL_LINEAR
 
 	TexParams();
 
-	TexParams(int width, int height, 
-		unsigned int format = GL_RGBA,		
+	TexParams(int width, int height,
+		unsigned int format = GL_RGBA,
 		unsigned int wrapS = GL_REPEAT,
 		unsigned int wrapT = GL_REPEAT,
 		unsigned int minFilter = GL_LINEAR,
