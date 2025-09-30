@@ -56,6 +56,11 @@ void Shader::setVector3f(const std::string& name, const glm::vec3& vec)
 	glUniform3f(glGetUniformLocation(m_ID, name.c_str()), vec.x, vec.y, vec.z);
 }
 
+void Shader::setVector4f(const std::string& name, const glm::vec4 vec)
+{
+	glUniform4f(glGetUniformLocation(m_ID, name.c_str()), vec.x, vec.y, vec.z, vec.w);
+}
+
 void Shader::setMatrix4fv(const std::string& name, int count, bool transpose, const glm::mat4& matrix) const
 {
 	glUniformMatrix4fv(glGetUniformLocation(m_ID, name.c_str()), count, transpose, glm::value_ptr(matrix));
