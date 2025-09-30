@@ -1,15 +1,16 @@
 #pragma once
 
-#include "texture.h"
-
+#include "../../graphics/texture.h"
+//####### DA SPOSTARE IN GRAPHICS INSIEME A SPRITERENDERER
 class Framebuffer
 {
 public:
 
-	Framebuffer(const int& width, const int& height);
+	Framebuffer() = delete;
+	Framebuffer(int width, int height);
 
-	void bind();
-	void unbind();
+	void bind() const;
+	void unbind() const;
 
 	unsigned int getID() const { return m_ID; }
 	const Texture& getTex() const { return m_tex; }

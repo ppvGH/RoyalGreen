@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <iostream>
 
-Framebuffer::Framebuffer(const int& width, const int& height) :
+Framebuffer::Framebuffer(int width, int height) :
 	m_ID(0),
 	m_width(width),
 	m_height(height),
@@ -19,13 +19,13 @@ Framebuffer::Framebuffer(const int& width, const int& height) :
 
 }
 
-void Framebuffer::bind()
+void Framebuffer::bind() const
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
 }
 
 
-void Framebuffer::unbind()
+void Framebuffer::unbind() const
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
