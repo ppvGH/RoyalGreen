@@ -86,7 +86,8 @@ void keyBindings2D(ActionMap& actionMap)
 int main()
 {
     /* GLFW init and window with display ratio. */
-    GLFWwindow* window = initGLFWwindow(1200,800,"Royal Green");
+    GLFWwindow* window = initGLFWwindow("Royal Green",0.7);
+    //GLFWwindow* window = initGLFWwindow(1200,800,"Royal Green");  // window with custom size
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     /* Retrieving window size and setting its center. */
