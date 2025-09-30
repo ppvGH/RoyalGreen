@@ -21,6 +21,17 @@ public:
 	 + near: near distance plane;
 	 + far: far distance plane; */
 	Camera(const glm::vec3& position, const float& fovy, const float& aspect, const float& near, const float& far);
+	
+	// Setters.
+	/* Set ratio (m_aspect) to adjust ratio at runtime. */
+	void setAspect(float aspect) { m_aspect = aspect; }
+
+	void setGrounded(float grounded) { m_grounded = grounded; }
+
+	void setPosition(const glm::vec3& position) { m_position = position; }
+
+	void setFront(const glm::vec3& front) { m_front = front; updateCameraVectors(false); }
+
 
 	// Getters.
 	/* Returns prospective projection matrix. */
@@ -34,23 +45,44 @@ public:
 	glm::mat4 getViewMatrix() const;
 
 	/* Returns camera position.*/
-	inline glm::vec3 getPosition() const { return m_position; };
+	glm::vec3 getPosition() const { return m_position; }
+
+	/* Returns camera front. */
+	glm::vec3 getFront() const { return m_front; }
+
+	/* Returns target = position + front. */
+	glm::vec3 getTarget() const { return m_position + m_front; }
+
+	float getYaw() const { return m_yaw; }
+	float getPitch() const { return m_pitch; }
+
+
+	/* Returns mouse sensitivity. */
+	float getSpeed() const { return m_speed; }
+
+	
 
 
 	// Camera movements. Documentation TODO
-	inline void moveForward(const float& dx) { m_position += m_front * dx; }
-	inline void moveBackward(const float& dx) { m_position -= m_front * dx; }
+	void moveForward(float dx) { m_position += m_front * dx; if (m_grounded) m_position.y = m_altitude; }
+	void moveBackward(float dx) { m_position -= m_front * dx; if (m_grounded) m_position.y = m_altitude; }
+	
+	void moveRight(float dx) { m_position += m_right * dx; }
+	void moveLeft(float dx) { m_position -= m_right * dx; }
+	void moveUp(float dx) { m_position += m_up * dx; }
+	void moveDown(float dx) { m_position -= m_up * dx; }
 
-	inline void moveRight(const float& dx) { m_position += m_right * dx; }
-	inline void moveLeft(const float& dx) { m_position -= m_right * dx; }
-	inline void moveUp(const float& dx) { m_position += m_up * dx; }
-	inline void moveDown(const float& dx) { m_position -= m_up * dx; }
+	void turnRight(float psi) { m_yaw -= glm::radians(psi); updateCameraVectors();}
+	void turnLeft(float psi) { m_yaw += glm::radians(psi); updateCameraVectors();}
 
-	inline void turnRight(const float& psi) { m_yaw -= glm::radians(psi); updateCameraVectors();}
-	inline void turnLeft(const float& psi) { m_yaw += glm::radians(psi); updateCameraVectors();}
+	void turnUp(float theta) { m_pitch += glm::radians(theta); updateCameraVectors(); }
+	void turnDown(float theta) { m_pitch -= glm::radians(theta); updateCameraVectors(); }
 
-	inline void turnUp(const float& theta) { m_pitch += glm::radians(theta); updateCameraVectors(); }
-	inline void turnDown(const float& theta) { m_pitch -= glm::radians(theta); updateCameraVectors(); }
+	/* Utilized in mouse callback. */
+	void processMouseInputs(const float& offX, const float& offY);
+
+	/* Aim sign. */
+	//void 
 
 
 private:
@@ -66,10 +98,10 @@ private:
 	 * Gets computed initially in the constructor and must be calculated again in the setters. */
 	glm::vec3 m_up;
 	
-	/* Vertical inclination. */
-	float m_pitch;
 	/* Horizontal inclination. */
 	float m_yaw;
+	/* Vertical inclination. */
+	float m_pitch;
 
 	/* Angle from the bottom to the top of the view frustum.
 	 * Expressed in degrees, must be in the interval [0, 180]. */
@@ -81,10 +113,17 @@ private:
 	/* Far distance plane of the frustum. */
 	float m_far;
 
+	/* Mouse sensitivity. */
+	float m_speed;
 
+	/* If true, position.y will stay fixed at the altitude height. */
+	bool m_grounded;
+	float m_altitude = 1.7f;
 
 	/*TODO: documentation here*/
-	void updateCameraVectors();
+	/* If arg: frontNeedsUpdate is TRUE means that yaw and pitch has been changed and front needs to be updated (DEFAULT);
+	 * If arg: frontNeedsUpdate is FALSE means that front has been changed and yaw and pitch need to be updated; */
+	void updateCameraVectors(bool frontNeedsUpdate = true);
 
 
 };
