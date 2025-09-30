@@ -15,11 +15,11 @@ struct TexParams
 	TexParams();
 
 	TexParams(int width, int height, 
-			  GLenum format = GL_RGBA,
-			  GLenum wrapS = GL_REPEAT, 
-			  GLenum wrapT = GL_REPEAT, 
-			  GLenum minFilter = GL_LINEAR,
-			  GLenum magFilter = GL_LINEAR);
+		unsigned int format = GL_RGBA,		
+		unsigned int wrapS = GL_REPEAT,
+		unsigned int wrapT = GL_REPEAT,
+		unsigned int minFilter = GL_LINEAR,
+		unsigned int magFilter = GL_LINEAR);
 };
 
 class Texture

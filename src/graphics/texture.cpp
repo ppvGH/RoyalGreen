@@ -1,6 +1,5 @@
 #include "texture.h"
 
-
 TexParams::TexParams():
 	m_width(0),
 	m_height(0),
@@ -12,7 +11,7 @@ TexParams::TexParams():
 {
 }
 
-TexParams::TexParams(int width, int height, GLenum format, GLenum wrapS, GLenum wrapT, GLenum minFilter, GLenum magFilter):
+TexParams::TexParams(int width, int height, unsigned int format, unsigned int wrapS, unsigned int wrapT, unsigned int minFilter, unsigned int magFilter):
 	m_width(width),
 	m_height(height),
 	m_format(format),
