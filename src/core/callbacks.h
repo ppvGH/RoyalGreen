@@ -1,5 +1,5 @@
 #pragma once
-#include <GLFW/glfw3.h>
+#include "commonGL.h"
 
 /* Static class to organize GLFW callbacks */
 class Callbacks
@@ -14,6 +14,7 @@ public:
 
     /* Manages keyboard and mouse inputs */
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 
 };
 

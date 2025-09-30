@@ -1,12 +1,11 @@
 #include "callbacks.h"
 
-
 void Callbacks::initCallbacks(GLFWwindow* window)
 {
 	// Framebuffer
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
-	// Inputs
+	// Key inputs
 	glfwSetKeyCallback(window, keyCallback);
 
 }
