@@ -2,7 +2,7 @@
 // class included in .cpp, just fwd declared in .h
 #include "../../graphics/shader.h"
 #include "../../graphics/texture.h" // da togliere quando creo classe sprite TODO
-//
+
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -10,20 +10,26 @@
 
 
 
-SpriteRenderer::SpriteRenderer():
-    m_quadVAO(0)
+SpriteRenderer::SpriteRenderer(int width, int height):
+    m_quadVAO(0),
+    m_width(width),
+    m_height(height)
 {
     initData();
 }
 
-void SpriteRenderer::drawSprite(Shader& shader, int screenWidth, int screenHeight, glm::vec3 position, glm::vec3 size, Texture& texture)
+void SpriteRenderer::drawSprite(Shader& shader, Texture& texture, glm::vec2 position, glm::vec2 size, glm::vec4 uvCoords) const
 {
+
+    glm::mat4 proj = glm::ortho(0.0f, static_cast<float>(m_width), 0.0f, static_cast<float>(m_height));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(position,1.0));
+    model = glm::scale(model, glm::vec3(size, 1.0f));
+    
+    /* Enable the shader to set its uniform.*/
     shader.use();
-    glm::mat4 proj = glm::ortho(0.0f, float(screenWidth), 0.0f, float(screenHeight));
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
-    model = glm::scale(model, size);
     shader.setMatrix4fv("projection", 1, GL_FALSE, proj);
     shader.setMatrix4fv("model", 1, GL_FALSE, model);
+    shader.setVector4f("uvCoords", uvCoords);
 
     glActiveTexture(GL_TEXTURE0);
     texture.bind();
