@@ -6,7 +6,7 @@ class Scene;	// scene.h is included in utilities.cpp
 
 
 /* Initialize GLFW and creates a window with same ratio as the user display.
- * Default is full screen. */
+ * Default scale correspond to full screen. */
 GLFWwindow* initGLFWwindow(const char* title = "", float scale = 1);
 
 /* Initialize GLFW and creates a window with custom width and height. */

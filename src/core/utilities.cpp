@@ -7,6 +7,7 @@
 
 GLFWwindow* initGLFWwindow(const char* title, float scale)
 {
+
     if (scale > 1 || scale < 0)
     {
         std::cout << "ABORT::initGLFWwindow: scale is not in range [0,1]." << std::endl;
