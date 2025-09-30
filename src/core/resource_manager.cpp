@@ -1,5 +1,7 @@
 #include "resource_manager.h"
 
+#include <glad/glad.h>
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -28,6 +30,7 @@ Texture& ResourceManager::loadTexture(const std::string& pathTex, TexParams& par
 
 	/* Retrieve data from stbi. */
 	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);	// flip needed
 	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
 
 	if (data)
