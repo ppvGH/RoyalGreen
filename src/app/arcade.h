@@ -6,14 +6,11 @@ class Arcade
 {
 public:
 
-	/* Initializes an Arcade obj through the default model constructor.*/
-	Arcade();
+	/* No default constructor allowed.*/
+	Arcade() = delete;
 
-	/* Creates an Arcade obj through the parametric model constructor. */
+	/* Creates an Arcade obj from its filepath. */
 	Arcade(const std::string& pathModel);
-
-	/* Loads the model. Necessary when the default constructor is called. */
-	void loadModel(const std::string& pathModel) { m_model.loadModel(pathModel); }
 
 	/* Overrides screen material with a texture. */
 	void setScreen(const Texture& texture);
@@ -23,7 +20,9 @@ public:
 	/* Draws the model. */
 	void draw(Shader& shader) const { m_model.draw(shader); }
 
-	/* Model getter.*/
+	/* Model getter (non-const). */
+	Model& getModel() { return m_model; }
+	/* Model getter (read-only) .*/
 	const Model& getModel() const { return m_model; }
 
 private:

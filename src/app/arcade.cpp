@@ -1,10 +1,6 @@
 #include "arcade.h"
 
-Arcade::Arcade():
-	m_model(),
-	m_screenIsON(false)
-{
-}
+
 
 Arcade::Arcade(const std::string& pathModel):
 	m_model(pathModel),
@@ -21,14 +17,14 @@ void Arcade::setScreen(const Texture& texture)
 
 void Arcade::screenSwitch()
 {
-	/* Inverts the state. */
+	/* Inverts the state of the screen. */
 	m_screenIsON = !m_screenIsON;
 
 	/* Button turns glowing red when ON. */
 	Material& matPowerButton = m_model.getMaterial("power_button_power_button");
 	matPowerButton.setEmission(glm::vec3(float(m_screenIsON), 0.0f, 0.0f));
 
-	/* Inverts the uniform in the shader to render the screen. */
+	/* Inverts the uniform in the shader to render the screen content. */
 	Material& matScreen = m_model.getMaterial("display");
 	matScreen.toggleTex();
 }
