@@ -2,6 +2,72 @@
 #include <iostream>
 #include <cassert>
 
+
+Model::Model(const std::string& filepath):
+	m_modelMat(1.0f)
+{
+	loadModel(filepath);
+}
+
+
+const Mesh& Model::getMesh(const std::string& name) const
+{
+	auto it = m_meshMap.find(name);
+	if (it == m_meshMap.end())
+	{
+		std::cout << "getMesh error" << std::endl;
+		throw std::runtime_error("Mesh \"" + name + "\" doesn't exist.");
+	}
+	return *(it->second);
+}
+
+Material& Model::getMaterial(const std::string& name)
+{
+	return this->m_materials[this->getMesh(name).m_matIndex];
+}
+
+Material& Model::getMaterial(const Mesh& mesh)
+{
+	return this->m_materials[mesh.m_matIndex];
+}
+
+
+void Model::draw(Shader& shader) const
+{
+	for (const auto& mesh : m_meshes)
+	{
+		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size())
+		{
+			/* Note that materialIndex = 0 is reserved for the Default Material. */
+			m_materials[mesh.m_matIndex].apply(shader);
+		}
+		mesh.draw();
+	}
+}
+
+//void Model::drawExclude(const std::string name, Shader& shader) const
+//{
+//	for (const auto& mesh : m_meshes)
+//	{
+//		if(mesh.m_meshName != name)
+//		{
+//			m_materials[mesh.m_matIndex].apply(shader);
+//			mesh.draw();
+//		}
+//	}
+//}
+
+
+glm::vec3 Model::getWCSPosition() const
+{
+	/* v = (x,y,z,1) = (0, 0, 0, 1). */
+	glm::vec4 position(0.0f, 0.0f, 0.0f, 1.0f);
+	/* v' = M*v = (x+tx, y+tx, z+tx, 1) = (tx, ty, tz, 1). */
+	position = m_modelMat * position;
+	/* Casting from vec4 to vec3. */
+	return glm::vec3(position);
+}
+
 void Model::loadModel(const std::string& filepath)
 {
 	/* Importer reads the model file into a scene. */
@@ -29,43 +95,6 @@ void Model::loadModel(const std::string& filepath)
 	for (auto& mesh : m_meshes) m_meshMap[mesh.m_meshName] = &mesh;
 
 }
-
-Mesh& Model::getMesh(const std::string& name)
-{
-	auto it = m_meshMap.find(name);
-	if (it == m_meshMap.end())
-	{
-		throw std::runtime_error("Mesh \"" + name + "\" doesn't exist.");
-	}
-	return *(it->second);
-}
-
-
-void Model::draw(Shader& shader) const
-{
-	for (const auto& mesh : m_meshes)
-	{
-		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size())
-		{
-			/* Note that materialIndex = 0 is reserved for the Default Material. */
-			m_materials[mesh.m_matIndex].apply(shader);
-		}
-		mesh.draw();
-	}
-}
-
-void Model::drawExclude(const std::string name, Shader& shader) const
-{
-	for (const auto& mesh : m_meshes)
-	{
-		if(mesh.m_meshName != name)
-		{
-			m_materials[mesh.m_matIndex].apply(shader);
-			mesh.draw();
-		}
-	}
-}
-
 
 
 void Model::processNode(aiNode* node, const aiScene* scene)
@@ -160,24 +189,24 @@ void Model::loadMaterial(const aiScene* scene)
 
 		/* Setting material ambient color. */
 		if (aiMat->Get(AI_MATKEY_COLOR_AMBIENT, tCol) == AI_SUCCESS)
-			tMat.m_ambient = glm::vec3(tCol.r, tCol.g, tCol.b);
+			tMat.setAmbient(glm::vec3(tCol.r, tCol.g, tCol.b));
 
 		/* Setting material diffuse color. */
 		if (aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, tCol) == AI_SUCCESS)
-			tMat.m_diffuse = glm::vec3(tCol.r, tCol.g, tCol.b);
+			tMat.setDiffuse(glm::vec3(tCol.r, tCol.g, tCol.b));
 
 		/* Setting material specular color. */
 		if (aiMat->Get(AI_MATKEY_COLOR_SPECULAR, tCol) == AI_SUCCESS)
-			tMat.m_specular = glm::vec3(tCol.r, tCol.g, tCol.b);
+			tMat.setSpecular(glm::vec3(tCol.r, tCol.g, tCol.b));
 
 		/* Setting material emissive color. */
 		if (aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, tCol) == AI_SUCCESS)
-			tMat.m_emission = glm::vec3(tCol.r, tCol.g, tCol.b);
+			tMat.setEmission(glm::vec3(tCol.r, tCol.g, tCol.b));
 
 		/* Setting material shininess. */
 		float tShin;
 		if (aiMat->Get(AI_MATKEY_SHININESS, tShin) == AI_SUCCESS)
-			tMat.m_shininess = tShin;
+			tMat.setShininess(tShin);
 
 		/* Setting material name.*/
 		if (aiMat->Get(AI_MATKEY_NAME, tName) == AI_SUCCESS)
