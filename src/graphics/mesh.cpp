@@ -1,16 +1,13 @@
 #include "mesh.h"
 #include <glad/glad.h>
 
-
 Mesh::Mesh() :
 	m_VAO(0),
 	m_VBO(0),
 	m_EBO(0),
 	m_matIndex(-1)
 {
-
 }
-
 
 
 void Mesh::setup()
@@ -61,4 +58,24 @@ void Mesh::draw() const
 	glBindVertexArray(m_VAO);
 	glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
 	//glBindVertexArray(0); // not really necessary
+}
+
+glm::vec3 Mesh::getCenter() const
+{
+	/* Average of vertices positions. */
+	glm::vec3 center = glm::vec3(0.0f);
+	for (const auto& vert : m_vertices) center += vert.position;
+	center /= m_vertices.size();
+
+	return center;
+}
+
+glm::vec3 Mesh::getGlobalNormal() const
+{
+	/* Normalized sum of the vertices normals. */
+	glm::vec3 gNormal = glm::vec3(0.0f);
+	for (const auto& vert : m_vertices)	gNormal += vert.normal;
+	gNormal = glm::normalize(gNormal);
+
+	return gNormal;
 }

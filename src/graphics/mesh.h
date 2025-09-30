@@ -29,8 +29,15 @@ public:
 	/* Draws the mesh. */
 	void draw() const;
 
+	/* Computes the position of the mesh's center. */
+	glm::vec3 getCenter() const;
+
+	/* Computes the global normal of the mesh.
+	 * NB: this is meaningful only with planar meshes. */
+	glm::vec3 getGlobalNormal() const;
+
 	/* VAO getter. */
-	inline unsigned int getVAO() const { return m_VAO; };
+	unsigned int getVAO() const { return m_VAO; };
 
 
 private:
