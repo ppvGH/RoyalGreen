@@ -51,11 +51,11 @@ public:
 
 	/* Getter for the animationIsOn boolean. */
 	bool getAnimationIsOn() const { return m_animationIsOn; }
+	
 	/* Camera animation: from the current cam position to a target point, from which
-	 * the camera points to the center of the display. TODO: could be improved using a
-	 * track like a Bezier curve or making the path not intersect with the arcade mesh. 
-	 * (bounding box and ray picking mechanism needed). */
-	bool cameraAnimation();
+	 * the camera points to the center of the display.
+	 * TODO: maybe BOOLEAN return type is not needed anymore. */
+	bool cameraInAnimation();
 
 	/* Camera methods. */
 
@@ -77,7 +77,10 @@ public:
 	void drawScene() const;
 	// 3D camera input handler
 	void cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D	);
+
+
 private:
+	
 	/* Sizes of window. */
 	int m_width, m_height;
 
@@ -101,12 +104,16 @@ private:
 	Arcade m_arcade;
 	Model m_room;
 
-	/* Returns false when the animation is finished. */
+	/* Returns false when an animation is finished. */
 	bool m_animationIsOn = false;
-	/* Activates last part of animation. When it is false the first part of animation is active. */
-	bool m_animLastPart = false;
+	/* Activates second part of animation. When it is false the first part of animation is active. */
+	bool m_animSecondPart = false;
 	/* Animation auxiliary variable. */
 	glm::vec3 m_startPos, m_startFront;
+	float m_animStartTime = 0.0f;
+	float m_animMidTime = 0.0f;
+	float m_animFirstPartDuration;
+	float m_animSecondPartDuration;
 
 	/* Initialization of scene (loading models and setting modelMatrices). */
 	void initScene();
@@ -121,5 +128,18 @@ private:
 	/* Draw sight at the center of the screen. */
 	void drawAim(Shader& shader) const;
 
+
+
+
+// #################################################################################################################
+// ##############################################   DESCARDED METHODS   ############################################
+// #################################################################################################################
+
+
+	/* Camera animation: from the current cam position to a target point, from which
+	 * the camera points to the center of the display. TODO: could be improved using a
+	 * track like a Bezier curve or making the path not intersect with the arcade mesh.
+	 * (bounding box and ray picking mechanism needed). */
+	/*bool cameraAnimationOLD();*/
 };
 
