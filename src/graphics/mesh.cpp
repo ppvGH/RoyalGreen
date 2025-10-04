@@ -40,12 +40,12 @@ void Mesh::setup()
 
 	// Layout location 1: normal.
 	// Pointer position is computed by offsetof macro.
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::m_normal));
 	glEnableVertexAttribArray(1);
 
 	// Layout location 2: texCoords.
 	// Pointer position is computed by offsetof macro.
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::m_texCoords));
 	glEnableVertexAttribArray(2);
 
 	// Unbind the Vertex Array.
@@ -64,7 +64,7 @@ glm::vec3 Mesh::getCenter() const
 {
 	/* Average of vertices positions. */
 	glm::vec3 center = glm::vec3(0.0f);
-	for (const auto& vert : m_vertices) center += vert.position;
+	for (const auto& vert : m_vertices) center += vert.getPosition();
 	center /= m_vertices.size();
 
 	return center;
@@ -74,8 +74,31 @@ glm::vec3 Mesh::getGlobalNormal() const
 {
 	/* Normalized sum of the vertices normals. */
 	glm::vec3 gNormal = glm::vec3(0.0f);
-	for (const auto& vert : m_vertices)	gNormal += vert.normal;
+	for (const auto& vert : m_vertices)	gNormal += vert.getNormal();
 	gNormal = glm::normalize(gNormal);
 
 	return gNormal;
+}
+
+
+bool Mesh::intersectRayTriangle(const Ray& localRay, float& tOut) const
+{
+	bool hit = false;
+	float tMin = std::numeric_limits<float>::max();
+
+	for (const auto& triData : m_triangleData)
+	{
+		float t;
+		if (mollerTrumbore(localRay, triData, t))
+		{
+			if (t < tMin)
+			{
+				tMin = t;
+				hit = true;
+			}
+		}
+	}
+
+	if (hit) tOut = tMin;
+	return hit;
 }

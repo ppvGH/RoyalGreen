@@ -4,7 +4,7 @@
 #include <string>
 
 #include "vertex.h"
-
+#include "../core/geometry.h"
 
 /* Class responsible for a single mesh setup and draw. */
 class Mesh 
@@ -19,6 +19,8 @@ public:
 	/* Associates the mesh with a material stored in the model.
 	 * Initialized at -1 in the default constructor to avoid wrong assignments. */
 	int m_matIndex;
+	/* Needed for ray-triangle intersection. */
+	std::vector<TriangleData> m_triangleData;
 
 	/* Default constructor. */
 	Mesh();
@@ -35,6 +37,8 @@ public:
 	/* Computes the global normal of the mesh.
 	 * NB: this is meaningful only with planar meshes. */
 	glm::vec3 getGlobalNormal() const;
+
+	bool intersectRayTriangle(const Ray& localRay, float& tOut) const;
 
 	/* VAO getter. */
 	unsigned int getVAO() const { return m_VAO; };
