@@ -1,33 +1,33 @@
 #include "camera.h"
-
+#include "../app/scene_data.h"
 #include<glm/gtx/transform.hpp>
 //#include<iostream>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-const float ALTITUDE = 1.7f;
 
 Camera::Camera() :										// INITLIST FOLLOWS MEMBER DECLARATION ORDER IN THE CLASS HEADER
-	m_altitude(ALTITUDE),
-	m_position(glm::vec3(4.0f, ALTITUDE, 0.0f)),
+	m_altitude(sceneData::cameraAltitude),
+	m_position(sceneData::cameraStartingPosition),
 	m_front(glm::normalize(glm::vec3(-m_position.x, 0.0f, 0.0f))),	// Initialized at -position.x (viewing straight front)
 	m_right(glm::normalize(glm::cross(m_front, m_VUP))),			// If direction instead of front: cross(VUP, dir)
 	m_up(glm::cross(m_right, m_front)), 							// If direction instead of front: cross(dir, right)
 	m_yaw(std::atan2f(m_front.x, m_front.z)),						// atan2 considers all 4 quadrants and returns radians
 	m_pitch(std::asinf(m_front.y)),									// asin returns radians 
-	m_fovy(45.0f),													// In degrees.
-	m_aspect((float) 16 / 9),										// TODO: default for now is same ratio as my display
-	m_near(0.1f),
-	m_far(200.0f),
-	m_speed(0.001f),
-	m_grounded(true)
+	m_fovy(sceneData::cameraFovy),									// In degrees.
+	m_aspect(sceneData::cameraAspect),								// TODO: default for now is same ratio as my display
+	m_near(sceneData::cameraNearPlane),
+	m_far(sceneData::cameraFarPlane),
+	m_mouseSpeed(sceneData::cameraInitMouseSpeed),
+	m_keyboardSpeed(sceneData::cameraInitKeyboardSpeed),
+	m_grounded(sceneData::cameraInitialGrounded)
 
 { 
 }
 
 
 Camera::Camera(const glm::vec3& position, const float& fovy, const float& aspect, const float& near, const float& far) :
-	m_altitude(ALTITUDE),
+	m_altitude(sceneData::cameraAltitude),
 	m_position(position),
 	m_front(glm::normalize(-position)),							// FRONT: opposite of classic direction (dir) vector of cameras
 	m_right(glm::normalize(glm::cross(m_front, m_VUP))),		// If direction instead of front: cross(VUP, dir)
@@ -38,8 +38,9 @@ Camera::Camera(const glm::vec3& position, const float& fovy, const float& aspect
 	m_aspect(aspect),	
 	m_near(near),
 	m_far(far),
-	m_speed(0.001f),
-	m_grounded(true)
+	m_mouseSpeed(sceneData::cameraInitMouseSpeed),
+	m_keyboardSpeed(sceneData::cameraInitKeyboardSpeed),
+	m_grounded(sceneData::cameraInitialGrounded)
 {
 }
 
@@ -62,8 +63,8 @@ glm::mat4 Camera::getViewMatrix() const
 
 void Camera::processMouseInputs(const float& offX, const float& offY)
 {
-	m_yaw -= offX * m_speed;	//RotateOnXAxis(offX) method can be created TODO
-	m_pitch += offY * m_speed;	//RotateOnYAxis(offY) method can be created TODO
+	rotateOnXAxis(offX);
+	rotateOnYAxis(offY);
 	//std::cout << "inside processMouseInputs\nm_yaw: " << m_yaw << "\tm_pitch:" << m_pitch << std::endl;
 	if (m_pitch > glm::radians(89.0f)) m_pitch = glm::radians(89.0f);
 	if (m_pitch < -glm::radians(89.0f)) m_pitch = -glm::radians(89.0f);

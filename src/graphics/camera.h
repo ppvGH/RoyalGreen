@@ -58,25 +58,24 @@ public:
 
 
 	/* Returns mouse sensitivity. */
-	float getSpeed() const { return m_speed; }
+	float getMouseSpeed() const { return m_mouseSpeed; }
+	/* Returns keyboard sensitivity. */
+	float getKeyboardSpeed() const { return m_keyboardSpeed; }
 
 	
 
 
 	// Camera movements. Documentation TODO
-	void moveForward(float dx) { m_position += m_front * dx; if (m_grounded) m_position.y = m_altitude; }
-	void moveBackward(float dx) { m_position -= m_front * dx; if (m_grounded) m_position.y = m_altitude; }
+	void moveForward(float dx) { m_position += m_keyboardSpeed * m_front * dx; if (m_grounded) m_position.y = m_altitude; }
+	void moveBackward(float dx) { m_position -= m_keyboardSpeed * m_front * dx; if (m_grounded) m_position.y = m_altitude; }
 	
-	void moveRight(float dx) { m_position += m_right * dx; }
-	void moveLeft(float dx) { m_position -= m_right * dx; }
-	void moveUp(float dx) { m_position += m_up * dx; }
-	void moveDown(float dx) { m_position -= m_up * dx; }
+	void moveRight(float dx) { m_position += m_keyboardSpeed * m_right * dx; }
+	void moveLeft(float dx) { m_position -= m_keyboardSpeed * m_right * dx; }
+	void moveUp(float dx) { m_position += m_keyboardSpeed * m_up * dx; }
+	void moveDown(float dx) { m_position -= m_keyboardSpeed * m_up * dx; }
 
-	void turnRight(float psi) { m_yaw -= glm::radians(psi); updateCameraVectors();}
-	void turnLeft(float psi) { m_yaw += glm::radians(psi); updateCameraVectors();}
-
-	void turnUp(float theta) { m_pitch += glm::radians(theta); updateCameraVectors(); }
-	void turnDown(float theta) { m_pitch -= glm::radians(theta); updateCameraVectors(); }
+	void rotateOnXAxis(float offX) { m_yaw -= offX * m_mouseSpeed;}
+	void rotateOnYAxis(float offY) { m_pitch += offY * m_mouseSpeed; }
 
 	/* Utilized in mouse callback. */
 	void processMouseInputs(const float& offX, const float& offY);
@@ -113,12 +112,14 @@ private:
 	/* Far distance plane of the frustum. */
 	float m_far;
 
-	/* Mouse sensitivity. */
-	float m_speed;
+	/* Sensitivity for mouse control inputs. */
+	float m_mouseSpeed;
+	/* Sensitivity for keyboard control inputs. */
+	float m_keyboardSpeed;
 
 	/* If true, position.y will stay fixed at the altitude height. */
 	bool m_grounded;
-	float m_altitude = 1.7f;
+	float m_altitude;
 
 	/*TODO: documentation here*/
 	/* If arg: frontNeedsUpdate is TRUE means that yaw and pitch has been changed and front needs to be updated (DEFAULT);
