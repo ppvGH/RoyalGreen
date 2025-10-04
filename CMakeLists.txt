@@ -95,6 +95,7 @@ add_executable(royalgreen
   src/core/resource_manager.cpp
   src/core/input_manager.cpp
   src/core/action_map.cpp
+  src/core/geometry.cpp
 
   src/graphics/shader.cpp
   src/graphics/texture.cpp
@@ -105,9 +106,9 @@ add_executable(royalgreen
   src/graphics/material.cpp
   src/graphics/model.cpp
 
-  src/app/arcade.cpp
-  
   src/app/scene.cpp
+  src/app/ui_manager.cpp
+  src/app/arcade.cpp
 
   src/app/game2D/framebuffer.cpp
   src/app/game2D/sprite_renderer.cpp
