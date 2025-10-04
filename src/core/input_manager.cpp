@@ -1,5 +1,5 @@
 #include "input_manager.h"
-
+#include <iostream>
 void InputManager::registerKey(int key)
 {
 	/* Init keys to Released state. */
@@ -14,8 +14,12 @@ void InputManager::update(GLFWwindow* window)
 		 * States can be only GLFW_PRESS or GLFW_RELEASE. 
 		 * if GLFW_PRESS: if state is released, set it to (just) pressed, if not then set it to held;
 		 * else (GLFW_RELEASE) + if state is NOT released: set state to released. 
-		 * N.B. the Held state can appear fast as one single tap of a key is equivalent to 4-5 frames. */
-		if (glfwGetKey(window, key) == GLFW_PRESS)
+		 * N.B. the Held state can appear fast as one single tap of a key is equivalent to 4-5 frames. 
+		 * N.B. glfwGetKey works only with keyboard inputs. For mouse buttons one needs glfwGetMouseButton. */
+
+		int item = isMouseButton(key) ? glfwGetMouseButton(window, key) : glfwGetKey(window, key);
+
+		if(item == GLFW_PRESS)
 			state = (state == KeyState::Released) ? KeyState::Pressed : KeyState::Held;
 		else if (state != KeyState::Released)
 			state = KeyState::Released;
@@ -42,4 +46,10 @@ bool InputManager::isReleased(int key) const
 {
 	auto it = m_keyStates.find(key);
 	return it != m_keyStates.end() && it->second == KeyState::Released;
+}
+
+bool InputManager::isMouseButton(int key)
+{
+	/* Left = button1, right = button2, middle = button3, ... */
+	return key >= GLFW_MOUSE_BUTTON_1 && key <= GLFW_MOUSE_BUTTON_LAST;
 }

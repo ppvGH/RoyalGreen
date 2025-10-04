@@ -25,6 +25,8 @@ public:
 	bool isHeld(int key) const;
 	bool isReleased(int key) const;
 
+	bool isMouseButton(int key);
+
 
 private:
 	/* Int: the GLFW_KEY_* ; KeyState: its state. */
