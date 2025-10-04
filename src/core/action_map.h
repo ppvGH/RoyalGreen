@@ -18,6 +18,7 @@ enum class Action
 	// Scene actions
 	SwitchScreen,
 	StartAnimation,
+	SelectObject,
 
 	/* 2D actions */
 	// Game actions
