@@ -17,6 +17,7 @@
 #include "graphics/camera.h"
 #include "graphics/model.h"
 #include "app/scene.h"
+#include "app/ui_manager.h"
 #include "app/arcade.h"
 #include "app/game2D/framebuffer.h"
 #include "app/game2D/sprite_renderer.h"
@@ -60,6 +61,8 @@ void keyRegistering(InputManager& input)
 
     input.registerKey(GLFW_KEY_H);
     input.registerKey(GLFW_KEY_K);
+    input.registerKey(GLFW_MOUSE_BUTTON_LEFT);
+
 }
 
 
@@ -72,6 +75,7 @@ void keyBindings3D(ActionMap& actionMap)
 
     actionMap.bind(Action::StartAnimation, GLFW_KEY_K);
     actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);
+    actionMap.bind(Action::SelectObject, GLFW_MOUSE_BUTTON_LEFT);
 }
 
 void keyBindings2D(ActionMap& actionMap)
@@ -86,9 +90,13 @@ void keyBindings2D(ActionMap& actionMap)
 int main()
 {
     /* GLFW init and window with display ratio. */
-    GLFWwindow* window = initGLFWwindow("Royal Green",0.7);
-    //GLFWwindow* window = initGLFWwindow(1200,800,"Royal Green");  // window with custom size
+    //GLFWwindow* window = initGLFWwindow("Royal Green",0.7);
+    GLFWwindow* window = initGLFWwindow(800,800,"Royal Green");  // window with custom size
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    /* GUI. */
+    UIManager ui;
+    ui.init(window);
 
     /* Retrieving window size and setting its center. */
     int width = 0;
@@ -101,7 +109,6 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
     // #########################################################################
     // ###########################  Loading assets  ############################
@@ -148,6 +155,8 @@ int main()
         /* Polling. */
         glfwPollEvents();
 
+
+
         /* Camera3D initialized. */
         scene.initCam3D();
 
@@ -156,14 +165,25 @@ int main()
         // #########################################################################
         float dt = getDeltaTime(lastFrame); 
 
+
         /* Cursor to the center of the window and camera inputs. 
          * When the animation is on camera inputs are disabled, and
          * cursorCentered is set to false so the cursor gets centered again
          * when the animation is finished, because cursor pos can still change during animation. */
         input.update(window);
 
-        if (scene.isInput3DEnabled()) scene.input3DHandler(window, action3DMap);
-        else gameTest.input2DHandler(action2DMap, dt);
+        if (!ui.isMenuOpen())
+        {
+            if (scene.isInput3DEnabled()) scene.input3DHandler(window, action3DMap);
+            else gameTest.input2DHandler(action2DMap, dt);
+        }
+        
+
+        /*GUI*/
+        ui.beginFrame();    
+        ui.updateInput(input);
+        ui.drawUI(scene, width, height);
+        
 
         // #########################################################################
         // ############### 2D rendering into the FrameBuffer Object ################
@@ -183,11 +203,14 @@ int main()
         // #########################################################################
 
         scene.drawScene();
+        scene.drawAim();
+
+        ui.render(); //over everything
 
         glfwSwapBuffers(window);
        
-        //TODO IMPORTANTISSIMO: CONFIG FILE JSON PER I VALORI HARDCODATI IN SCENE.CPP
     }
+    ui.shutdown();
 
     glfwDestroyWindow(window);
     glfwTerminate();
