@@ -8,6 +8,14 @@
 #include <iostream> //for debug
 #include "../core/utilities.h"
 
+/* TODO: creare uno sgabello da mettere davanti al cabinato arcade e dare l'opzione "siediti" :
+ * se selezionata la camera fa l'animazione che porta davanti al cabinato ma senza entrarci e senza bloccare gli input. 
+ * blocca solo la posizione della camera. poi con il comando alzati la camera si rialza. */
+
+/*TODO: per creare un contenitore con vari tipi di oggetti (Arcade, Room, Chair, Table, ...) potrei creare una classe base astratta
+ * SceneObject con metodi virtuali getModel() = 0 e far ereditare Arcade,Room,Chair... da questa.
+ * così poi in Scene posso fare std::vector<std::unique_ptr<SceneObject>> m_items; m_items.push_back(std::make_unique<Arcade>()) .. */
+
 Scene::Scene(int width, int height) :
 	m_width(width),
 	m_height(height),
@@ -49,6 +57,29 @@ void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 	if (actionMap3D.justStarted(Action::StartAnimation) || m_animationIsOn)	cameraInAnimation(); 
 
 	if (actionMap3D.justStarted(Action::SwitchScreen)) switchArcadeScreen();
+
+	if (actionMap3D.justStarted(Action::SelectObject))
+		if (picking()) openArcadeMenu();			//cameraInAnimation();		// TODO: improve here
+}
+
+bool Scene::picking() const
+{
+	bool hit = false;
+
+	const Model& testModel = m_arcade.getModel();
+	glm::mat4 inverseModel = glm::inverse(testModel.getModelMat());
+	glm::vec3 localOrigin = glm::vec3(inverseModel * glm::vec4(m_cam3D.getPosition(),1.0f));
+	glm::vec3 localDirect = glm::vec3(inverseModel * glm::vec4(m_cam3D.getFront(), 0.0f));			// already local
+
+	Ray localRay(localOrigin, localDirect);
+
+	float t;
+	hit = testModel.intersectRayTriangle(localRay,t);
+
+	if (hit) std::cout << "hit! t = " << t << std::endl;
+	else std::cout << "miss!\n";
+
+	return hit;
 }
 
 void Scene::initCam3D() const
@@ -167,7 +198,7 @@ bool Scene::cameraInAnimation()
 		 * and block 3D inputs to enable 2D inputs for the game. */
 		if (currPos == endPos) 
 		{
-			setSceneInput(false);
+			setInput2D(true);
 			m_animationIsOn = false;
 		}
 
@@ -182,7 +213,7 @@ void Scene::drawScene() const
 	Shader& basic = ResourceManager::getShader("basic");
 
 	/* Aim assistant drawcall. */
-	if (m_aimIsOn) drawAim(ResourceManager::getShader("basic2D"));
+	//if (m_aimIsOn) drawAim(ResourceManager::getShader("basic2D"));
 
 	/* Activates the shader. */
 	basic.use();
@@ -198,18 +229,21 @@ void Scene::drawScene() const
 
 }
 
+void Scene::drawAim() const
+{
+	if (m_aimIsOn) drawAim(ResourceManager::getShader("basic2D"));
+}
+
 void Scene::cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 {
 	//if (m_animationIsOn) m_cursorCentered = false;	// added to cameraAnimation.
 	//if (!m_useCam3D || m_animationIsOn) return;		// added to input3DHandler.
 
-	float speed = 10.0f * m_cam3D.getSpeed();			// TODO adjust hardcoding
-
 	/* ------- Keyboard input: WASD movements. ------- */
-	if (actionMap3D.ongoing(Action::MoveForward))	m_cam3D.moveForward(speed);
-	if (actionMap3D.ongoing(Action::MoveLeft))		m_cam3D.moveLeft(speed);
-	if (actionMap3D.ongoing(Action::MoveBackward))	m_cam3D.moveBackward(speed);
-	if (actionMap3D.ongoing(Action::MoveRight))		m_cam3D.moveRight(speed);
+	if (actionMap3D.ongoing(Action::MoveForward))	m_cam3D.moveForward(m_cam3D.getKeyboardSpeed());
+	if (actionMap3D.ongoing(Action::MoveLeft))		m_cam3D.moveLeft(m_cam3D.getKeyboardSpeed());
+	if (actionMap3D.ongoing(Action::MoveBackward))	m_cam3D.moveBackward(m_cam3D.getKeyboardSpeed());
+	if (actionMap3D.ongoing(Action::MoveRight))		m_cam3D.moveRight(m_cam3D.getKeyboardSpeed());
 
 	/* ------- Mouse input: rotations. ------- */
 
@@ -260,7 +294,7 @@ void Scene::drawAim(Shader& shader) const
 void Scene::initScene()
 {
 	/* Shift the WCS position by a position vector and set the model matrix of the arcade model. */
-	glm::mat4 arcadeModelMat = glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.02f, 0.0f));	//TODO: NOT HARDCODED
+	glm::mat4 arcadeModelMat = glm::translate(glm::mat4(1.0f), sceneData::arcadeModelPositionShift);	
 	m_arcade.getModel().setModelMat(arcadeModelMat);
 
 	/* Set the model matrix of the room model to the 4x4 identity matrix. */

@@ -25,9 +25,12 @@ public:
 	bool isInput3DEnabled() const { return m_input3D; }
 	bool isInput2DEnabled() const { return m_input2D; }
 
-	void setSceneInput(bool sceneSwitch) { m_input3D = sceneSwitch; m_input2D = !sceneSwitch; }
+	void setInput3D(bool input3D) { if (input3D) m_input2D = false; m_input3D = input3D; }
+	void setInput2D(bool input2D) { if (input2D) m_input3D = false; m_input2D = input2D; }
 
 	void input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D);
+
+	bool picking() const;
 
 
 	// #########################################################################
@@ -73,11 +76,20 @@ public:
 	/* Switch OFF for sight state. */
 	void switchAimOff() { m_aimIsOn = false; }
 
+	void drawAim() const;
+
 	/* Draw the 3D scene. */
 	void drawScene() const;
 	// 3D camera input handler
 	void cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D	);
 
+	// #########################################################################
+	// #################################  GUI  #################################
+	// #########################################################################
+
+	bool isArcadeMenuOpen() const { return m_arcadeMenuOpen; }
+	void openArcadeMenu() { m_arcadeMenuOpen = true; }
+	void closeArcadeMenu() { m_arcadeMenuOpen = false; }
 
 private:
 	
@@ -127,6 +139,13 @@ private:
 	void initAim();
 	/* Draw sight at the center of the screen. */
 	void drawAim(Shader& shader) const;
+
+
+
+	/* GUI variables and methods. */
+
+	bool m_arcadeMenuOpen = false;
+
 
 
 
