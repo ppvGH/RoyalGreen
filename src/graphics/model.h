@@ -33,8 +33,7 @@ public:
 	/* Draws all meshes. */
 	void draw(Shader& shader) const;
 
-	/* Draws all meshes besides the one indicated. */
-	//void drawExclude(const std::string name, Shader& shader) const;
+	bool intersectRayTriangle(const Ray& localRay, float& tOut) const;
 
 	/* Model matrix to pass as uniform in vertex shaders. */
 	glm::mat4 getModelMat() const { return m_modelMat; }
@@ -63,7 +62,6 @@ private:
 	 * Key is the mesh's <node name>_<material name>.
 	 * If node has just one material the key is just <node name>. */
 	std::unordered_map<std::string, Mesh*> m_meshMap;
-
 
 	/* Model matrix to set the position into the scene. */
 	glm::mat4 m_modelMat;

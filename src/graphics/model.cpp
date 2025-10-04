@@ -45,6 +45,25 @@ void Model::draw(Shader& shader) const
 	}
 }
 
+
+bool Model::intersectRayTriangle(const Ray& localRay, float& tOut) const
+{
+	bool hit = false;
+	float tMin = std::numeric_limits<float>::max();
+	//const auto& mesh = getMesh("display");
+	for(const auto& mesh : m_meshes)
+	{
+		float t;
+		if (mesh.intersectRayTriangle(localRay, t)) 
+		{
+			if (t < tMin) tMin = t;
+			hit = true;
+		}
+	}
+	if (hit) tOut = tMin;
+	return hit;
+}
+
 //void Model::drawExclude(const std::string name, Shader& shader) const
 //{
 //	for (const auto& mesh : m_meshes)
@@ -76,6 +95,7 @@ void Model::loadModel(const std::string& filepath)
 		aiProcess_Triangulate |							// meshes' polygons are decomposed into triangles
 		aiProcess_JoinIdenticalVertices);// |				// reduce significantly memory space usage
 		//aiProcess_FlipUVs);								// some models have the V coord flipped upside down (not needed for now)
+
 
 	/* Error checker. */
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -112,7 +132,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	}
 
 }
-
+/* TODO: push_back could be replaced with emplace back without creation of temporary Vertex or Mesh. */
 Mesh Model::processMesh(aiMesh* mesh, aiNode* node)
 {
 	
@@ -130,40 +150,39 @@ Mesh Model::processMesh(aiMesh* mesh, aiNode* node)
 	/* The first condition also ensures that m_materials is not empty. 
 	 * In the second condition the material suffix is useful only if the node has 2 or more meshes. */
 	if ( (mesh->mMaterialIndex < m_materials.size()) && (node->mNumMeshes > 1) )
-	{
 		tMesh.m_meshName += "_" + m_materials[mesh->mMaterialIndex].m_matName;
-	}
 	
 	/* Loop over vertices. */
 	for (int nv = 0; nv < mesh->mNumVertices; nv++)
 	{
-		/* Temporary vertex. */
-		Vertex vert;
+
 		/* Setting position, normal, texCoords from the mesh attributes. */
-		vert.position = glm::vec3(mesh->mVertices[nv].x, mesh->mVertices[nv].y, mesh->mVertices[nv].z);
-		vert.normal = glm::vec3(mesh->mNormals[nv].x, mesh->mNormals[nv].y, mesh->mNormals[nv].z);
-		if (mesh->mTextureCoords[0])
-		{
-			vert.texCoords = glm::vec2(mesh->mTextureCoords[0][nv].x, mesh->mTextureCoords[0][nv].y);
-		}
-		else // fallback for texCoords
-		{
-			vert.texCoords = glm::vec2(0.0f);
-		}
-		/* Storing a copy of the temporary vertex in the temporary mesh vector of vertices. */
-		tMesh.m_vertices.push_back(vert);
+		glm::vec3 position = glm::vec3(mesh->mVertices[nv].x, mesh->mVertices[nv].y, mesh->mVertices[nv].z);
+		glm::vec3 normal = glm::vec3(mesh->mNormals[nv].x, mesh->mNormals[nv].y, mesh->mNormals[nv].z);
+		glm::vec2 texCoords = glm::vec2(0.0f);	// Initialized at (0,0) as a fallback in case mesh doesnt have texCoords.
+		if (mesh->mTextureCoords[0]) texCoords = glm::vec2(mesh->mTextureCoords[0][nv].x, mesh->mTextureCoords[0][nv].y);
+		/* Emplace back avoid the creation of a temporary Vertex object to push back into the vector. */
+		tMesh.m_vertices.emplace_back(position, normal, texCoords);
 	}
 	/* Loop over faces. */
 	for (int nf = 0; nf < mesh->mNumFaces; nf++)
 	{
 		/* Temporary face. */
 		aiFace face = mesh->mFaces[nf];
-		/* Loop over indices of the face. */
-		for (int ni = 0; ni < face.mNumIndices; ni++)		// mNumIndices should be 3 cause of aiProcessTriangulate flag (importer.ReadFile)
-		{
-			/* Storing indices in the temporary mesh vector of indices. */
+		/* Loop over indices of the face. 
+		 * mNumIndices should be 3 cause of aiProcessTriangulate flag (importer.ReadFile)
+		 * and because .obj from Blender should be already triangulated and degenerate faces removed. */
+		for (int ni = 0; ni < face.mNumIndices; ni++)		
 			tMesh.m_indices.push_back(face.mIndices[ni]);
-		}
+	}
+	/* Loop over triangles. Not needed for loading the model, but only for ray-triangle intersection purpose. */
+	for (int ni = 0; ni < tMesh.m_indices.size(); ni += 3)
+	{
+		unsigned int iA = tMesh.m_indices[ni];
+		unsigned int iB = tMesh.m_indices[ni+1];
+		unsigned int iC = tMesh.m_indices[ni+2];
+		
+		tMesh.m_triangleData.emplace_back(iA, iB, iC, tMesh.m_vertices);
 	}
 	/* Generates VAO, VBO, EBO for the mesh.*/
 	tMesh.setup();
