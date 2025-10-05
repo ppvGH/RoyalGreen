@@ -59,8 +59,9 @@ void keyRegistering(InputManager& input)
     input.registerKey(GLFW_KEY_S);
     input.registerKey(GLFW_KEY_D);
 
-    input.registerKey(GLFW_KEY_H);
-    input.registerKey(GLFW_KEY_K);
+   // input.registerKey(GLFW_KEY_H);
+    //input.registerKey(GLFW_KEY_K);
+    input.registerKey(GLFW_KEY_M);
     input.registerKey(GLFW_MOUSE_BUTTON_LEFT);
 
 }
@@ -73,8 +74,8 @@ void keyBindings3D(ActionMap& actionMap)
     actionMap.bind(Action::MoveBackward, GLFW_KEY_S);
     actionMap.bind(Action::MoveRight, GLFW_KEY_D);
 
-    actionMap.bind(Action::StartAnimation, GLFW_KEY_K);
-    actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);
+    //actionMap.bind(Action::StartAnimation, GLFW_KEY_K);
+    //actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);
     actionMap.bind(Action::SelectObject, GLFW_MOUSE_BUTTON_LEFT);
 }
 
@@ -84,14 +85,16 @@ void keyBindings2D(ActionMap& actionMap)
     actionMap.bind(Action::P1MoveLeft, GLFW_KEY_A);
     actionMap.bind(Action::P1Attack, GLFW_KEY_S);
     actionMap.bind(Action::P1MoveRight, GLFW_KEY_D);
+
+    actionMap.bind(Action::GameMenu, GLFW_KEY_M);
 }
 
 
 int main()
 {
     /* GLFW init and window with display ratio. */
-    //GLFWwindow* window = initGLFWwindow("Royal Green",0.7);
-    GLFWwindow* window = initGLFWwindow(800,800,"Royal Green");  // window with custom size
+    GLFWwindow* window = initGLFWwindow("Royal Green", 0.7);
+    //GLFWwindow* window = initGLFWwindow(800,800,"Royal Green");  // window with custom size
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     /* GUI. */
@@ -135,7 +138,6 @@ int main()
     Scene scene(width, height);
 
     /* Callbacks. (after scene declaration) */
-    glfwSetWindowUserPointer(window, &scene);
     Callbacks::initCallbacks(window);
 
     /* 2D Game rendered into the FBO. */
@@ -156,7 +158,6 @@ int main()
         glfwPollEvents();
 
 
-
         /* Camera3D initialized. */
         scene.initCam3D();
 
@@ -172,17 +173,19 @@ int main()
          * when the animation is finished, because cursor pos can still change during animation. */
         input.update(window);
 
-        if (!ui.isMenuOpen())
+        if (ui.isMenuOpen()) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        else
         {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             if (scene.isInput3DEnabled()) scene.input3DHandler(window, action3DMap);
-            else gameTest.input2DHandler(action2DMap, dt);
+            else if (scene.isInput2DEnabled()) gameTest.input2DHandler(action2DMap, dt);
         }
         
 
         /*GUI*/
         ui.beginFrame();    
-        ui.updateInput(input);
-        ui.drawUI(scene, width, height);
+        //if (ImGui::GetIO().WantCaptureKeyboard) std::cout << "capture\n";
+        ui.drawUI(scene, gameTest, width, height);
         
 
         // #########################################################################
