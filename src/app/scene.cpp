@@ -27,7 +27,8 @@ Scene::Scene(int width, int height) :
 	m_lastY((double)height * 0.5),
 	m_arcade(Path::pathModel),
 	m_room(Path::pathRoom),
-	m_animationIsOn(false),
+	m_animInIsOn(false),
+	m_animOutIsOn(false),
 	m_animSecondPart(false),
 	m_startPos(glm::vec3(0.0f)),
 	m_startFront(glm::vec3(0.0f)),
@@ -52,14 +53,20 @@ Scene::Scene(int width, int height) :
 void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 {
 	/* Disable 3D cam inputs when animation is ongoing. */
-	if (!m_animationIsOn) cam3DinputHandler(window, actionMap3D);	//removed m_usecam3D from conditions if(m_useCam3D && ..)
+	if (!isAnyAnimationOn()) cam3DinputHandler(window, actionMap3D);	//removed m_usecam3D from conditions if(m_useCam3D && ..)
 
-	if (actionMap3D.justStarted(Action::StartAnimation) || m_animationIsOn)	cameraInAnimation(); 
+	if (actionMap3D.justStarted(Action::StartAnimation) || m_animInIsOn) cameraInAnimation(); 
+
+	if (m_animOutIsOn) cameraOutAnimation();
 
 	if (actionMap3D.justStarted(Action::SwitchScreen)) switchArcadeScreen();
 
 	if (actionMap3D.justStarted(Action::SelectObject))
-		if (picking()) openArcadeMenu();			//cameraInAnimation();		// TODO: improve here
+		if (picking())
+		{
+			m_cursorCentered = false;
+			openArcadeMenu();//cameraInAnimation();		// TODO: improve here
+		}			
 }
 
 bool Scene::picking() const
@@ -76,8 +83,8 @@ bool Scene::picking() const
 	float t;
 	hit = testModel.intersectRayTriangle(localRay,t);
 
-	if (hit) std::cout << "hit! t = " << t << std::endl;
-	else std::cout << "miss!\n";
+	/*if (hit) std::cout << "hit! t = " << t << std::endl;
+	else std::cout << "miss!\n";*/
 
 	return hit;
 }
@@ -99,10 +106,6 @@ void Scene::initCam3D() const
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
-
-
-
-
 
 bool Scene::cameraInAnimation()
 {
@@ -128,7 +131,7 @@ bool Scene::cameraInAnimation()
 
 
 	/* First time entering in the function. */
-	if (!m_animationIsOn)
+	if (!m_animInIsOn)
 	{
 		m_startPos = m_cam3D.getPosition();
 		m_startFront = m_cam3D.getFront();
@@ -139,7 +142,9 @@ bool Scene::cameraInAnimation()
 
 		m_animSecondPart = false;
 
-		m_animationIsOn = true;
+		setInput3D(false);
+
+		m_animInIsOn = true;
 	}
 
 	// #################################################################################################################
@@ -199,13 +204,67 @@ bool Scene::cameraInAnimation()
 		if (currPos == endPos) 
 		{
 			setInput2D(true);
-			m_animationIsOn = false;
+			m_animInIsOn = false;
 		}
 
 	}
-	return m_animationIsOn;
+	return m_animInIsOn;
 }
 
+
+bool Scene::cameraOutAnimation()
+{
+	/* cursorCentered is set to false so the cursor gets centered again
+	 * at the end of the animation, because cursor position can still change during animation. */
+	m_cursorCentered = false;
+
+	/* Display Center is a point so it needs the offset of the model position in WCS. */
+	glm::vec3 dC = m_arcade.getModel().getMesh("display").getCenter() + m_arcade.getModel().getWCSPosition();
+	/* Display Normal establishes a direction that does not need a translation. */
+	glm::vec3 dN = m_arcade.getModel().getMesh("display").getGlobalNormal();
+
+	/* Final camera position. */
+	glm::vec3 endPos = glm::vec3((dC + 4.0f * dN).x, sceneData::cameraAltitude, 0.0f);
+
+	/* First time entering in the function. */
+	if (!m_animOutIsOn)
+	{
+		m_startPos = m_cam3D.getPosition();
+
+		m_aimIsOn = true;
+
+		m_animStartTime = glfwGetTime();
+
+		setInput3D(true);
+		setInput2D(false);
+
+		m_animOutIsOn = true;
+	}
+
+	/* Time elapsed since animation started. */
+	float elapsed = glfwGetTime() - m_animStartTime;
+	/* Interpolation variable.
+	* It is 0 at the beginning of the animation
+	* and 1 when elapsed equals the duration of the animation.
+	* Duration of the animation is the same of the second part of the in animation. */
+	float t = glm::clamp(elapsed / m_animSecondPartDuration, 0.0f, 1.0f);
+
+	/* Interpolation of position vector. */
+	glm::vec3 currPos = glm::mix(m_startPos, endPos, t);
+
+	/* Set camera position to current position to animate the scene. */
+	m_cam3D.setPosition(currPos);
+
+	/* Once current position reached its target, end the animation
+	 * and block 3D inputs to enable 2D inputs for the game. */
+	if (currPos == endPos)
+	{
+		m_cam3D.setGrounded(true);
+		m_animOutIsOn = false;
+	}
+	
+	return m_animOutIsOn;
+}
 
 void Scene::drawScene() const
 {

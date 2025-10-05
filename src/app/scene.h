@@ -41,6 +41,7 @@ public:
 	/* Wrappers for Arcade methods. */
 
 	void switchArcadeScreen() { m_arcade.screenSwitch(); }
+
 	void setArcadeScreenTex(const Texture& tex) { m_arcade.setScreen(tex); }
 
 
@@ -53,12 +54,16 @@ public:
 	void initCam3D() const;
 
 	/* Getter for the animationIsOn boolean. */
-	bool getAnimationIsOn() const { return m_animationIsOn; }
+	bool isAnyAnimationOn() const { return m_animInIsOn || m_animOutIsOn; }
+	bool isAnimationInOn() const { return m_animInIsOn; }
+	bool isAnimationOutOn() const { return m_animOutIsOn; }
 	
 	/* Camera animation: from the current cam position to a target point, from which
 	 * the camera points to the center of the display.
 	 * TODO: maybe BOOLEAN return type is not needed anymore. */
 	bool cameraInAnimation();
+
+	bool cameraOutAnimation();
 
 	/* Camera methods. */
 
@@ -117,7 +122,7 @@ private:
 	Model m_room;
 
 	/* Returns false when an animation is finished. */
-	bool m_animationIsOn = false;
+	bool m_animInIsOn = false, m_animOutIsOn = false;
 	/* Activates second part of animation. When it is false the first part of animation is active. */
 	bool m_animSecondPart = false;
 	/* Animation auxiliary variable. */
