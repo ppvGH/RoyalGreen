@@ -16,7 +16,8 @@ Game::Game(int width, int height) :
 	m_spriteRenderer(width, height),
     m_shader(ResourceManager::getShader("tex2D")),
     m_cameraPosition(0.0f),
-    m_cameraMargin(0.0f)
+    m_cameraMargin(0.0f),
+    m_gameMenuOpen(false)
 {
     initGame();
 }
@@ -35,8 +36,12 @@ void Game::initGame()
 
 void Game::input2DHandler(const ActionMap& actionMap2D, float dt)
 {
+    appInputHandler(actionMap2D);
+
     m_player->inputHandler(actionMap2D, dt);
 }
+
+
 
 
 void Game::update(float dt)
@@ -83,4 +88,10 @@ void Game::updateCamera()
 
     /* Bounds cam position to be non-negative. */
     if (m_cameraPosition < 0.0f) m_cameraPosition = 0.0f;
+}
+
+
+void Game::appInputHandler(const ActionMap& actionMap2D)
+{
+    if (actionMap2D.justStarted(Action::GameMenu)) openGameMenu();
 }

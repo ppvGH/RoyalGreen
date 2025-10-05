@@ -33,6 +33,9 @@ public:
 	const SpriteRenderer& getSpriteRenderer() const { return m_spriteRenderer; }
 	const Texture& getFBOTex() const { return m_FBO.getTex(); }
 
+	bool isGameMenuOpen() const { return m_gameMenuOpen; }
+	void closeGameMenu() { m_gameMenuOpen = false; }
+
 private:
 
 	/* Internal variables.*/
@@ -50,6 +53,11 @@ private:
 	/* Updates camera position. */
 	void updateCamera();
 
+	/* Input management. */
+	bool m_gameMenuOpen = false;
+
+	void appInputHandler(const ActionMap& actionMap2D);
+	void openGameMenu() { m_gameMenuOpen = true; }
 
 
 
