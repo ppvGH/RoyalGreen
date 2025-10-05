@@ -1,5 +1,7 @@
 #include "input_manager.h"
+#include <imgui_impl_glfw.h>
 #include <iostream>
+
 void InputManager::registerKey(int key)
 {
 	/* Init keys to Released state. */
@@ -10,6 +12,13 @@ void InputManager::update(GLFWwindow* window)
 { 
 	for (auto& [key, state] : m_keyStates)
 	{
+	 //   // Skip update for navigation control keys (because of imgui)
+		//bool isNavKey = (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN ||
+		//	key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT ||
+		//	key == GLFW_KEY_ENTER);
+
+		//if (isNavKey) continue;
+
 		/* glfwGetKey returns the last state reported for the specified key to the specified window.
 		 * States can be only GLFW_PRESS or GLFW_RELEASE. 
 		 * if GLFW_PRESS: if state is released, set it to (just) pressed, if not then set it to held;
