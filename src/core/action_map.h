@@ -22,6 +22,9 @@ enum class Action
 
 	/* 2D actions */
 	// Game actions
+	GameMenu,
+
+	// Player actions
 	P1MoveRight,
 	P1MoveLeft,
 	P1Jump,
