@@ -23,6 +23,7 @@ TexParams::TexParams(int width, int height, unsigned int format, unsigned int wr
 }
 
 
+
 Texture::Texture(const TexParams& params, unsigned char* data):
 	m_ID(0)
 {

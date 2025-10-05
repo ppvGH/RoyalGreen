@@ -33,7 +33,7 @@ class Texture
 {
 public:
 
-	Texture() = default;
+	Texture() : m_ID(0) {};
 	Texture(const TexParams& params, unsigned char* data);
 
 	void bind() const;
