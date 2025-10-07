@@ -1,5 +1,5 @@
 #include "arcade.h"
-
+#include "scene_data.h"
 
 
 Arcade::Arcade(const std::string& pathModel):
@@ -11,7 +11,7 @@ Arcade::Arcade(const std::string& pathModel):
 
 void Arcade::setScreen(const Texture& texture)
 {
-	Material& matScreen = m_model.getMaterial("display");
+	Material& matScreen = m_model.getMaterial(sceneData::matScreenName);
 	matScreen.overrideTex(texture);
 }
 
@@ -21,10 +21,12 @@ void Arcade::screenSwitch()
 	m_screenIsON = !m_screenIsON;
 
 	/* Button turns glowing red when ON. */
-	Material& matPowerButton = m_model.getMaterial("power_button_power_button");
+	Material& matPowerButton = m_model.getMaterial(sceneData::matPowerButtonName);
 	matPowerButton.setEmission(glm::vec3(float(m_screenIsON), 0.0f, 0.0f));
 
+	/* Display material update. */ /* TODO: implement a CRT shader for the screen. May need to insert a m_shader variable into the Mesh class.*/
+	Material& matScreen = m_model.getMaterial(sceneData::matScreenName);
+	matScreen.setEmission(glm::vec3(m_screenIsON*1.0f));
 	/* Inverts the uniform in the shader to render the screen content. */
-	Material& matScreen = m_model.getMaterial("display");
 	matScreen.toggleTex();
 }
