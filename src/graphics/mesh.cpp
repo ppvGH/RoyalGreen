@@ -5,7 +5,8 @@ Mesh::Mesh() :
 	m_VAO(0),
 	m_VBO(0),
 	m_EBO(0),
-	m_matIndex(-1)
+	m_matIndex(-1),
+	m_UVresize(0)
 {
 }
 

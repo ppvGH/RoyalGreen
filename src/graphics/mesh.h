@@ -43,6 +43,8 @@ public:
 	/* VAO getter. */
 	unsigned int getVAO() const { return m_VAO; };
 
+	void resizeUV(float UVresize) { m_UVresize = UVresize; }
+	float m_UVresize;
 
 private:
 	/* Mesh identifier for the Vertex Array Object. */
@@ -51,6 +53,7 @@ private:
 	unsigned int m_VBO;
 	/* Mesh identifier for the Element Buffer Object. */
 	unsigned int m_EBO;
+
 
 
 
