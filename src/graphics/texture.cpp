@@ -1,5 +1,4 @@
 #include "texture.h"
-#include <iostream>
 
 
 TexParams::TexParams(int width, int height, unsigned int format, unsigned int wrapS, unsigned int wrapT, unsigned int minFilter, unsigned int magFilter):
