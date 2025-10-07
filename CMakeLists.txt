@@ -32,7 +32,7 @@ FetchContent_Declare(
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)         
 set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)      
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE) 
-set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)            
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)    
 
 # Importers
 set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
@@ -109,6 +109,7 @@ add_executable(royalgreen
   src/app/scene.cpp
   src/app/ui_manager.cpp
   src/app/arcade.cpp
+  src/app/room.cpp
 
   src/app/game2D/framebuffer.cpp
   src/app/game2D/sprite_renderer.cpp
@@ -120,7 +121,7 @@ add_executable(royalgreen
   src/app/game2D/background.cpp
 
   external/glad/src/glad.c
-)
+ )
 
 # Include dirs -----------------------------------------------------------------
 target_include_directories(royalgreen PRIVATE
