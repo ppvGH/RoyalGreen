@@ -6,7 +6,7 @@ Framebuffer::Framebuffer(int width, int height) :
 	m_ID(0),
 	m_width(width),
 	m_height(height),
-	m_tex( Texture(TexParams(width, height), nullptr) )
+	m_tex(Texture(TexParams(width, height), nullptr) )
 {
 	glGenFramebuffers(1, &m_ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
