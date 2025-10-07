@@ -18,6 +18,9 @@ namespace Path
 	inline const std::string pathRoom = std::string(MESHES_DIR) + "room.obj";
 
 	inline const std::string pathRospi = std::string(TEXTURE_DIR) + "rospi.png";
+	inline const std::string pathFloorTile = std::string(TEXTURE_DIR) + "floorTile.png";
+
+
 	inline const std::string pathPlayerSprite = std::string(TEXTURE_DIR) + "player_spritesheet.png";
 	inline const std::string pathBackground = std::string(TEXTURE_DIR) + "background.png";
 }
