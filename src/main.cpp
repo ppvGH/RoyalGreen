@@ -46,8 +46,11 @@ void assetLoader()
     ResourceManager::loadShader(Path::path2DVert, Path::path2DFrag, "basic2D"); // for the aim
     ResourceManager::loadShader(Path::pathTex2DVert, Path::pathTex2DFrag, "tex2D"); // for the 2D game
 
-    // texture
+    // texture for 3D scene
     ResourceManager::loadTexture(Path::pathRospi, TexParams(), "rospi");
+    ResourceManager::loadTexture(Path::pathFloorTile, TexParams(), "floorTile");
+
+    // texture for 2D game
     ResourceManager::loadTexture(Path::pathPlayerSprite, TexParams(), gameData::playerTexName);
     ResourceManager::loadTexture(Path::pathBackground, TexParams(), gameData::backgroundTexName);
 }
