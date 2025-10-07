@@ -9,7 +9,7 @@ public:
 	/* No default constructor allowed.*/
 	Arcade() = delete;
 
-	/* Creates an Arcade obj from its filepath. */
+	/* Creates an Arcade object from its filepath. */
 	Arcade(const std::string& pathModel);
 
 	/* Overrides screen material with a texture. */
