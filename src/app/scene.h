@@ -4,6 +4,7 @@
 #include "../core/commonGL.h"
 #include "../core/action_map.h"
 #include "arcade.h"
+#include "room.h"
 
 
 class Scene
@@ -119,7 +120,7 @@ private:
 	/* Scene objects and their position offset.
 	 * Offsets need to be updated after updating the model uniform matrix in the shader. */
 	Arcade m_arcade;
-	Model m_room;
+	Room m_room;
 
 	/* Returns false when an animation is finished. */
 	bool m_animInIsOn = false, m_animOutIsOn = false;
