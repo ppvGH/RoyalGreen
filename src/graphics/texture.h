@@ -9,9 +9,9 @@ class TexParams
 {
 public:
 
-	// not needed from input
+	// If not in FBO, set it to 0. It will be retrieved from the ResourceManager.
 	int m_width;
-	// not needed from input
+	// If not in FBO, set it to 0. It will be retrieved from the ResourceManager.
 	int m_height;
 	unsigned int m_format;
 	unsigned int m_wrapS;			// GL_REPEAT 
@@ -19,9 +19,9 @@ public:
 	unsigned int m_minFilter;		// GL_LINEAR
 	unsigned int m_magFilter;		// GL_LINEAR
 
-	TexParams();
 
-	TexParams(int width, int height,
+	// If not in FBO, set width and height to 0. They will be retrieved from the ResourceManager.
+	TexParams(int width = 0, int height = 0,
 		unsigned int format = GL_RGBA,
 		unsigned int wrapS = GL_REPEAT,
 		unsigned int wrapT = GL_REPEAT,

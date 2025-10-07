@@ -1,15 +1,6 @@
 #include "texture.h"
+#include <iostream>
 
-TexParams::TexParams():
-	m_width(0),
-	m_height(0),
-	m_format(GL_RGBA),
-	m_wrapS(GL_REPEAT),
-	m_wrapT(GL_REPEAT),
-	m_minFilter(GL_LINEAR),
-	m_magFilter(GL_LINEAR)
-{
-}
 
 TexParams::TexParams(int width, int height, unsigned int format, unsigned int wrapS, unsigned int wrapT, unsigned int minFilter, unsigned int magFilter):
 	m_width(width),
