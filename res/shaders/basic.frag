@@ -14,11 +14,12 @@ uniform float matShininess;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
-uniform bool useScreenTex;
-uniform sampler2D screenTex;
+uniform bool useTex;
+uniform sampler2D sampleTex;
 
 void main()
 {
+    // Vectors
     vec3 norm = normalize(normal);
     vec3 lightDir = normalize(lightPos - fragPos);
 
@@ -28,21 +29,26 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), matShininess);
     vec3 specular = spec * matSpecular;
 
-    // Phong base
-    vec3 ambient = matAmbient * 0.01;
-    vec3 diffuse = max(dot(norm, lightDir), 0.0) * matDiffuse;
-    vec3 emission = matEmission;
+    // Ambient
+    vec3 ambient = vec3(0.005);
+    
+    // Diffuse coeff with albedo (tex or mat) 
+    vec3 albedo;
+    if(useTex) albedo = texture(sampleTex, texCoord).rgb;
+    else albedo = matDiffuse;
 
-    // Combina colore Phong + texture
+    vec3 diffuse = max(dot(norm, lightDir), 0.0) * albedo; //* matDiffuse;
+
+    // Emission
+    vec3 emission = matEmission * albedo;
+
+    // Combine colors
     vec3 result = ambient + diffuse + specular + emission;
+
     // gamma correction
     result = pow(result, vec3(1.0/2.2));
-    // Texture 2D
-
-    if(useScreenTex)
-    {
-        result = texture(screenTex, texCoord).rgb;
-    }
+    if(useTex && emission != vec3(0.0)) result = emission;
+    else if (useTex) result = pow(albedo, vec3(1.0/2.2));
     
     FragColor = vec4(result, 1.0);
 }
