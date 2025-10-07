@@ -19,7 +19,7 @@ public:
 	void apply(Shader& shader) const;
 
 	/* Setters. */
-	void setUseTex(const bool& useTex) { m_useTex = useTex; }
+	void setUseTex(bool useTex) { m_useTex = useTex; }
 	void setAmbient(const glm::vec3& ambient) { m_ambient = ambient; }
 	void setDiffuse(const glm::vec3& diffuse) { m_diffuse = diffuse; }
 	void setSpecular(const glm::vec3& specular) { m_specular = specular; }
