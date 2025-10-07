@@ -21,6 +21,18 @@ const Mesh& Model::getMesh(const std::string& name) const
 	return *(it->second);
 }
 
+Mesh& Model::getMesh(const std::string& name) 
+{
+	auto it = m_meshMap.find(name);
+	if (it == m_meshMap.end())
+	{
+		std::cout << "getMesh error" << std::endl;
+		throw std::runtime_error("Mesh \"" + name + "\" doesn't exist.");
+	}
+	return *(it->second);
+}
+
+
 Material& Model::getMaterial(const std::string& name)
 {
 	return this->m_materials[this->getMesh(name).m_matIndex];
@@ -36,11 +48,14 @@ void Model::draw(Shader& shader) const
 {
 	for (const auto& mesh : m_meshes)
 	{
-		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size())
-		{
-			/* Note that materialIndex = 0 is reserved for the Default Material. */
-			m_materials[mesh.m_matIndex].apply(shader);
-		}
+		/* Apply material (set shader uniforms). N.B. materialIndex = 0 is reserved for the Default Material.*/
+		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size()) m_materials[mesh.m_matIndex].apply(shader);
+
+		/* Tiling. */
+		if (mesh.m_UVresize != 0) shader.setFloat("resizeUV", mesh.m_UVresize);		//when m_shader member: mesh.resizeUV()
+		else shader.setFloat("resizeUV", 1);
+
+		/* Draw call. */
 		mesh.draw();
 	}
 }
@@ -115,7 +130,6 @@ void Model::loadModel(const std::string& filepath)
 	for (auto& mesh : m_meshes) m_meshMap[mesh.m_meshName] = &mesh;
 
 }
-
 
 void Model::processNode(aiNode* node, const aiScene* scene)
 {
