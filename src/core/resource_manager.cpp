@@ -36,8 +36,8 @@ Texture& ResourceManager::loadTexture(const std::string& pathTex, TexParams& par
 	if (data)
 	{
 		/* Correct parameters for the texture retrieved from data.*/
-		params.m_width = width;
-		params.m_height = height;
+		if (params.m_width == 0) params.m_width = width;
+		if (params.m_height == 0) params.m_height = height;
 
 		GLenum format = (nrChannels == 3) ? GL_RGB : GL_RGBA;
 		params.m_format = format;
