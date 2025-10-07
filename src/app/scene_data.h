@@ -1,13 +1,19 @@
 #pragma once
 
+#include <string>
 #include <glm/glm.hpp>
 
 namespace sceneData
 {
-	/* Model data. */
-	const glm::vec3 arcadeModelPositionShift = glm::vec3(-4.0f, 0.02f, 0.0f); // 0.02 is to lift the model a tiny bit.
+	/* Arcade model data. */
+	inline const std::string matScreenName = "display";
+	inline const std::string matPowerButtonName = "power_button_power_button";
+	inline const glm::vec3 arcadeModelPositionShift = glm::vec3(-4.0f, 0.02f, 0.0f); // 0.02 is to lift the model a tiny bit.
 
-
+	/* Room model data.*/
+	inline const std::string matFloorName = "floor";
+	inline const std::string meshFloorName = "floor";
+	inline const float floorTileFactor = 16.0f; // 10/16 = 0.667 (size of the tile)
 
 	/* Camera data. */
 	inline const glm::vec3 cameraLightPosition = glm::vec3(20.0f);
