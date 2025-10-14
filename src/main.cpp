@@ -43,8 +43,10 @@ void assetLoader()
 {
     // shaders
     ResourceManager::loadShader(Path::pathVert, Path::pathFrag, "basic");   // for 3D stuff
+    ResourceManager::loadShader(Path::pathVert, Path::pathCRTFrag, "CRT");  // for the display
     ResourceManager::loadShader(Path::path2DVert, Path::path2DFrag, "basic2D"); // for the aim
     ResourceManager::loadShader(Path::pathTex2DVert, Path::pathTex2DFrag, "tex2D"); // for the 2D game
+
 
     // texture for 3D scene
     ResourceManager::loadTexture(Path::pathRospi, TexParams(), "rospi");
@@ -148,6 +150,8 @@ int main()
     constexpr int screenWidth = 600;
     constexpr int screenHeight = 600;
     Game gameTest(screenWidth, screenHeight);
+    ResourceManager::getShader("CRT").use();
+    ResourceManager::getShader("CRT").setVector2f("displaySize", glm::vec2(screenWidth, screenHeight));
     
 
     // #########################################################################
