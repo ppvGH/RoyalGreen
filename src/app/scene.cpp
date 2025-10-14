@@ -92,19 +92,27 @@ bool Scene::picking() const
 
 void Scene::initCam3D() const
 {
-	Shader& shader = ResourceManager::getShader("basic");
 
-	shader.use();
-	/* Setting shader uniforms for camera3D. */
-	shader.use();
-	shader.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
-	shader.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
+	/* Setting phong shader uniforms for the scene. */
+	Shader& phong = ResourceManager::getShader("basic");
+	phong.use();
+	phong.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
+	phong.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
+
+
+
 	/* Setting the lights. */
 	glm::vec3 lampMeshCenter = m_lamp.getMesh("lamp").getCenter();
 
-	shader.setVector3f("lightPos", sceneData::cameraLightPosition); // lampMeshCenter);//sceneData::cameraLightPosition); TODO: reset room normals (light is outside the room)
-	shader.setVector3f("viewPos", m_cam3D.getPosition());
+	phong.setVector3f("lightPos", sceneData::cameraLightPosition); // lampMeshCenter);//sceneData::cameraLightPosition); TODO: reset room normals (light is outside the room)
+	phong.setVector3f("viewPos", m_cam3D.getPosition());
 	// TODO SHADOWMAPPING!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	/* Setting CRT shader uniforms for the scene. */
+	Shader& CRT = ResourceManager::getShader("CRT");
+	CRT.use();
+	CRT.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
+	CRT.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
 
 	/* Clear buffers. */
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -271,16 +279,6 @@ bool Scene::cameraOutAnimation()
 
 void Scene::drawScene() const
 {
-	/* Gets an alias for the shader from the res manager.*/
-	Shader& basic = ResourceManager::getShader("basic");
-
-	/* Aim assistant drawcall. */
-	//if (m_aimIsOn) drawAim(ResourceManager::getShader("basic2D"));
-
-	/* Activates the shader. */
-	//basic.use();		//TODO: UNSAFE: this use means that all of subsequent draw calls use only this shader, if i have to use another shader for a 
-						// particular mesh in a certain model i have to work around it. shader needs to be a member of mesh.
-
 	/* Room draw call. */
 	m_room.setWCSPosition();
 	m_room.draw();
