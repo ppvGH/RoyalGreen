@@ -22,10 +22,10 @@ public:
 	unsigned int getID() const;
 
 	/* Uniforms */
-	void setInt(const std::string& name, const int& value);
-	void setFloat(const std::string& name, const float& value);
-	void setVector3f(const std::string& name, const glm::vec3& vec);
-	void setVector4f(const std::string& name, const glm::vec4 vec);
+	void setInt(const std::string& name, const int& value) const;
+	void setFloat(const std::string& name, const float& value) const;
+	void setVector3f(const std::string& name, const glm::vec3& vec) const;
+	void setVector4f(const std::string& name, const glm::vec4 vec) const;
 	void setMatrix4fv(const std::string& name, int count, bool transpose, const glm::mat4& matrix) const;
 
 	

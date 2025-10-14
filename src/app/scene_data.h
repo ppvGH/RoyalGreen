@@ -6,6 +6,7 @@
 namespace sceneData
 {
 	/* Arcade model data. */
+
 	inline const std::string meshScreenName = "display";
 	inline const std::string matScreenName = "display";
 	inline const std::string matPowerButtonName = "power_button_power_button";

@@ -27,7 +27,7 @@ Scene::Scene(int width, int height) :
 	m_lastY((double)height * 0.5),
 	m_arcade(Path::pathModel),
 	m_room(Path::pathRoom, &ResourceManager::getTexture("floorTile")),
-	m_lamp(Path::pathLamp),
+	m_lamp(Path::pathLamp, &ResourceManager::getShader("basic")),
 	m_animInIsOn(false),
 	m_animOutIsOn(false),
 	m_animSecondPart(false),
@@ -278,19 +278,20 @@ void Scene::drawScene() const
 	//if (m_aimIsOn) drawAim(ResourceManager::getShader("basic2D"));
 
 	/* Activates the shader. */
-	basic.use();		//TODO: UNSAFE: this use means that all of subsequent draw calls use only this shader, if i have to use another shader for a 
+	//basic.use();		//TODO: UNSAFE: this use means that all of subsequent draw calls use only this shader, if i have to use another shader for a 
 						// particular mesh in a certain model i have to work around it. shader needs to be a member of mesh.
 
-	/* Room draw call.*/
-	basic.setMatrix4fv("model", 1, GL_FALSE, m_room.getModel().getModelMat());
-	m_room.draw(basic);
+	/* Room draw call. */
+	m_room.setWCSPosition();
+	m_room.draw();
 
-	basic.setMatrix4fv("model", 1, GL_FALSE, m_lamp.getModelMat());
-	m_lamp.draw(basic);
+	/* Lamp draw call. */
+	m_lamp.setWCSPosition();
+	m_lamp.draw();
 
 	/* Arcade draw call. */
-	basic.setMatrix4fv("model", 1, GL_FALSE, m_arcade.getModel().getModelMat());	// TODO: getmodelmat for arcade class
-	m_arcade.draw(basic);
+	m_arcade.setWCSPosition();
+	m_arcade.draw();
 
 
 }

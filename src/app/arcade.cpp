@@ -1,13 +1,15 @@
 #include "arcade.h"
 #include "scene_data.h"
+#include "../core/resource_manager.h"
 #include <iostream>
 
 Arcade::Arcade(const std::string& pathModel):
-	m_model(pathModel),
+	m_model(pathModel, &ResourceManager::getShader("basic")),
 	m_screenIsON(false)
 {
 	// when the texture is rendered into the screen, dont mix the color with lighting model
-	m_model.getMesh(sceneData::meshScreenName).m_mixTex = false;	
+	m_model.getMesh(sceneData::meshScreenName).m_mixTex = false;
+
 }
 
 

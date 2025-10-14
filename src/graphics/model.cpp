@@ -3,10 +3,16 @@
 #include <cassert>
 
 
-Model::Model(const std::string& filepath):
+Model::Model(const std::string& filepath, Shader* shader):
 	m_modelMat(1.0f)
 {
 	loadModel(filepath);
+	initShader(shader);
+}
+
+void Model::initShader(Shader* shader)
+{
+	for (auto& mesh : m_meshes)	mesh.setShader(*shader);
 }
 
 
@@ -44,19 +50,36 @@ Material& Model::getMaterial(const Mesh& mesh)
 }
 
 
-void Model::draw(Shader& shader) const
+void Model::draw() const
 {
+	/* Stores the address of the shader used.*/
+	Shader* shader = nullptr;
+
 	for (const auto& mesh : m_meshes)
 	{
+		/* Changes the correct shader if not already in use. */
+		if(mesh.getShader() != shader)
+		{
+			mesh.useShader();
+			shader = mesh.getShader();
+		}
+
+		/* Error if shader is still NULL. */
+		if (shader == nullptr)
+		{
+			std::cerr << "ERROR::MODEL::DRAW: Shader pointer is NULL." << std::endl;
+			return;
+		}
+
 		/* Apply material (set shader uniforms). N.B. materialIndex = 0 is reserved for the Default Material.*/
-		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size()) m_materials[mesh.m_matIndex].apply(shader);
+		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size()) m_materials[mesh.m_matIndex].apply(*shader);
 
 		/* Tiling. */
-		if (mesh.m_UVresize != 0) shader.setFloat("resizeUV", mesh.m_UVresize);		//when m_shader member: mesh.resizeUV()
-		else shader.setFloat("resizeUV", 1);
+		if (mesh.m_UVresize != 0) shader->setFloat("resizeUV", mesh.m_UVresize);		//when m_shader member: mesh.resizeUV()
+		else shader->setFloat("resizeUV", 1);
 
 		/* Mix texturing and shading. */
-		shader.setInt("mixTex", mesh.m_mixTex);
+		shader->setInt("mixTex", mesh.m_mixTex);
 
 		/* Draw call. */
 		mesh.draw();
@@ -105,6 +128,26 @@ glm::vec3 Model::getWCSPosition() const
 	return glm::vec3(position);
 }
 
+void Model::setWCSPosition() const
+{
+	/* Stores the address of the shader used.*/
+	Shader* shader = nullptr;
+
+	for (const auto& mesh : m_meshes)
+	{
+		/* Changes the correct shader if not already in use. */
+		if (mesh.getShader() != shader)
+		{
+			mesh.useShader();
+			shader = mesh.getShader();
+		}
+
+		mesh.getShader()->setMatrix4fv("model", 1, GL_FALSE, m_modelMat);
+	}
+}
+
+
+
 void Model::loadModel(const std::string& filepath)
 {
 	/* Importer reads the model file into a scene. */
@@ -131,7 +174,7 @@ void Model::loadModel(const std::string& filepath)
 
 	/* Populates the map with the (reference of) last inserted mesh and its name. */
 	for (auto& mesh : m_meshes) m_meshMap[mesh.m_meshName] = &mesh;
-	for (auto& mesh : m_meshes) std::cout << mesh.m_meshName << std::endl;
+	//for (auto& mesh : m_meshes) std::cout << mesh.m_meshName << std::endl;
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
@@ -149,6 +192,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	}
 
 }
+
 /* TODO: push_back could be replaced with emplace back without creation of temporary Vertex or Mesh. */
 Mesh Model::processMesh(aiMesh* mesh, aiNode* node)
 {

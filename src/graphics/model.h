@@ -23,7 +23,7 @@ public:
 	Model() = delete;
 
 	/* A constructor that populates m_meshes and m_materials with loadModel method. */
-	Model(const std::string& filepath);
+	Model(const std::string& filepath, Shader* shader);
 	
 	/* Getters for meshes and materials. */
 	const Mesh& getMesh(const std::string& name) const;
@@ -32,8 +32,9 @@ public:
 	Material& getMaterial(const Mesh& mesh);
 
 	/* Draws all meshes. */
-	void draw(Shader& shader) const;
+	void draw() const;
 
+	/* Moller-Trumbore algorithm for ray triangle intersection. */
 	bool intersectRayTriangle(const Ray& localRay, float& tOut) const;
 
 	/* Model matrix to pass as uniform in vertex shaders. */
@@ -42,6 +43,7 @@ public:
 
 	/* Position in WCS from model matrix. */
 	glm::vec3 getWCSPosition() const;
+	void setWCSPosition() const;
 
 
 private:
@@ -63,6 +65,11 @@ private:
 	 * Key is the mesh's <node name>_<material name>.
 	 * If node has just one material the key is just <node name>. */
 	std::unordered_map<std::string, Mesh*> m_meshMap;
+
+	/* Current shader used for the draw calls. */
+	//Shader* m_currentShader;
+	void initShader(Shader* shader);
+
 
 	/* Model matrix to set the position into the scene. */
 	glm::mat4 m_modelMat;

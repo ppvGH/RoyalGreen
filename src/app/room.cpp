@@ -1,12 +1,15 @@
 #include "room.h"
 #include "scene_data.h"
+#include "../core/resource_manager.h"
 
 Room::Room(const std::string& pathModel, Texture* floorTex):
-	m_model(pathModel),
+	m_model(pathModel, &ResourceManager::getShader("basic")),
 	m_floorTex(floorTex)
 {
 	if (floorTex != nullptr) setFloor(*floorTex);
 }
+
+
 
 
 void Room::setFloor(const Texture& texture)
