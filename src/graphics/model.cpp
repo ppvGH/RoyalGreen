@@ -55,6 +55,9 @@ void Model::draw(Shader& shader) const
 		if (mesh.m_UVresize != 0) shader.setFloat("resizeUV", mesh.m_UVresize);		//when m_shader member: mesh.resizeUV()
 		else shader.setFloat("resizeUV", 1);
 
+		/* Mix texturing and shading. */
+		shader.setInt("mixTex", mesh.m_mixTex);
+
 		/* Draw call. */
 		mesh.draw();
 	}
@@ -128,7 +131,7 @@ void Model::loadModel(const std::string& filepath)
 
 	/* Populates the map with the (reference of) last inserted mesh and its name. */
 	for (auto& mesh : m_meshes) m_meshMap[mesh.m_meshName] = &mesh;
-
+	for (auto& mesh : m_meshes) std::cout << mesh.m_meshName << std::endl;
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
