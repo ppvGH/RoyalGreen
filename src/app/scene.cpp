@@ -27,6 +27,7 @@ Scene::Scene(int width, int height) :
 	m_lastY((double)height * 0.5),
 	m_arcade(Path::pathModel),
 	m_room(Path::pathRoom, &ResourceManager::getTexture("floorTile")),
+	m_lamp(Path::pathLamp),
 	m_animInIsOn(false),
 	m_animOutIsOn(false),
 	m_animSecondPart(false),
@@ -99,8 +100,11 @@ void Scene::initCam3D() const
 	shader.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
 	shader.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
 	/* Setting the lights. */
-	shader.setVector3f("lightPos", sceneData::cameraLightPosition);			
+	glm::vec3 lampMeshCenter = m_lamp.getMesh("lamp").getCenter();
+
+	shader.setVector3f("lightPos", sceneData::cameraLightPosition); // lampMeshCenter);//sceneData::cameraLightPosition); TODO: reset room normals (light is outside the room)
 	shader.setVector3f("viewPos", m_cam3D.getPosition());
+	// TODO SHADOWMAPPING!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	/* Clear buffers. */
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -211,7 +215,6 @@ bool Scene::cameraInAnimation()
 	return m_animInIsOn;
 }
 
-
 bool Scene::cameraOutAnimation()
 {
 	/* cursorCentered is set to false so the cursor gets centered again
@@ -281,6 +284,9 @@ void Scene::drawScene() const
 	/* Room draw call.*/
 	basic.setMatrix4fv("model", 1, GL_FALSE, m_room.getModel().getModelMat());
 	m_room.draw(basic);
+
+	basic.setMatrix4fv("model", 1, GL_FALSE, m_lamp.getModelMat());
+	m_lamp.draw(basic);
 
 	/* Arcade draw call. */
 	basic.setMatrix4fv("model", 1, GL_FALSE, m_arcade.getModel().getModelMat());	// TODO: getmodelmat for arcade class
@@ -353,12 +359,16 @@ void Scene::drawAim(Shader& shader) const
 
 void Scene::initScene()
 {
-	/* Shift the WCS position by a position vector and set the model matrix of the arcade model. */
+	/* Shift the WCS position by the arcademodel position vector and set the model matrix. */
 	glm::mat4 arcadeModelMat = glm::translate(glm::mat4(1.0f), sceneData::arcadeModelPositionShift);	
 	m_arcade.getModel().setModelMat(arcadeModelMat);
 
 	/* Set the model matrix of the room model to the 4x4 identity matrix. */
 	m_room.getModel().setModelMat(glm::mat4(1.0f));
+
+	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
+	glm::mat4 lampModelMat = glm::translate(glm::mat4(1.0f), sceneData::lampModelPositionShift);
+	m_lamp.setModelMat(lampModelMat);
 }
 
 void Scene::initAim()

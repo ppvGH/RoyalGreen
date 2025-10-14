@@ -121,6 +121,7 @@ private:
 	 * Offsets need to be updated after updating the model uniform matrix in the shader. */
 	Arcade m_arcade;
 	Room m_room;
+	Model m_lamp;
 
 	/* Returns false when an animation is finished. */
 	bool m_animInIsOn = false, m_animOutIsOn = false;
