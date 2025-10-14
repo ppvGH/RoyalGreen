@@ -1,8 +1,8 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec3 normal;
 in vec3 fragPos;
+in vec3 normal;
 in vec2 texCoord;
 
 uniform vec3 matAmbient;
@@ -15,40 +15,109 @@ uniform vec3 lightPos;
 uniform vec3 viewPos;
 
 uniform bool useTex;
+uniform bool mixTex;
 uniform sampler2D sampleTex;
 
-void main()
-{
-    // Vectors
-    vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(lightPos - fragPos);
 
-    // Specular
-    vec3 viewDir = normalize(viewPos - fragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), matShininess);
-    vec3 specular = spec * matSpecular;
+/* PHONG: I = e + aA + dD + sS; 
+ * E: emissive coefficient vector (material); 
+ * A: ambient reflection coefficient vector (material);
+ * a: ambient intensity, identical at every point in the scene; 
+ * D: diffusive coefficient vector (material); 
+ * d: diffusive intensity, = lcos(theta) = dot(L,N)l
+      l: source light intensity
+      theta: angle between normal and light direction
+      N: surface normal vector
+      L: direction of light source (pointing towards light source)
+ * S: specular coefficient vector (material)
+ * s: specular intensity, = lcos(phi)^n = ldot(V,R)^n
+      l: source light intensity
+      phi: angle between ideal reflection director and viewer direction
+      n: shininess coefficient (material)
+      V: viewer direction (pointing towards camera)
+      R: ideal reflection (symmetric to l wrt n)
+ * PHONG: I = E + aA + l[D dot(N,L) + S dot(V,R)^n] = E + aA + l[dD/l+sS/l]
+ * BLINN: specular term is s = L dot(H,N)^n
+      H : half vector = normalize(L,H)
+ * MULTIPLE LIGHTS: I = e + Aa + sum_{l=1}^#lights (Dd_l + Ss_l)
+ */
 
-    // Ambient
-    vec3 ambient = vec3(0.005);
+ void main()
+ {
+    // direction vectors
+    vec3 N = normal;
+    vec3 L = normalize(lightPos - fragPos); // light direction
+    vec3 V = normalize(viewPos - fragPos); // viewer direction
+    //vec3 R = reflect(-L,N);     // minus sign because L points towards light
+    vec3 H = normalize(L + V);  // half vector for blinn-phong
+
+
+    // coefficients vectors + shininess
+    vec3 E = matEmission;
+    vec3 A = matAmbient;
+    vec3 D = matDiffuse;
+    if(useTex) D = texture(sampleTex, texCoord).rgb;
+    vec3 S = matSpecular;
+    float n = matShininess;
     
-    // Diffuse coeff with albedo (tex or mat) 
-    vec3 albedo;
-    if(useTex) albedo = texture(sampleTex, texCoord).rgb;
-    else albedo = matDiffuse;
 
-    vec3 diffuse = max(dot(norm, lightDir), 0.0) * albedo; //* matDiffuse;
+    // intensities
+    float a = 0.005;
+    float l = 1.0;
+    float d =  max(dot(L,N), 0.0);
+    //float s = pow(max(dot(R,V), 0.0), n);
+    float s = pow(max(dot(H,N), 0.0), n);
 
-    // Emission
-    vec3 emission = matEmission * albedo;
-
-    // Combine colors
-    vec3 result = ambient + diffuse + specular + emission;
+    // final light intensity vector
+    vec3 I = E + a*A + l*(d*D+s*S);
 
     // gamma correction
-    result = pow(result, vec3(1.0/2.2));
-    if(useTex && emission != vec3(0.0)) result = emission;
-    else if (useTex) result = pow(albedo, vec3(1.0/2.2));
-    
-    FragColor = vec4(result, 1.0);
-}
+    I = pow(I, vec3(1.0/2.2));
+
+    // if using a texture no gamma correction TODO(create a way to do this just for the screen)
+    if(useTex && !mixTex) I = l*d*D;
+
+    FragColor = vec4(I, 1.0);
+ }
+
+
+
+
+
+
+
+//void main()
+//{
+//    // Vectors
+//    vec3 norm = normalize(normal);
+//    vec3 lightDir = normalize(lightPos - fragPos);
+//    vec3 viewDir = normalize(viewPos - fragPos);
+//    vec3 reflectDir = reflect(-lightDir, norm);
+//
+//    // Ambient
+//    vec3 ambient = vec3(0.005);
+//
+//    // Specular
+//    float spec = pow(max(dot(viewDir, reflectDir), 0.0), matShininess);
+//    vec3 specular = spec * matSpecular;
+//    
+//    // Diffuse coeff with albedo (tex or mat) 
+//    vec3 albedo;
+//    if(useTex) albedo = texture(sampleTex, texCoord).rgb;
+//    else albedo = matDiffuse;
+//
+//    vec3 diffuse = max(dot(norm, lightDir), 0.0) * albedo; //* matDiffuse;
+//
+//    // Emission
+//    vec3 emission = matEmission * albedo;
+//
+//    // Combine colors
+//    vec3 result = ambient + diffuse + specular + emission;
+//
+//    // gamma correction
+//    result = pow(result, vec3(1.0/2.2));
+//    if(useTex && emission != vec3(0.0)) result = emission;
+//    else if (useTex) result = pow(albedo, vec3(1.0/2.2));
+//    
+//    FragColor = vec4(result, 1.0);
+//}

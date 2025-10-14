@@ -15,8 +15,8 @@ uniform float resizeUV;
 
 void main()
 {
-    fragPos = vec3(model * vec4(pos3D, 1.0)); // posizione nel mondo
-    normal = mat3(transpose(inverse(model))) * normal3D; // normale corretta in world space
+    fragPos = vec3(model * vec4(pos3D, 1.0)); // WCS
+    normal = mat3(transpose(inverse(model))) * normal3D; // WCS
     texCoord = tex3D * resizeUV;
     gl_Position = proj * view * vec4(fragPos,1.0);
 
