@@ -1,11 +1,13 @@
 #include "arcade.h"
 #include "scene_data.h"
-
+#include <iostream>
 
 Arcade::Arcade(const std::string& pathModel):
 	m_model(pathModel),
 	m_screenIsON(false)
 {
+	// when the texture is rendered into the screen, dont mix the color with lighting model
+	m_model.getMesh(sceneData::meshScreenName).m_mixTex = false;	
 }
 
 
@@ -26,7 +28,7 @@ void Arcade::screenSwitch()
 
 	/* Display material update. */ /* TODO: implement a CRT shader for the screen. May need to insert a m_shader variable into the Mesh class.*/
 	Material& matScreen = m_model.getMaterial(sceneData::matScreenName);
-	matScreen.setEmission(glm::vec3(m_screenIsON*1.0f));
+	matScreen.setEmission(glm::vec3(m_screenIsON * 1.0f));
 	/* Inverts the uniform in the shader to render the screen content. */
 	matScreen.toggleTex();
 }
