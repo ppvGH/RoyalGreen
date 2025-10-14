@@ -43,8 +43,12 @@ public:
 	/* VAO getter. */
 	unsigned int getVAO() const { return m_VAO; };
 
+	/* Useful for tiling. */
 	void resizeUV(float UVresize) { m_UVresize = UVresize; }
 	float m_UVresize;
+	
+	/* True for mixing texture with lighting model, false to use just texture. (default = true)*/
+	bool m_mixTex;
 
 private:
 	/* Mesh identifier for the Vertex Array Object. */

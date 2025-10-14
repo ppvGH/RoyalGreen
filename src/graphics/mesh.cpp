@@ -6,7 +6,8 @@ Mesh::Mesh() :
 	m_VBO(0),
 	m_EBO(0),
 	m_matIndex(-1),
-	m_UVresize(0)
+	m_UVresize(0),
+	m_mixTex(true)
 {
 }
 
