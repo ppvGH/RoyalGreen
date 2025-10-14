@@ -76,7 +76,7 @@ void Model::draw() const
 
 		/* Tiling. */
 		if (mesh.m_UVresize != 0) shader->setFloat("resizeUV", mesh.m_UVresize);		//when m_shader member: mesh.resizeUV()
-		else shader->setFloat("resizeUV", 1);
+		else shader->setFloat("resizeUV", 1.0);
 
 		/* Mix texturing and shading. */
 		shader->setInt("mixTex", mesh.m_mixTex);
