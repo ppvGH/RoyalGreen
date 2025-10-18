@@ -98,8 +98,8 @@ void keyBindings2D(ActionMap& actionMap)
 int main()
 {
     /* GLFW init and window with display ratio. */
-    GLFWwindow* window = initGLFWwindow("Royal Green", 0.7);
-    //GLFWwindow* window = initGLFWwindow(800,800,"Royal Green");  // window with custom size
+    GLFWwindow* window = initGLFWwindow("Royal Green", 0.8);
+    //GLFWwindow* window = initGLFWwindow(500,800,"Royal Green");  // window with custom size
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     /* GUI. */
@@ -151,7 +151,9 @@ int main()
     constexpr int screenHeight = 600;
     Game gameTest(screenWidth, screenHeight);
     ResourceManager::getShader("CRT").use();
-    ResourceManager::getShader("CRT").setVector2f("displaySize", glm::vec2(screenWidth, screenHeight));
+    // x, y are the viewport width, height respectively and z is the aspect ratio
+    ResourceManager::getShader("CRT").setVector3f("viewportResolution", 
+        glm::vec3(width, height, static_cast<float>(width)/ static_cast<float>(height)));
     
 
     // #########################################################################
