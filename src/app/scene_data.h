@@ -20,6 +20,10 @@ namespace sceneData
 	/* Lamp model data. */
 	inline const glm::vec3 lampModelPositionShift = glm::vec3(0.0f, 2.5f, 0.0f);
 
+
+	/* Pool model data. */
+	inline const glm::vec3 poolModelPositionShift = glm::vec3(0.0f, 0.0f, 2.0f);
+
 	/* Camera data. */
 	inline const glm::vec3 cameraLightPosition = glm::vec3(0.0f, 2.5f, 0.0f);
 	inline const float cameraAltitude = 1.7f;

@@ -122,6 +122,7 @@ private:
 	Arcade m_arcade;
 	Room m_room;
 	Model m_lamp;
+	Model m_pool;
 
 	/* Returns false when an animation is finished. */
 	bool m_animInIsOn = false, m_animOutIsOn = false;

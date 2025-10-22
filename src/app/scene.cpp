@@ -28,6 +28,7 @@ Scene::Scene(int width, int height) :
 	m_arcade(Path::pathModel),
 	m_room(Path::pathRoom, &ResourceManager::getTexture("floorTile")),
 	m_lamp(Path::pathLamp, &ResourceManager::getShader("basic")),
+	m_pool(Path::pathPool, &ResourceManager::getShader("basic")),
 	m_animInIsOn(false),
 	m_animOutIsOn(false),
 	m_animSecondPart(false),
@@ -291,6 +292,10 @@ void Scene::drawScene() const
 	m_arcade.setWCSPosition();
 	m_arcade.draw();
 
+	/* Pool draw call. */
+	m_pool.setWCSPosition();
+	m_pool.draw();
+
 
 }
 
@@ -368,6 +373,12 @@ void Scene::initScene()
 	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
 	glm::mat4 lampModelMat = glm::translate(glm::mat4(1.0f), sceneData::lampModelPositionShift);
 	m_lamp.setModelMat(lampModelMat);
+
+	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
+	glm::mat4 poolModelMat = glm::translate(glm::mat4(1.0f), sceneData::poolModelPositionShift);
+	m_pool.setModelMat(poolModelMat);
+
+
 }
 
 void Scene::initAim()
