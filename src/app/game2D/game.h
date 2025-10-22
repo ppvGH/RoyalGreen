@@ -1,6 +1,6 @@
 #pragma once
 
-#include "framebuffer.h"
+#include "../../graphics/framebuffer.h"
 #include "sprite_renderer.h"
 #include "player.h"
 #include "background.h"

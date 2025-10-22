@@ -1,30 +1,29 @@
-#include "core/commonGL.h"
+//#include "core/commonGL.h"
 
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
+//#include <imgui.h>
+//#include <backends/imgui_impl_glfw.h>
+//#include <backends/imgui_impl_opengl3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-#include <iostream>
+//#include <glm/glm.hpp>
+//#include <glm/gtx/transform.hpp>
+//#include <iostream>
 
-#include <filesystem> // std::filesystem::current_path(), useful for debug
-#include <stdexcept> //runtimeerror
+//#include <filesystem> // std::filesystem::current_path(), useful for debug
+//#include <stdexcept> //runtimeerror
 
 #include "core/callbacks.h"
 #include "core/utilities.h"
-#include "core/resource_manager.h"  // contains shader.h and texture.h too
-#include "graphics/camera.h"
-#include "graphics/model.h"
+//#include "core/resource_manager.h"  // contains shader.h and texture.h too
+//#include "graphics/camera.h"
+//#include "graphics/model.h"
 #include "app/scene.h"
 #include "app/ui_manager.h"
-#include "app/arcade.h"
-#include "app/game2D/framebuffer.h"
-#include "app/game2D/sprite_renderer.h"
-#include "app/game2D/game.h"
+//#include "app/arcade.h"
+//#include "app/game2D/sprite_renderer.h"
+//#include "app/game2D/game.h"
 
-#include "core/input_manager.h"
-#include "core/action_map.h"
+//#include "core/input_manager.h"
+//#include "core/action_map.h"
 
 #include "app/path.h"             // contains all assets filepath
 #include "app/game2D/game_data.h" // contains game related data
@@ -43,8 +42,10 @@ void assetLoader()
 {
     // shaders
     ResourceManager::loadShader(Path::pathVert, Path::pathFrag, "basic");   // for 3D stuff
+    ResourceManager::loadShader(Path::pathVert, Path::pathCRTFrag, "CRT");  // for the display
     ResourceManager::loadShader(Path::path2DVert, Path::path2DFrag, "basic2D"); // for the aim
     ResourceManager::loadShader(Path::pathTex2DVert, Path::pathTex2DFrag, "tex2D"); // for the 2D game
+
 
     // texture for 3D scene
     ResourceManager::loadTexture(Path::pathRospi, TexParams(), "rospi");
@@ -96,8 +97,8 @@ void keyBindings2D(ActionMap& actionMap)
 int main()
 {
     /* GLFW init and window with display ratio. */
-    GLFWwindow* window = initGLFWwindow("Royal Green", 0.7);
-    //GLFWwindow* window = initGLFWwindow(800,800,"Royal Green");  // window with custom size
+    GLFWwindow* window = initGLFWwindow("Royal Green", 0.8);
+    //GLFWwindow* window = initGLFWwindow(500,800,"Royal Green");  // window with custom size
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     /* GUI. */
@@ -148,6 +149,10 @@ int main()
     constexpr int screenWidth = 600;
     constexpr int screenHeight = 600;
     Game gameTest(screenWidth, screenHeight);
+    ResourceManager::getShader("CRT").use();
+    // x, y are the viewport width, height respectively and z is the aspect ratio
+    ResourceManager::getShader("CRT").setVector3f("viewportResolution", 
+        glm::vec3(width, height, static_cast<float>(width)/ static_cast<float>(height)));
     
 
     // #########################################################################

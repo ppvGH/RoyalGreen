@@ -27,7 +27,8 @@ Scene::Scene(int width, int height) :
 	m_lastY((double)height * 0.5),
 	m_arcade(Path::pathModel),
 	m_room(Path::pathRoom, &ResourceManager::getTexture("floorTile")),
-	m_lamp(Path::pathLamp),
+	m_lamp(Path::pathLamp, &ResourceManager::getShader("basic")),
+	m_pool(Path::pathPool, &ResourceManager::getShader("basic")),
 	m_animInIsOn(false),
 	m_animOutIsOn(false),
 	m_animSecondPart(false),
@@ -92,19 +93,27 @@ bool Scene::picking() const
 
 void Scene::initCam3D() const
 {
-	Shader& shader = ResourceManager::getShader("basic");
 
-	shader.use();
-	/* Setting shader uniforms for camera3D. */
-	shader.use();
-	shader.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
-	shader.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
+	/* Setting phong shader uniforms for the scene. */
+	Shader& phong = ResourceManager::getShader("basic");
+	phong.use();
+	phong.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
+	phong.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
+
+
+
 	/* Setting the lights. */
 	glm::vec3 lampMeshCenter = m_lamp.getMesh("lamp").getCenter();
 
-	shader.setVector3f("lightPos", sceneData::cameraLightPosition); // lampMeshCenter);//sceneData::cameraLightPosition); TODO: reset room normals (light is outside the room)
-	shader.setVector3f("viewPos", m_cam3D.getPosition());
+	phong.setVector3f("lightPos", sceneData::cameraLightPosition); // lampMeshCenter);//sceneData::cameraLightPosition); TODO: reset room normals (light is outside the room)
+	phong.setVector3f("viewPos", m_cam3D.getPosition());
 	// TODO SHADOWMAPPING!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	/* Setting CRT shader uniforms for the scene. */
+	Shader& CRT = ResourceManager::getShader("CRT");
+	CRT.use();
+	CRT.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
+	CRT.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
 
 	/* Clear buffers. */
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -271,26 +280,21 @@ bool Scene::cameraOutAnimation()
 
 void Scene::drawScene() const
 {
-	/* Gets an alias for the shader from the res manager.*/
-	Shader& basic = ResourceManager::getShader("basic");
+	/* Room draw call. */
+	m_room.setWCSPosition();
+	m_room.draw();
 
-	/* Aim assistant drawcall. */
-	//if (m_aimIsOn) drawAim(ResourceManager::getShader("basic2D"));
-
-	/* Activates the shader. */
-	basic.use();		//TODO: UNSAFE: this use means that all of subsequent draw calls use only this shader, if i have to use another shader for a 
-						// particular mesh in a certain model i have to work around it. shader needs to be a member of mesh.
-
-	/* Room draw call.*/
-	basic.setMatrix4fv("model", 1, GL_FALSE, m_room.getModel().getModelMat());
-	m_room.draw(basic);
-
-	basic.setMatrix4fv("model", 1, GL_FALSE, m_lamp.getModelMat());
-	m_lamp.draw(basic);
+	/* Lamp draw call. */
+	m_lamp.setWCSPosition();
+	m_lamp.draw();
 
 	/* Arcade draw call. */
-	basic.setMatrix4fv("model", 1, GL_FALSE, m_arcade.getModel().getModelMat());	// TODO: getmodelmat for arcade class
-	m_arcade.draw(basic);
+	m_arcade.setWCSPosition();
+	m_arcade.draw();
+
+	/* Pool draw call. */
+	m_pool.setWCSPosition();
+	m_pool.draw();
 
 
 }
@@ -369,6 +373,12 @@ void Scene::initScene()
 	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
 	glm::mat4 lampModelMat = glm::translate(glm::mat4(1.0f), sceneData::lampModelPositionShift);
 	m_lamp.setModelMat(lampModelMat);
+
+	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
+	glm::mat4 poolModelMat = glm::translate(glm::mat4(1.0f), sceneData::poolModelPositionShift);
+	m_pool.setModelMat(poolModelMat);
+
+
 }
 
 void Scene::initAim()
@@ -400,164 +410,3 @@ void Scene::initAim()
 	glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 }
-
-
-
-// #################################################################################################################
-// ##############################################   DESCARDED METHODS   ############################################
-// #################################################################################################################
-
-
-/* TODO: provare a sostituire distance con lenght2 per evitare i calcoli di radici quadrate
- * confronto: distance(v,w) > eps ------> lenght2(v,w) > eps*eps	dovrebbe essere più efficiente
- * in questo caso non cambierebbe quasi nulla, ma in casi dove per ogni chiamata di funzione ci sono
- * migliaia/milioni di glm::distance allora può fare molta differenza: distance calcola sqrt mentre lenght2 no
- * e sqrt è computazionalmente intensivo per la CPU.
- *
- * Old camera animation frame-based. Replaced with time-based smoother animation, less manual.
- */
-//bool Scene::cameraAnimationOLD()
-//{
-//	/* cursorCentered is set to false so the cursor gets centered again
-//	 * at the end of the animation, because cursor position can still change during animation. */
-//	m_cursorCentered = false;
-//
-//	/* Disable fixed height. */
-//	m_cam3D.setGrounded(false);
-//
-//	/* Display center is a point so it needs the offset of the model position in WCS;*/
-//	glm::vec3 displayCenter = m_arcade.getModel().getMesh("display").getCenter() + m_arcade.getModel().getWCSPosition();
-//	/* Display normal establishes a direction that does not need a translation. */
-//	glm::vec3 displayNormal = m_arcade.getModel().getMesh("display").getGlobalNormal();
-//
-//	/* Intermediate point position. Let it be dC + 3*dN. */
-//	glm::vec3 midPos = displayCenter + 3.0f * displayNormal;
-//	/* The front vector should point at the display center, so it is the opposite of the display normal.*/
-//	glm::vec3 midFront = -displayNormal;
-//	/* Final point position. Let it be dC + 0.67*dN.
-//	 * At this point the front is already on the same direction (opposite orientation).*/
-//	glm::vec3 endPos = displayCenter + 0.67f * displayNormal;
-//
-//	/* Retrieve current position and front vectors. */
-//	glm::vec3 currPos = m_cam3D.getPosition();
-//	glm::vec3 currFront = m_cam3D.getFront();
-//
-//	/* First time entering in the function, setting starting position and front vectors (Scene struct members). */
-//	if (!m_animationIsOn)
-//	{
-//		m_startPos = currPos;
-//		m_startFront = currFront;
-//		m_animationIsOn = true;
-//		m_aimIsOn = false;
-//	}
-//
-//	// #################################################################################################################
-//	// ##################################   Animation first part: current to mid point   ###############################
-//	// #################################################################################################################
-//
-//	/* ----- Camera animation from starting position and front to the intermediate point position and front. ------ */
-//	if (!m_animLastPart)
-//	{
-//		/* Step < 2epsilon to ensure convergence. (epsilon >0.5step) */
-//		const float step = sceneData::arcadeAnimationSpeed;
-//		float eps = step * 0.51;
-//
-//		/* Initial vector distances for position and front.*/
-//		float initPosGap = glm::distance(m_startPos, midPos);
-//		float initFrontGap = glm::distance(m_startFront, midFront);
-//
-//		/* Direction vectors for the interpolation. */
-//		glm::vec3 stepPosDir = glm::normalize(midPos - m_startPos);
-//		glm::vec3 stepFrontDir = glm::normalize(midFront - m_startFront);
-//
-//		/* Number of steps for both interpolation must be the same.
-//		 * Number of steps = initial vector distance / step size.
-//		 * If one calls Lp: initPosGap, Lf:initFrontGap, STp: stepPos, STf: stepFront, then
-//		 * Lp/STp = Lf/STf ----> if one parametrizes STp = step, then
-//		 * if Lp is not zero --> STf = Lf/Lp * STp
-//		 * else STf = step; */
-//		float stepPos = step;
-//		float stepFront;
-//		if (initPosGap >= eps) stepFront = initFrontGap / initPosGap * stepPos;
-//		else stepFront = step;
-//
-//		/* Current position gap. */
-//		float currPosGap = glm::distance(currPos, midPos);
-//		/* Position gap after the next step. */
-//		float stepPosGap = glm::distance(currPos + stepPos * stepPosDir, midPos);
-//		/* Current front gap. */
-//		float currFrontGap = glm::distance(currFront, midFront);
-//		/* Front gap after the next step. */
-//		float stepFrontGap = glm::distance(currFront + stepFront * stepFrontDir, midFront);
-//
-//		/* If one of the gaps is still > epsilon the function returns animationIsOn = true, else returns false */
-//		if (currPosGap >= eps || currFrontGap >= eps)
-//		{
-//			/* This is valid for both position and front vectors.
-//			 * If the current gap is greater than epsilon, check if after a step it's still greater than epsilon.
-//			 * If it is, make the step, else make the current vector equal to the final one.
-//			 * Then update the camera vector member value. */
-//
-//			if (currPosGap >= eps)
-//			{
-//				if (stepPosGap >= eps) currPos += stepPos * stepPosDir;
-//				else currPos = midPos;
-//				m_cam3D.setPosition(currPos);
-//
-//			}
-//			if (currFrontGap >= eps)
-//			{
-//				if (stepFrontGap >= eps) currFront += stepFront * stepFrontDir;
-//				else currFront = midFront;
-//				m_cam3D.setFront(currFront);
-//			}
-//
-//			return m_animationIsOn;
-//		}
-//		else
-//		{
-//			//m_aimIsOn = true;
-//			//m_animationIsOn = false;
-//			//setSceneInput(false);
-//			m_animLastPart = true;
-//			return m_animationIsOn;
-//
-//		}
-//	}
-//	// #################################################################################################################
-//	// ##################################    Animation last part: mid to final point    ################################
-//	// #################################################################################################################
-//	else
-//	{
-//		/* Step < 2epsilon to ensure convergence. (epsilon >0.5step) */
-//		const float step = sceneData::arcadeAnimationSpeed;
-//		float eps = step * 0.51;
-//
-//		/* Direction of the steps (it is the front vector of the intermediate phase). */
-//		glm::vec3 stepPosDir = midFront;
-//
-//		/* Current position gap. */
-//		float currPosGap = glm::distance(currPos, endPos);
-//		/* Position gap after the next step. */
-//		float stepPosGap = glm::distance(currPos + step * stepPosDir, endPos);
-//
-//		/* If the current gap is greater than epsilon, check if after a step it's still greater than epsilon.
-//		 * If it is, make the step, else make the current vector equal to the final one.
-//		 * Then update the camera vector member value. */
-//		if (currPosGap >= eps)
-//		{
-//			if (stepPosGap >= eps) currPos += step * stepPosDir;
-//			else currPos = endPos;
-//			m_cam3D.setPosition(currPos);
-//			return m_animationIsOn;
-//		}
-//		else	// animation is over.
-//		{
-//			m_animLastPart = false;
-//			m_animationIsOn = false;
-//			setSceneInput(false);		// disable 3D scene inputs -> indirectly activates 2D game inputs
-//			return m_animationIsOn;
-//		}
-//	}
-//
-//}

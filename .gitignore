@@ -43,3 +43,7 @@ Thumbs.db
 /res/textures/didiScreen.png
 /res/textures/marco.png
 /res/textures/twitch_spritesheet.png
+/res/shaders/crt_src.frag
+/res/textures/black.png
+/res/textures/SMPTE.png
+/res/textures/white.png

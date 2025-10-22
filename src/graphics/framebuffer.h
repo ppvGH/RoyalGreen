@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../graphics/texture.h"
+#include "texture.h"
 //####### DA SPOSTARE IN GRAPHICS INSIEME A SPRITERENDERER
 class Framebuffer
 {

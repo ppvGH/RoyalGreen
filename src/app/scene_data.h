@@ -6,6 +6,7 @@
 namespace sceneData
 {
 	/* Arcade model data. */
+
 	inline const std::string meshScreenName = "display";
 	inline const std::string matScreenName = "display";
 	inline const std::string matPowerButtonName = "power_button_power_button";
@@ -18,6 +19,10 @@ namespace sceneData
 
 	/* Lamp model data. */
 	inline const glm::vec3 lampModelPositionShift = glm::vec3(0.0f, 2.5f, 0.0f);
+
+
+	/* Pool model data. */
+	inline const glm::vec3 poolModelPositionShift = glm::vec3(0.0f, 0.0f, 2.0f);
 
 	/* Camera data. */
 	inline const glm::vec3 cameraLightPosition = glm::vec3(0.0f, 2.5f, 0.0f);
@@ -37,6 +42,10 @@ namespace sceneData
 
 	/* Geometry data. */
 	inline const float intersectionEpsilon = 1e-6f;
+
+	/* Texture data. */
+	inline const float shadowWidth = 2048.0f;
+	inline const float shadowHeight = 2048.0f;
 
 	/* Old data. */
 	inline const float arcadeAnimationSpeed = 0.005f;

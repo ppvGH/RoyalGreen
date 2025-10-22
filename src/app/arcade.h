@@ -12,13 +12,17 @@ public:
 	/* Creates an Arcade object from its filepath. */
 	Arcade(const std::string& pathModel);
 
+	/* Set model matrix. */
+	void setWCSPosition() const { m_model.setWCSPosition(); }
+
 	/* Overrides screen material with a texture. */
 	void setScreen(const Texture& texture);
+
 	/* Activates/deactivates the screen. */
 	void screenSwitch();
 
 	/* Draws the model. */
-	void draw(Shader& shader) const { m_model.draw(shader); }
+	void draw() const { m_model.draw(); }
 
 	/* Model getter (non-const). */
 	Model& getModel() { return m_model; }

@@ -5,6 +5,7 @@
 
 #include "vertex.h"
 #include "../core/geometry.h"
+#include "shader.h"
 
 /* Class responsible for a single mesh setup and draw. */
 class Mesh 
@@ -50,13 +51,24 @@ public:
 	/* True for mixing texture with lighting model, false to use just texture. (default = true)*/
 	bool m_mixTex;
 
+
+	/* Shader related methods.*/
+	Shader* getShader() const { return m_shader; }
+	void setShader(Shader& shader) { m_shader = &shader; }
+	void useShader() const { m_shader->use(); }
+
+
 private:
+
 	/* Mesh identifier for the Vertex Array Object. */
 	unsigned int m_VAO;
 	/* Mesh identifier for the Vertex Buffer Object. */
 	unsigned int m_VBO;
 	/* Mesh identifier for the Element Buffer Object. */
 	unsigned int m_EBO;
+
+	/* Pointer to the shader utilized to draw the mesh. */
+	Shader* m_shader;
 
 
 
