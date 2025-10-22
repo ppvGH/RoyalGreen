@@ -43,6 +43,10 @@ namespace sceneData
 	/* Geometry data. */
 	inline const float intersectionEpsilon = 1e-6f;
 
+	/* Texture data. */
+	inline const float shadowWidth = 2048.0f;
+	inline const float shadowHeight = 2048.0f;
+
 	/* Old data. */
 	inline const float arcadeAnimationSpeed = 0.005f;
 }

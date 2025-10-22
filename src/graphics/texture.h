@@ -33,8 +33,14 @@ class Texture
 {
 public:
 
-	Texture() : m_ID(0) {};
+	/* Default constructor. */
+	Texture(): m_ID(0) {};
+
+	/* Constructor for image textures. */
 	Texture(const TexParams& params, unsigned char* data);
+
+	/* Depth map texture generator. */
+	void genDepthMap();
 
 	void bind() const;
 	void unbind() const;
