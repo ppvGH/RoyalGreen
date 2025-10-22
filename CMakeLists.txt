@@ -99,6 +99,7 @@ add_executable(royalgreen
 
   src/graphics/shader.cpp
   src/graphics/texture.cpp
+  src/graphics/framebuffer.cpp
 
   src/graphics/camera.cpp
 
@@ -111,7 +112,6 @@ add_executable(royalgreen
   src/app/arcade.cpp
   src/app/room.cpp
 
-  src/app/game2D/framebuffer.cpp
   src/app/game2D/sprite_renderer.cpp
   src/app/game2D/game.cpp
   src/app/game2D/game_obj.cpp

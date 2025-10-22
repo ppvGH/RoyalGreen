@@ -1,30 +1,29 @@
-#include "core/commonGL.h"
+//#include "core/commonGL.h"
 
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
+//#include <imgui.h>
+//#include <backends/imgui_impl_glfw.h>
+//#include <backends/imgui_impl_opengl3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-#include <iostream>
+//#include <glm/glm.hpp>
+//#include <glm/gtx/transform.hpp>
+//#include <iostream>
 
-#include <filesystem> // std::filesystem::current_path(), useful for debug
-#include <stdexcept> //runtimeerror
+//#include <filesystem> // std::filesystem::current_path(), useful for debug
+//#include <stdexcept> //runtimeerror
 
 #include "core/callbacks.h"
 #include "core/utilities.h"
-#include "core/resource_manager.h"  // contains shader.h and texture.h too
-#include "graphics/camera.h"
-#include "graphics/model.h"
+//#include "core/resource_manager.h"  // contains shader.h and texture.h too
+//#include "graphics/camera.h"
+//#include "graphics/model.h"
 #include "app/scene.h"
 #include "app/ui_manager.h"
-#include "app/arcade.h"
-#include "app/game2D/framebuffer.h"
-#include "app/game2D/sprite_renderer.h"
-#include "app/game2D/game.h"
+//#include "app/arcade.h"
+//#include "app/game2D/sprite_renderer.h"
+//#include "app/game2D/game.h"
 
-#include "core/input_manager.h"
-#include "core/action_map.h"
+//#include "core/input_manager.h"
+//#include "core/action_map.h"
 
 #include "app/path.h"             // contains all assets filepath
 #include "app/game2D/game_data.h" // contains game related data
