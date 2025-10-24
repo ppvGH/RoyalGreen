@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include "../scene_data.h"
 #include "game_data.h"
 
 #include "../../core/resource_manager.h"
@@ -12,7 +13,7 @@ Game::Game(int width, int height) :
     m_height(height),
     m_player(nullptr),
     m_background(nullptr),
-	m_FBO(width, height),
+	m_FBO(width, height, sceneData::FBOtypeColor),
 	m_spriteRenderer(width, height),
     m_shader(ResourceManager::getShader("tex2D")),
     m_cameraPosition(0.0f),
