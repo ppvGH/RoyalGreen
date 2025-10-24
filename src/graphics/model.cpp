@@ -1,4 +1,6 @@
 #include "model.h"
+#include "../core/resource_manager.h"
+#include <string>
 #include <iostream>
 #include <cassert>
 
@@ -13,6 +15,11 @@ Model::Model(const std::string& filepath, Shader* shader):
 void Model::initShader(Shader* shader)
 {
 	for (auto& mesh : m_meshes)	mesh.setShader(*shader);
+}
+
+void Model::setShader(const std::string& shaderName)
+{
+	for (auto& mesh : m_meshes) mesh.setShader(ResourceManager::getShader(shaderName));
 }
 
 
@@ -55,9 +62,10 @@ void Model::draw() const
 	/* Stores the address of the shader used.*/
 	Shader* shader = nullptr;
 
+	/* Loop over every mesh of the model, setting uniforms and making the draw call for each of them. */
 	for (const auto& mesh : m_meshes)
 	{
-		/* Changes the correct shader if not already in use. */
+		/* Changes the correct shader if not already in use. Avoids setting useShader on a shader already in use. */
 		if(mesh.getShader() != shader)
 		{
 			mesh.useShader();
@@ -71,15 +79,25 @@ void Model::draw() const
 			return;
 		}
 
+
 		/* Apply material (set shader uniforms). N.B. materialIndex = 0 is reserved for the Default Material.*/
 		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size()) m_materials[mesh.m_matIndex].apply(*shader);
 
-		/* Tiling. */
-		if (mesh.m_UVresize != 0) shader->setFloat("resizeUV", mesh.m_UVresize);		//when m_shader member: mesh.resizeUV()
-		else shader->setFloat("resizeUV", 1.0);
+		/* If a shader doesn't have a uniform it shouldn't try to set it. */
 
-		/* Mix texturing and shading. */
-		shader->setInt("mixTex", mesh.m_mixTex);
+		if (glGetUniformLocation(shader->getID(), "resizeUV") != -1)
+		{
+			/* Tiling. */
+			if (mesh.m_UVresize != 0) shader->setFloat("resizeUV", mesh.m_UVresize);		//when m_shader member: mesh.resizeUV()
+			else shader->setFloat("resizeUV", 1.0);
+		}
+
+		if (glGetUniformLocation(shader->getID(), "mixTex")!= -1)
+		{
+			/* Mix texturing and shading. */
+			shader->setInt("mixTex", mesh.m_mixTex);
+		}
+
 
 		/* Draw call. */
 		mesh.draw();
@@ -141,6 +159,9 @@ void Model::setWCSPosition() const
 			mesh.useShader();
 			shader = mesh.getShader();
 		}
+
+		//if (mesh.getShader()->getID() == ResourceManager::getShader("depth").getID()) std::cout << "uguali nella mesh:\n" <<mesh.m_meshName<<std::endl;
+
 
 		mesh.getShader()->setMatrix4fv("model", 1, GL_FALSE, m_modelMat);
 	}

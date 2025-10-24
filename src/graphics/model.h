@@ -43,8 +43,12 @@ public:
 
 	/* Position in WCS from model matrix. */
 	glm::vec3 getWCSPosition() const;
+
+	/* Passes WCS position to the shader. */
 	void setWCSPosition() const;
 
+	/* To be used to set every mesh shader for the entire model by its name, outside the model initialization. */
+	void setShader(const std::string& shaderName);
 
 private:
 
@@ -69,6 +73,7 @@ private:
 	/* Current shader used for the draw calls. */
 	//Shader* m_currentShader;
 	void initShader(Shader* shader);
+
 
 
 	/* Model matrix to set the position into the scene. */
