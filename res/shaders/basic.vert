@@ -20,6 +20,4 @@ void main()
     texCoord = tex3D * resizeUV;
     gl_Position = proj * view * vec4(fragPos,1.0);
 
-
-
 }
