@@ -103,6 +103,20 @@ void printVec4(const glm::vec4& vec)
     std::cout << '(' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ')' << std::endl;
 }
 
+void printMat4(const glm::mat4& mat)
+{
+    // Stampa in Row-Major (i=riga, j=colonna)
+    for (int i = 0; i < 4; ++i) // Riga
+    {
+        for (int j = 0; j < 4; ++j) // Colonna
+        {
+            // GLM: mat[colonna][riga]
+            std::cout << mat[j][i] << "\t"; // Stampa il dato a mat[colonna=j][riga=i]
+        }
+        std::cout << std::endl;
+    }
+}
+
 
 
 float getDeltaTime(float& lastFrame)

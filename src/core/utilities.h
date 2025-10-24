@@ -20,5 +20,7 @@ void printVec3(const glm::vec3& vec);
 /* Print glm::vec4. */
 void printVec4(const glm::vec4& vec);
 
+void printMat4(const glm::mat4& mat);
+
 /* Computes dt = glfwGetTime() - lastFrame and updates lastFrame. */
 float getDeltaTime(float& lastFrame);
