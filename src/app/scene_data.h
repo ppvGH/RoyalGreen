@@ -44,8 +44,22 @@ namespace sceneData
 	inline const float intersectionEpsilon = 1e-6f;
 
 	/* Texture data. */
-	inline const float shadowWidth = 2048.0f;
-	inline const float shadowHeight = 2048.0f;
+	inline const int shadowWidth = 1024;
+	inline const int shadowHeight = 1024;
+
+	/* Framebuffer data. */
+	inline const char FBOtypeColor = 'c';
+	inline const char FBOtypeDepth = 'd';
+	inline const char FBOtypeCubeDepth = 'm';
+
+	/* Light/shadow data. */
+	inline const float lightFovy = 90.0f;
+	inline const float lightAspect = 1.0f;	// square frustum
+	inline const float lightNearPlane = 1.0f;
+	inline const float lightFarPlane = 10.0f;	// covers entire room
+	inline const float lightInvFarPlane = 1.0 / lightFarPlane;
+
+
 
 	/* Old data. */
 	inline const float arcadeAnimationSpeed = 0.005f;

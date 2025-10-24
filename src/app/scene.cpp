@@ -39,7 +39,8 @@ Scene::Scene(int width, int height) :
 	m_animFirstPartDuration(sceneData::inAnimationFirstPartDuration),
 	m_animSecondPartDuration(sceneData::inAnimationSecondPartDuration),
 	m_aimVAO(0),
-	m_aimIsOn(true)
+	m_aimIsOn(true),
+	m_depthFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth)
 {
 	/* Set aspect = width/height for camera 3D. */
 	float aspect = static_cast<float>(width) / static_cast<float>(height);
@@ -50,6 +51,7 @@ Scene::Scene(int width, int height) :
 
 	/* Initialize aim assistant (sight). */
 	initAim();
+
 }
 
 void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
@@ -103,11 +105,10 @@ void Scene::initCam3D() const
 
 
 	/* Setting the lights. */
-	glm::vec3 lampMeshCenter = m_lamp.getMesh("lamp").getCenter();
-
-	phong.setVector3f("lightPos", sceneData::cameraLightPosition); // lampMeshCenter);//sceneData::cameraLightPosition); TODO: reset room normals (light is outside the room)
+	glm::vec3 lampMeshCenter = m_lamp.getMesh("lamp").getCenter()+m_lamp.getWCSPosition();
+	phong.setVector3f("lightPos", lampMeshCenter);
 	phong.setVector3f("viewPos", m_cam3D.getPosition());
-	// TODO SHADOWMAPPING!!!!!!!!!!!!!!!!!!!!!!!!!
+	
 
 	/* Setting CRT shader uniforms for the scene. */
 	Shader& CRT = ResourceManager::getShader("CRT");
@@ -295,7 +296,7 @@ void Scene::drawScene() const
 	/* Pool draw call. */
 	m_pool.setWCSPosition();
 	m_pool.draw();
-
+		
 
 }
 
@@ -361,6 +362,114 @@ void Scene::drawAim(Shader& shader) const
 	glBindVertexArray(0);
 }
 
+void Scene::shadowCubeMap()
+{
+	Shader& phong = ResourceManager::getShader("basic");
+	phong.use();
+	phong.setInt("depthMap", 1);
+
+	/* Light projection matrix. */
+	glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.3f, 5.0f);
+
+	/* Lamp WCS position is the light position.*/
+	glm::vec3 lightPos = m_lamp.getMesh("lamp").getCenter() + m_lamp.getWCSPosition();
+	
+	/* Data for light view matrices (one for each cube face). */
+	glm::vec3 axes[6] =
+	{
+		glm::vec3(1.0f, 0.0f, 0.0f),	// +X
+		glm::vec3(-1.0f, 0.0f, 0.0f),	// -X
+		glm::vec3(0.0f, 1.0f, 0.0f),	// +Y
+		glm::vec3(0.0f, -1.0f, 0.0f),	// -Y
+		glm::vec3(0.0f, 0.0f, 1.0f),	// +Z
+		glm::vec3(0.0f, 0.0f, -1.0f)	// -Z
+	};
+	glm::vec3 VUPs[6] =
+	{
+		glm::vec3(0.0f, -1.0f, 0.0f),	// for +X
+		glm::vec3(0.0f, -1.0f, 0.0f),	// for -X
+		glm::vec3(0.0f, 0.0f, 1.0f),	// for +Y
+		glm::vec3(0.0f, 0.0f, -1.0f),	// for -Y
+		glm::vec3(0.0f, -1.0f, 0.0f),	// for +Z
+		glm::vec3(0.0f, -1.0f, 0.0f),	// for -Z
+	};
+
+	/* Light view matrices. */
+	std::vector<glm::mat4> lightPVs;
+	for (int i = 0; i < 6; i++) 
+	{
+		lightPVs.push_back(lightProj * glm::lookAt(lightPos, lightPos + axes[i], VUPs[i]));
+	}
+
+
+	/* Depth pass. */
+	/* FBO and viewport setup. */
+	glViewport(0, 0, sceneData::shadowWidth, sceneData::shadowHeight);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_depthFBO.getID());
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	/* Depth shader setup. */
+	Shader& depthShader = ResourceManager::getShader("depth");
+	depthShader.use();
+	for (int i = 0; i < 6; i++)
+	{
+		std::string unif = "shadowMats[" + std::to_string(i) + "]";
+		depthShader.setMatrix4fv(unif, 1, GL_FALSE, lightPVs[i]);
+	}
+	depthShader.setFloat("invFarPlane", sceneData::lightInvFarPlane);
+	depthShader.setVector3f("lightPos", lightPos);
+
+	GLint currentProgram = 0;
+	
+
+	/* Render depth pass. */
+	// Room
+	m_room.getModel().setShader("depth");
+	m_room.setWCSPosition();		// here model is comunicated to the depth shader
+	m_room.draw();
+	m_room.getModel().setShader("basic");
+	// Arcade
+	m_arcade.getModel().setShader("depth");
+	m_arcade.setWCSPosition();
+	m_arcade.draw();
+	m_arcade.resetPhong();
+	// Pool
+	m_pool.setShader("depth");
+	m_pool.setWCSPosition();
+	m_pool.draw();
+	m_pool.setShader("basic");
+	// Lamp
+	m_lamp.setShader("depth");
+	m_lamp.setWCSPosition();
+	m_lamp.draw();
+	m_lamp.setShader("basic");
+
+	/* Unbind FBO. */
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_CULL_FACE);
+	/* Light pass (without render: that will be done in main func by drawScene(). */
+	/* Viewport and Buffers setup. */
+	glViewport(0, 0, m_width, m_height);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	/* Phong shader setup. */
+	phong.use();
+	phong.setFloat("farPlane", sceneData::lightFarPlane);
+
+	/* Cubemap texture setup. */
+	
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_depthFBO.getTex().getID());
+	
+
+	/* After this function ends, it will start drawScene(). */
+}
+
+
+
+
 void Scene::initScene()
 {
 	/* Shift the WCS position by the arcademodel position vector and set the model matrix. */
@@ -377,8 +486,6 @@ void Scene::initScene()
 	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
 	glm::mat4 poolModelMat = glm::translate(glm::mat4(1.0f), sceneData::poolModelPositionShift);
 	m_pool.setModelMat(poolModelMat);
-
-
 }
 
 void Scene::initAim()

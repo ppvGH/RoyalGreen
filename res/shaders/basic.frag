@@ -17,6 +17,28 @@ uniform vec3 viewPos;
 uniform bool useTex;
 uniform bool mixTex;
 uniform sampler2D sampleTex;
+uniform samplerCube depthMap;
+
+uniform float farPlane;
+
+float ShadowCalculation(vec3 fragPos)
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = fragPos - lightPos;
+    // use the light to fragment vector to sample from the depth map    
+    float closestDepth = texture(depthMap, fragToLight).r;
+    // it is currently in linear range between [0,1]. Re-transform back to original value
+    closestDepth *= farPlane;
+    // now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+    // now test for shadows
+    float bias = 0.05; 
+    float shadow = currentDepth -  bias > closestDepth ?  0.8 : 0.0;
+
+
+    //return closestDepth;
+    return shadow;
+}  
 
 
 /* PHONG: I = e + aA + dD + sS; 
@@ -68,16 +90,21 @@ uniform sampler2D sampleTex;
     //float s = pow(max(dot(R,V), 0.0), n);
     float s = pow(max(dot(H,N), 0.0), n);
 
+    // SHADOW
+    float shadow = ShadowCalculation(fragPos);
+
     // final light intensity vector
-    vec3 I = E + a*A + l*(d*D+s*S);
+    vec3 I = E + a*A + l*(d*D+s*S)*(1.0 - shadow);
 
     // gamma correction
     I = pow(I, vec3(1.0/2.2));
 
+    
+
     // if using a texture no gamma correction TODO(create a way to do this just for the screen)
     if(useTex && !mixTex) I = l*d*D;
 
+    //FragColor = vec4(vec3(shadow), 1.0);  
     FragColor = vec4(I, 1.0);
  }
-
 

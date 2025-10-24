@@ -14,6 +14,9 @@ namespace Path
 	inline const std::string path2DFrag = std::string(SHADERS_DIR) + "basic2D.frag";
 	inline const std::string pathTex2DVert = std::string(SHADERS_DIR) + "tex2D.vert";
 	inline const std::string pathTex2DFrag = std::string(SHADERS_DIR) + "tex2D.frag";
+	inline const std::string pathDepthVert = std::string(SHADERS_DIR) + "depth.vert";
+	inline const std::string pathDepthGeom = std::string(SHADERS_DIR) + "depth.geom";
+	inline const std::string pathDepthFrag = std::string(SHADERS_DIR) + "depth.frag";
 
 	inline const std::string pathModel = std::string(MESHES_DIR) + "tempArcade.obj";
 	inline const std::string pathRoom = std::string(MESHES_DIR) + "new_room.obj";

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../graphics/camera.h"
+#include "../graphics/framebuffer.h"
 #include "../core/commonGL.h"
 #include "../core/action_map.h"
 #include "arcade.h"
@@ -97,6 +98,9 @@ public:
 	void openArcadeMenu() { m_arcadeMenuOpen = true; }
 	void closeArcadeMenu() { m_arcadeMenuOpen = false; }
 
+	/* Shadow mapping. */
+	void shadowCubeMap();
+
 private:
 	
 	/* Sizes of window. */
@@ -155,18 +159,7 @@ private:
 	bool m_arcadeMenuOpen = false;
 
 
-
-
-
-// #################################################################################################################
-// ##############################################   DESCARDED METHODS   ############################################
-// #################################################################################################################
-
-
-	/* Camera animation: from the current cam position to a target point, from which
-	 * the camera points to the center of the display. TODO: could be improved using a
-	 * track like a Bezier curve or making the path not intersect with the arcade mesh.
-	 * (bounding box and ray picking mechanism needed). */
-	/*bool cameraAnimationOLD();*/
+	/* Shadow Mapping variables. */
+	Framebuffer m_depthFBO;
 };
 

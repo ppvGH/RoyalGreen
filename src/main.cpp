@@ -6,7 +6,7 @@
 
 //#include <glm/glm.hpp>
 //#include <glm/gtx/transform.hpp>
-//#include <iostream>
+#include <iostream>
 
 //#include <filesystem> // std::filesystem::current_path(), useful for debug
 //#include <stdexcept> //runtimeerror
@@ -45,6 +45,7 @@ void assetLoader()
     ResourceManager::loadShader(Path::pathVert, Path::pathCRTFrag, "CRT");  // for the display
     ResourceManager::loadShader(Path::path2DVert, Path::path2DFrag, "basic2D"); // for the aim
     ResourceManager::loadShader(Path::pathTex2DVert, Path::pathTex2DFrag, "tex2D"); // for the 2D game
+    ResourceManager::loadShader(Path::pathDepthVert, Path::pathDepthGeom, Path::pathDepthFrag, "depth");  // for the shadow mapping
 
 
     // texture for 3D scene
@@ -141,6 +142,8 @@ int main()
     // Generating scene
     Scene scene(width, height);
 
+
+
     /* Callbacks. (after scene declaration) */
     Callbacks::initCallbacks(window);
 
@@ -160,67 +163,68 @@ int main()
     // #########################################################################
     
     float lastFrame = 0.0f;
-    while (!glfwWindowShouldClose(window))
-    {
-        /* Polling. */
-        glfwPollEvents();
-
-
-        /* Camera3D initialized. */
-        scene.initCam3D();
-
-        // #########################################################################
-        // ############################ Inputs managing ############################
-        // #########################################################################
-        float dt = getDeltaTime(lastFrame); 
-
-
-        /* Cursor to the center of the window and camera inputs. 
-         * When the animation is on camera inputs are disabled, and
-         * cursorCentered is set to false so the cursor gets centered again
-         * when the animation is finished, because cursor pos can still change during animation. */
-        input.update(window);
-
-        if (ui.isMenuOpen()) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        else
+        while (!glfwWindowShouldClose(window))
         {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            if (scene.isInput3DEnabled()) scene.input3DHandler(window, action3DMap);
-            else if (scene.isInput2DEnabled()) gameTest.input2DHandler(action2DMap, dt);
+            /* Polling. */
+            glfwPollEvents();
+
+
+            /* Camera3D initialized. */
+            scene.initCam3D();
+
+            // #########################################################################
+            // ############################ Inputs managing ############################
+            // #########################################################################
+            float dt = getDeltaTime(lastFrame); 
+
+
+            /* Cursor to the center of the window and camera inputs. 
+             * When the animation is on camera inputs are disabled, and
+             * cursorCentered is set to false so the cursor gets centered again
+             * when the animation is finished, because cursor pos can still change during animation. */
+            input.update(window);
+
+            if (ui.isMenuOpen()) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            else
+            {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                if (scene.isInput3DEnabled()) scene.input3DHandler(window, action3DMap);
+                else if (scene.isInput2DEnabled()) gameTest.input2DHandler(action2DMap, dt);
+            }
+        
+
+            /*GUI*/
+            ui.beginFrame();    
+            //if (ImGui::GetIO().WantCaptureKeyboard) std::cout << "capture\n";
+            ui.drawUI(scene, gameTest, width, height);
+        
+
+            // #########################################################################
+            // ############### 2D rendering into the FrameBuffer Object ################
+            // #########################################################################
+
+            gameTest.update(dt);
+            gameTest.render();
+        
+            // reset viewport   
+            glViewport(0, 0, width, height);
+
+            // get texture from FBO into the cabinet screen BEFORE inputs from keyboard
+            scene.setArcadeScreenTex(gameTest.getFBOTex());
+       
+            // #########################################################################
+            // ########################## 3D scene rendering ###########################
+            // #########################################################################
+
+            scene.shadowCubeMap();
+            scene.drawScene();
+            scene.drawAim();
+
+            ui.render(); //over everything
+
+            glfwSwapBuffers(window);
+       
         }
-        
-
-        /*GUI*/
-        ui.beginFrame();    
-        //if (ImGui::GetIO().WantCaptureKeyboard) std::cout << "capture\n";
-        ui.drawUI(scene, gameTest, width, height);
-        
-
-        // #########################################################################
-        // ############### 2D rendering into the FrameBuffer Object ################
-        // #########################################################################
-
-        gameTest.update(dt);
-        gameTest.render();
-        
-        // reset viewport   
-        glViewport(0, 0, width, height);
-
-        // get texture from FBO into the cabinet screen BEFORE inputs from keyboard
-        scene.setArcadeScreenTex(gameTest.getFBOTex());
-       
-        // #########################################################################
-        // ########################## 3D scene rendering ###########################
-        // #########################################################################
-
-        scene.drawScene();
-        scene.drawAim();
-
-        ui.render(); //over everything
-
-        glfwSwapBuffers(window);
-       
-    }
     ui.shutdown();
 
     glfwDestroyWindow(window);
