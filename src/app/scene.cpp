@@ -40,7 +40,8 @@ Scene::Scene(int width, int height) :
 	m_animSecondPartDuration(sceneData::inAnimationSecondPartDuration),
 	m_aimVAO(0),
 	m_aimIsOn(true),
-	m_depthFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth)
+	m_depthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth),
+	m_depthSpotFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeDepth)
 {
 	/* Set aspect = width/height for camera 3D. */
 	float aspect = static_cast<float>(width) / static_cast<float>(height);
@@ -279,21 +280,44 @@ bool Scene::cameraOutAnimation()
 	return m_animOutIsOn;
 }
 
-void Scene::drawScene() const
+void Scene::drawScene()
 {
+	/* Light pass. */
+
+	/* Viewport and Buffers setup. */
+	glViewport(0, 0, m_width, m_height);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	/* Phong shader setup. */
+	Shader& phong = ResourceManager::getShader("basic");
+	phong.use();
+	phong.setInt("depthMap", 1);
+	phong.setFloat("farPlane", sceneData::lightFarPlane);
+
+	/* Cubemap texture setup. */
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_depthCubeFBO.getTex().getID());
+
+	/* Draw calls. */
+
 	/* Room draw call. */
+	m_room.getModel().setShader("basic");
 	m_room.setWCSPosition();
 	m_room.draw();
 
 	/* Lamp draw call. */
+	m_lamp.setShader("basic");
 	m_lamp.setWCSPosition();
 	m_lamp.draw();
 
 	/* Arcade draw call. */
+	m_arcade.resetPhong();
 	m_arcade.setWCSPosition();
 	m_arcade.draw();
 
 	/* Pool draw call. */
+	m_pool.setShader("basic");
 	m_pool.setWCSPosition();
 	m_pool.draw();
 		
@@ -364,16 +388,12 @@ void Scene::drawAim(Shader& shader) const
 
 void Scene::shadowCubeMap()
 {
-	Shader& phong = ResourceManager::getShader("basic");
-	phong.use();
-	phong.setInt("depthMap", 1);
-
-	/* Light projection matrix. */
-	glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.3f, 5.0f);
-
 	/* Lamp WCS position is the light position.*/
 	glm::vec3 lightPos = m_lamp.getMesh("lamp").getCenter() + m_lamp.getWCSPosition();
 	
+	/* Light projection matrix. */
+	glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.3f, 5.0f);
+
 	/* Data for light view matrices (one for each cube face). */
 	glm::vec3 axes[6] =
 	{
@@ -405,7 +425,7 @@ void Scene::shadowCubeMap()
 	/* Depth pass. */
 	/* FBO and viewport setup. */
 	glViewport(0, 0, sceneData::shadowWidth, sceneData::shadowHeight);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_depthFBO.getID());
+	glBindFramebuffer(GL_FRAMEBUFFER, m_depthCubeFBO.getID());
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -421,53 +441,82 @@ void Scene::shadowCubeMap()
 	depthShader.setFloat("invFarPlane", sceneData::lightInvFarPlane);
 	depthShader.setVector3f("lightPos", lightPos);
 
-	GLint currentProgram = 0;
-	
-
 	/* Render depth pass. */
 	// Room
 	m_room.getModel().setShader("depth");
 	m_room.setWCSPosition();		// here model is comunicated to the depth shader
 	m_room.draw();
-	m_room.getModel().setShader("basic");
 	// Arcade
 	m_arcade.getModel().setShader("depth");
 	m_arcade.setWCSPosition();
 	m_arcade.draw();
-	m_arcade.resetPhong();
 	// Pool
 	m_pool.setShader("depth");
 	m_pool.setWCSPosition();
 	m_pool.draw();
-	m_pool.setShader("basic");
 	// Lamp
 	m_lamp.setShader("depth");
 	m_lamp.setWCSPosition();
 	m_lamp.draw();
-	m_lamp.setShader("basic");
 
 	/* Unbind FBO. */
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_CULL_FACE);
-	/* Light pass (without render: that will be done in main func by drawScene(). */
-	/* Viewport and Buffers setup. */
-	glViewport(0, 0, m_width, m_height);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	/* Phong shader setup. */
-	phong.use();
-	phong.setFloat("farPlane", sceneData::lightFarPlane);
-
-	/* Cubemap texture setup. */
-	
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, m_depthFBO.getTex().getID());
-	
 
 	/* After this function ends, it will start drawScene(). */
 }
 
+void Scene::shadowSpotMap()
+{
+	/* TODO::TEMP: For now its just one light right above the table. Should be 2 */
+	/* Light position is above the pool table. */
+	glm::vec3 lightPos = m_pool.getWCSPosition() + glm::vec3(0.0f, 2.5f, 0.0f);
+	/* Light target is the pool table. TODO: ideally the mesh of its cloth stuff. */
+	glm::vec3 lightTarget = m_pool.getWCSPosition();
+	/* Light projection matrix. */
+	glm::mat4 lightProj = glm::perspective(glm::radians(60.0f), 1.0f, 1.0f, 3.0f);
 
+	glm::vec3 VUP = glm::vec3(0.0f, 1.0f, 0.0);
+	/* Light view matrix. */
+	glm::mat4 lightView = glm::lookAt(lightPos, lightTarget, VUP);
+
+	/* Light space matrix. */
+	glm::mat4 lightSpaceMatrix = lightView * lightProj;
+
+	/* Depth pass.*/
+	/* FBO and viewport setup. */
+	glViewport(0, 0, sceneData::shadowWidth, sceneData::shadowHeight);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_depthSpotFBO.getID());
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	/* Depth shader setup. */
+	Shader& depthShader = ResourceManager::getShader("spotDepth");
+	depthShader.use();
+	depthShader.setMatrix4fv("lightSpaceMatrix", 1, GL_FALSE, lightSpaceMatrix);
+	// other unifs
+
+	/* Render depth pass. */
+	// Room
+	m_room.getModel().setShader("spotDepth");
+	m_room.setWCSPosition();		// here model is comunicated to the depth shader
+	m_room.draw();
+	// Arcade
+	m_arcade.getModel().setShader("spotDepth");
+	m_arcade.setWCSPosition();
+	m_arcade.draw();
+	// Pool
+	m_pool.setShader("spotDepth");
+	m_pool.setWCSPosition();
+	m_pool.draw();
+	// Lamp
+	m_lamp.setShader("spotDepth");
+	m_lamp.setWCSPosition();
+	m_lamp.draw();
+
+	/* Unbind FBO. */
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
 
 
 void Scene::initScene()

@@ -86,7 +86,7 @@ public:
 	void drawAim() const;
 
 	/* Draw the 3D scene. */
-	void drawScene() const;
+	void drawScene();
 	// 3D camera input handler
 	void cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D	);
 
@@ -98,8 +98,11 @@ public:
 	void openArcadeMenu() { m_arcadeMenuOpen = true; }
 	void closeArcadeMenu() { m_arcadeMenuOpen = false; }
 
-	/* Shadow mapping. */
+	/* Shadow mapping for point light. */
 	void shadowCubeMap();
+
+	/* Shadow mapping for spot light. */
+	void shadowSpotMap();
 
 private:
 	
@@ -160,6 +163,7 @@ private:
 
 
 	/* Shadow Mapping variables. */
-	Framebuffer m_depthFBO;
+	Framebuffer m_depthCubeFBO;
+	Framebuffer m_depthSpotFBO;
 };
 
