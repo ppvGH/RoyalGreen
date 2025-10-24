@@ -19,6 +19,13 @@ void Arcade::setScreen(const Texture& texture)
 	matScreen.overrideTex(texture);
 }
 
+void Arcade::resetPhong()
+{
+	m_model.setShader("basic");
+	if(m_screenIsON) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader("CRT"));
+
+}
+
 void Arcade::screenSwitch()
 {
 	/* Inverts the state of the screen. */
