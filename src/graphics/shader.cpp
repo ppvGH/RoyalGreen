@@ -29,6 +29,32 @@ Shader& Shader::linkProgram(const std::string& srcVert, const std::string& srcFr
 	return *this;
 }
 
+// overloaded version
+Shader& Shader::linkProgram(const std::string& srcVert, const std::string& srcGeom, const std::string& srcFrag)
+{
+	// compile vertex and fragment shaders
+	unsigned int vs = compile(GL_VERTEX_SHADER, srcVert);
+	unsigned int gs = compile(GL_GEOMETRY_SHADER, srcGeom);
+	unsigned int fs = compile(GL_FRAGMENT_SHADER, srcFrag);
+
+	// create and link shader program
+	this->m_ID = glCreateProgram();
+	glAttachShader(m_ID, vs);
+	glAttachShader(m_ID, gs);
+	glAttachShader(m_ID, fs);
+	glLinkProgram(m_ID);
+
+	// link error check
+	linkErrorCheck();
+
+	// delete shaders after linking
+	glDeleteShader(vs);
+	glDeleteShader(gs);
+	glDeleteShader(fs);
+
+	return *this;
+}
+
 Shader& Shader::use()
 {
 	glUseProgram(m_ID);
@@ -109,6 +135,7 @@ void Shader::compileErrorCheck(unsigned int id, unsigned int type) const
 	// checking for shader type
 	std::string errMsg = "";
 	if (type == GL_VERTEX_SHADER) errMsg = "VERTEX SHADER FAILURE";
+	else if (type == GL_GEOMETRY_SHADER) errMsg = "GEOMETRY SHADER FAILURE";
 	else if (type == GL_FRAGMENT_SHADER) errMsg = "FRAGMENT SHADER FAILURE";
 
 	// check for error: if success is false print error message

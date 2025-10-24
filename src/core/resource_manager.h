@@ -25,6 +25,10 @@ public:
 	 - pathVert and pathFrag are the filepaths of vertex and fragment shader stages 
 	 - name is the logic name of the shader program used as key in the shadersMap */
 	static Shader& ResourceManager::loadShader(const std::string& pathVert, const std::string& pathFrag, const std::string& name);
+	/* creates a shader program and stores it in the shadersMap
+	 - pathVert, pathGeom, pathFrag are the filepaths of vertex, geometry and fragment shader stages
+	 - name is the logic name of the shader program used as key in the shadersMap */
+	static Shader& ResourceManager::loadShader(const std::string& pathVert, const std::string& pathGeom, const std::string& pathFrag, const std::string& name);
 
 	/* Creates a texture and stores it in the texturesMap.
 	 - pathTex is the filepath of the image file;

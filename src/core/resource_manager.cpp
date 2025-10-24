@@ -24,6 +24,20 @@ Shader& ResourceManager::loadShader(const std::string& pathVert, const std::stri
 	return shadersMap[name];
 }
 
+Shader& ResourceManager::loadShader(const std::string& pathVert, const std::string& pathGeom, const std::string& pathFrag, const std::string& name)
+{
+	// loads vertex, geometry and fragment shader source code as three strings from filepaths
+	std::string srcVert = loadFileToString(pathVert);
+	std::string srcGeom = loadFileToString(pathGeom);
+	std::string srcFrag = loadFileToString(pathFrag);
+
+	// stores the shader with its name
+	shadersMap[name].linkProgram(srcVert, srcGeom, srcFrag);
+
+	// returns the shader stored in the unordered map
+	return shadersMap[name];
+}
+
 Texture& ResourceManager::loadTexture(const std::string& pathTex, TexParams& params, const std::string& name)
 {
 	const char* path = pathTex.c_str();

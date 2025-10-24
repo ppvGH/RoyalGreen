@@ -14,6 +14,11 @@ public:
 	 > returns *this to load shader programs in resource manager avoiding copies */
 	Shader& linkProgram(const std::string& srcVert, const std::string& srcFrag);
 
+	/* Creates, compiles and links shader program from vertex, geometry and fragment in a string format
+	 - arguments are given one by one to the compile private member function
+	 > returns *this to load shader programs in resource manager avoiding copies */
+	Shader& linkProgram(const std::string& srcVert, const std::string& srcGeom, const std::string& srcFrag);
+
 	/* Activates shader
 	 > returns *this */
 	Shader& use();
