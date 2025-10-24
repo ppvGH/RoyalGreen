@@ -18,6 +18,19 @@ TexParams::TexParams(int width, int height, unsigned int format, unsigned int wr
 Texture::Texture(const TexParams& params, unsigned char* data):
 	m_ID(0)
 {
+	genColorMap(params, data);
+}
+
+void Texture::genColorMap(const TexParams& params, unsigned char* data)
+{
+
+	/* Check if m_ID is already set to another value different than 0. */
+	if (m_ID != 0)
+	{
+		std::cerr << "ERROR::TEXTURE::genColorMap: Texture is already initialized. Fatal error.";
+		return;
+	}
+
 	/* Generation and binding. */
 	glGenTextures(1, &m_ID);
 	glBindTexture(GL_TEXTURE_2D, m_ID);
@@ -35,9 +48,7 @@ Texture::Texture(const TexParams& params, unsigned char* data):
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
-
-void Texture::genDepthMap()
+void Texture::genDepthMap(int width, int height)
 {
 	/* Check if m_ID is already set to another value different than 0. */
 	if (m_ID != 0)
@@ -60,9 +71,42 @@ void Texture::genDepthMap()
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
 	/* Create depth texture. */
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
-		sceneData::shadowWidth, sceneData::shadowHeight, 
-		0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+	/* Unbind texture. */
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+}
+
+void Texture::genCubeDepthMap()
+{
+	/* Check if m_ID is already set to another value different than 0. */
+	if (m_ID != 0)
+	{
+		std::cerr << "ERROR::TEXTURE::genDepthMap: Texture is already initialized. Fatal error.";
+		return;
+	}
+
+	/* Generation and binding for a cube map texture. */
+	glGenTextures(1, &m_ID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_ID);
+
+	/* Parameters setting.*/
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);	
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	/* Create cube depth texture. */
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+			sceneData::shadowWidth, sceneData::shadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	}
+	
+	/* Unbind texture. */
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 }
 

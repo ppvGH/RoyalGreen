@@ -1,13 +1,15 @@
 #pragma once
 
 #include "texture.h"
-//####### DA SPOSTARE IN GRAPHICS INSIEME A SPRITERENDERER
+
 class Framebuffer
 {
 public:
 
 	Framebuffer() = delete;
-	Framebuffer(int width, int height);
+
+	Framebuffer(int width, int height, char type);
+
 
 	void bind() const;
 	void unbind() const;
@@ -25,4 +27,13 @@ private:
 
 	/* The FBO content gets drawn into a Texture object. */
 	Texture m_tex;
+
+	/* Creates a color attachment framebuffer. */
+	void genColorFBO(int width, int height);
+
+	/* Creates a depth framebuffer. (2D) */
+	void genDepthFBO(int width, int height);
+
+	/* Creates a cube depth framebuffer.*/
+	void genCubeDepthFBO();
 };

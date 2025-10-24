@@ -39,8 +39,15 @@ public:
 	/* Constructor for image textures. */
 	Texture(const TexParams& params, unsigned char* data);
 
-	/* Depth map texture generator. */
-	void genDepthMap();
+	/* Color texture generator. Used both by game FBO and RM loadTex via the parametric constructor of Texture. */
+	void genColorMap(const TexParams& params, unsigned char* data);
+
+	/* Depth map texture generator. Used by depth FBO. */
+	void genDepthMap(int width, int height);
+
+	/* Cube depth map texture generator. Used by cube depth FBO. Width and height must be equal and fixed. */
+	void genCubeDepthMap();
+
 
 	void bind() const;
 	void unbind() const;
