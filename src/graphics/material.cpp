@@ -17,21 +17,19 @@ Material::Material() :
 void Material::apply(Shader& shader) const
 {
 	/* Names of the uniforms should match ones in the shader. */
-	shader.setVector3f("matAmbient", m_ambient); // TODO: non ha molto senso usare ambient su ogni singolo materiale dato che 
-	shader.setVector3f("matDiffuse", m_diffuse);
-	shader.setVector3f("matSpecular", m_specular);
-	shader.setVector3f("matEmission", m_emission);
-	shader.setFloat("matShininess", m_shininess);
+	/* Controls on uniform location are due to Model::draw() method: if a shader doesn't have a uniform it shouldn't try to set it. */
+	if (glGetUniformLocation(shader.getID(), "matAmbient") != -1) shader.setVector3f("matAmbient", m_ambient); 
+	if (glGetUniformLocation(shader.getID(), "matDiffuse") != -1) shader.setVector3f("matDiffuse", m_diffuse);
+	if (glGetUniformLocation(shader.getID(), "matSpecular") != -1) shader.setVector3f("matSpecular", m_specular);
+	if (glGetUniformLocation(shader.getID(), "matEmission") != -1) shader.setVector3f("matEmission", m_emission);
+	if (glGetUniformLocation(shader.getID(), "matShininess") != -1) shader.setFloat("matShininess", m_shininess);
 
 	if (m_useTex && m_texture!=nullptr)
 	{
 		glActiveTexture(GL_TEXTURE0);
 		m_texture->bind();
-		shader.setInt("useTex", 1);
+		if (glGetUniformLocation(shader.getID(), "useTex") != -1) shader.setInt("useTex", 1);
 	}
-	else 
-	{
-		shader.setInt("useTex", 0);
-	}
+	else if (glGetUniformLocation(shader.getID(), "useTex") != -1) shader.setInt("useTex", 0);
 }
 
