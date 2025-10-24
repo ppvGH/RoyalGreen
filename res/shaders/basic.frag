@@ -21,22 +21,29 @@ uniform samplerCube depthMap;
 
 uniform float farPlane;
 
-float ShadowCalculation(vec3 fragPos)
+
+#define bias 0.06                       // avoids self-shadowing and shadow-acne. (Up this value to decrease shadowacne)
+#define shadowIntensity 0.8             // modulate how dark is the shadow (from 0.0 to 1.0, higher = darker)
+#define lightIntensity 1.0              // source light intensity (from 0.0 to 1.0, higher = brighter)
+#define ambientIntensity 0.005          // how ambient factor impact the lighting
+#define colorFilter vec3(0.2, 0.2, 1.0) // give color to light
+#define gamma 0.454545454545            // gamma factor 1.0/2.2
+
+
+
+float shadowCalculation(vec3 fragPos)
 {
-    // get vector between fragment position and light position
-    vec3 fragToLight = fragPos - lightPos;
-    // use the light to fragment vector to sample from the depth map    
-    float closestDepth = texture(depthMap, fragToLight).r;
-    // it is currently in linear range between [0,1]. Re-transform back to original value
-    closestDepth *= farPlane;
-    // now get current linear depth as the length between the fragment and light position
-    float currentDepth = length(fragToLight);
-    // now test for shadows
-    float bias = 0.05; 
-    float shadow = currentDepth -  bias > closestDepth ?  0.8 : 0.0;
+    // Vector from light to frag position
+    vec3 lightToFrag = fragPos - lightPos;
+    // The closest depth is given by sampling from the depthMap using the lightToFrag vector. 
+    // The resulting float is in [0,1], so one has to get its un-normalized value with *farPlane
+    float closestDepth = texture(depthMap, lightToFrag).r * farPlane;
+    // Current depth is the length of light to frag vector.
+    float currentDepth = length(lightToFrag);
+    // If current fragment depth (minus a bias) is greater than the depth sampled from the depthMap
+    // means it is behind another object, so it is in shadow. Otherwise it is lightened.
+    float shadow = currentDepth -  bias > closestDepth ?  shadowIntensity : 0.0;
 
-
-    //return closestDepth;
     return shadow;
 }  
 
@@ -84,27 +91,28 @@ float ShadowCalculation(vec3 fragPos)
     
 
     // intensities
-    float a = 0.005;
-    float l = 1.0;
+    float a = ambientIntensity;
+    float l = lightIntensity;
     float d =  max(dot(L,N), 0.0);
     //float s = pow(max(dot(R,V), 0.0), n);
     float s = pow(max(dot(H,N), 0.0), n);
 
     // SHADOW
-    float shadow = ShadowCalculation(fragPos);
+    float shadow = shadowCalculation(fragPos);
 
     // final light intensity vector
     vec3 I = E + a*A + l*(d*D+s*S)*(1.0 - shadow);
 
-    // gamma correction
-    I = pow(I, vec3(1.0/2.2));
+    // light color filtering
+    I *= colorFilter;
 
-    
+    // gamma correction
+    I = pow(I, vec3(gamma));
+
 
     // if using a texture no gamma correction TODO(create a way to do this just for the screen)
     if(useTex && !mixTex) I = l*d*D;
 
-    //FragColor = vec4(vec3(shadow), 1.0);  
     FragColor = vec4(I, 1.0);
  }
 
