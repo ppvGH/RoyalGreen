@@ -17,6 +17,7 @@
 //#include "graphics/camera.h"
 //#include "graphics/model.h"
 #include "app/scene.h"
+#include "app/scene_data.h"
 #include "app/ui_manager.h"
 //#include "app/arcade.h"
 //#include "app/game2D/sprite_renderer.h"
@@ -41,11 +42,16 @@ extern "C"
 void assetLoader()
 {
     // shaders
-    ResourceManager::loadShader(Path::pathVert, Path::pathFrag, "basic");   // for 3D stuff
-    ResourceManager::loadShader(Path::pathVert, Path::pathCRTFrag, "CRT");  // for the display
-    ResourceManager::loadShader(Path::path2DVert, Path::path2DFrag, "basic2D"); // for the aim
-    ResourceManager::loadShader(Path::pathTex2DVert, Path::pathTex2DFrag, "tex2D"); // for the 2D game
-    ResourceManager::loadShader(Path::pathDepthVert, Path::pathDepthGeom, Path::pathDepthFrag, "depth");  // for the shadow mapping
+    ResourceManager::loadShader(Path::pathBlinnPhongVert, Path::pathBlinnPhongFrag, sceneData::blinnPhongShaderName);   // for 3D stuff
+    ResourceManager::loadShader(Path::pathBlinnPhongVert, Path::pathCRTFrag, sceneData::CRTShaderName);  // for the display
+    ResourceManager::loadShader(Path::pathAimVert, Path::pathAimFrag, sceneData::aimShaderName); // for the aim
+    ResourceManager::loadShader(Path::pathGameVert, Path::pathGameFrag, sceneData::gameShaderName); // for the 2D game
+
+    /* Point light depth pass. */
+    ResourceManager::loadShader(Path::pathPointDepthVert, 
+                                Path::pathPointDepthGeom, 
+                                Path::pathPointDepthFrag, 
+                                sceneData::pointLightDepthShaderName);
 
 
     // texture for 3D scene
@@ -152,9 +158,9 @@ int main()
     constexpr int screenWidth = 600;
     constexpr int screenHeight = 600;
     Game gameTest(screenWidth, screenHeight);
-    ResourceManager::getShader("CRT").use();
+    ResourceManager::getShader(sceneData::CRTShaderName).use();
     // x, y are the viewport width, height respectively and z is the aspect ratio
-    ResourceManager::getShader("CRT").setVector3f("viewportResolution", 
+    ResourceManager::getShader(sceneData::CRTShaderName).setVector3f("viewportResolution", 
         glm::vec3(width, height, static_cast<float>(width)/ static_cast<float>(height)));
     
 

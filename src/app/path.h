@@ -7,16 +7,16 @@
  * MESHES_DIR = "${CMAKE_SOURCE_DIR}/res/meshes/" */
 namespace Path
 {
-	inline const std::string pathVert = std::string(SHADERS_DIR) + "basic.vert";
-	inline const std::string pathFrag = std::string(SHADERS_DIR) + "basic.frag";
+	inline const std::string pathBlinnPhongVert = std::string(SHADERS_DIR) + "blinnPhong.vert";
+	inline const std::string pathBlinnPhongFrag = std::string(SHADERS_DIR) + "blinnPhong.frag";
 	inline const std::string pathCRTFrag = std::string(SHADERS_DIR) + "CRT.frag";
-	inline const std::string path2DVert = std::string(SHADERS_DIR) + "basic2D.vert";
-	inline const std::string path2DFrag = std::string(SHADERS_DIR) + "basic2D.frag";
-	inline const std::string pathTex2DVert = std::string(SHADERS_DIR) + "tex2D.vert";
-	inline const std::string pathTex2DFrag = std::string(SHADERS_DIR) + "tex2D.frag";
-	inline const std::string pathDepthVert = std::string(SHADERS_DIR) + "depth.vert";
-	inline const std::string pathDepthGeom = std::string(SHADERS_DIR) + "depth.geom";
-	inline const std::string pathDepthFrag = std::string(SHADERS_DIR) + "depth.frag";
+	inline const std::string pathAimVert = std::string(SHADERS_DIR) + "aim.vert";
+	inline const std::string pathAimFrag = std::string(SHADERS_DIR) + "aim.frag";
+	inline const std::string pathGameVert = std::string(SHADERS_DIR) + "game.vert";
+	inline const std::string pathGameFrag = std::string(SHADERS_DIR) + "game.frag";
+	inline const std::string pathPointDepthVert = std::string(SHADERS_DIR) + "pointDepth.vert";
+	inline const std::string pathPointDepthGeom = std::string(SHADERS_DIR) + "pointDepth.geom";
+	inline const std::string pathPointDepthFrag = std::string(SHADERS_DIR) + "pointDepth.frag";
 
 	inline const std::string pathModel = std::string(MESHES_DIR) + "tempArcade.obj";
 	inline const std::string pathRoom = std::string(MESHES_DIR) + "new_room.obj";

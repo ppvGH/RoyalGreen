@@ -4,7 +4,7 @@
 #include <iostream>
 
 Arcade::Arcade(const std::string& pathModel):
-	m_model(pathModel, &ResourceManager::getShader("basic")),
+	m_model(pathModel, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
 	m_screenIsON(false)
 {
 	// when the texture is rendered into the screen, dont mix the color with lighting model
@@ -21,8 +21,8 @@ void Arcade::setScreen(const Texture& texture)
 
 void Arcade::resetPhong()
 {
-	m_model.setShader("basic");
-	if(m_screenIsON) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader("CRT"));
+	m_model.setShader(sceneData::blinnPhongShaderName);
+	if(m_screenIsON) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::CRTShaderName));
 
 }
 
@@ -32,8 +32,8 @@ void Arcade::screenSwitch()
 	m_screenIsON = !m_screenIsON;
 
 	/* Sets the shader associated with the display mesh. */
-	if (m_screenIsON) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader("CRT"));
-	else m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader("basic"));
+	if (m_screenIsON) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::CRTShaderName));
+	else m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::blinnPhongShaderName));
 
 	/* Button turns glowing red when ON. */
 	Material& matPowerButton = m_model.getMaterial(sceneData::matPowerButtonName);

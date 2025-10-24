@@ -27,8 +27,8 @@ Scene::Scene(int width, int height) :
 	m_lastY((double)height * 0.5),
 	m_arcade(Path::pathModel),
 	m_room(Path::pathRoom, &ResourceManager::getTexture("floorTile")),
-	m_lamp(Path::pathLamp, &ResourceManager::getShader("basic")),
-	m_pool(Path::pathPool, &ResourceManager::getShader("basic")),
+	m_lamp(Path::pathLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_pool(Path::pathPool, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
 	m_animInIsOn(false),
 	m_animOutIsOn(false),
 	m_animSecondPart(false),
@@ -98,7 +98,7 @@ void Scene::initCam3D() const
 {
 
 	/* Setting phong shader uniforms for the scene. */
-	Shader& phong = ResourceManager::getShader("basic");
+	Shader& phong = ResourceManager::getShader(sceneData::blinnPhongShaderName);
 	phong.use();
 	phong.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
 	phong.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
@@ -112,7 +112,7 @@ void Scene::initCam3D() const
 	
 
 	/* Setting CRT shader uniforms for the scene. */
-	Shader& CRT = ResourceManager::getShader("CRT");
+	Shader& CRT = ResourceManager::getShader(sceneData::CRTShaderName);
 	CRT.use();
 	CRT.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
 	CRT.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
@@ -290,10 +290,10 @@ void Scene::drawScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/* Phong shader setup. */
-	Shader& phong = ResourceManager::getShader("basic");
+	Shader& phong = ResourceManager::getShader(sceneData::blinnPhongShaderName);
 	phong.use();
 	phong.setInt("depthMap", 1);
-	phong.setFloat("farPlane", sceneData::lightFarPlane);
+	phong.setFloat("farPlane", sceneData::pointLightFarPlane);
 
 	/* Cubemap texture setup. */
 	glActiveTexture(GL_TEXTURE1);
@@ -302,12 +302,12 @@ void Scene::drawScene()
 	/* Draw calls. */
 
 	/* Room draw call. */
-	m_room.getModel().setShader("basic");
+	m_room.getModel().setShader(sceneData::blinnPhongShaderName);
 	m_room.setWCSPosition();
 	m_room.draw();
 
 	/* Lamp draw call. */
-	m_lamp.setShader("basic");
+	m_lamp.setShader(sceneData::blinnPhongShaderName);
 	m_lamp.setWCSPosition();
 	m_lamp.draw();
 
@@ -317,7 +317,7 @@ void Scene::drawScene()
 	m_arcade.draw();
 
 	/* Pool draw call. */
-	m_pool.setShader("basic");
+	m_pool.setShader(sceneData::blinnPhongShaderName);
 	m_pool.setWCSPosition();
 	m_pool.draw();
 		
@@ -326,7 +326,7 @@ void Scene::drawScene()
 
 void Scene::drawAim() const
 {
-	if (m_aimIsOn) drawAim(ResourceManager::getShader("basic2D"));
+	if (m_aimIsOn) drawAim(ResourceManager::getShader(sceneData::aimShaderName));
 }
 
 void Scene::cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D)
@@ -431,31 +431,33 @@ void Scene::shadowCubeMap()
 	glCullFace(GL_BACK);
 
 	/* Depth shader setup. */
-	Shader& depthShader = ResourceManager::getShader("depth");
+	/* DSname == Depth Shader name. */
+	const std::string DSname = sceneData::pointLightDepthShaderName;
+	Shader& depthShader = ResourceManager::getShader(DSname);
 	depthShader.use();
 	for (int i = 0; i < 6; i++)
 	{
 		std::string unif = "shadowMats[" + std::to_string(i) + "]";
 		depthShader.setMatrix4fv(unif, 1, GL_FALSE, lightPVs[i]);
 	}
-	depthShader.setFloat("invFarPlane", sceneData::lightInvFarPlane);
+	depthShader.setFloat("invFarPlane", sceneData::pointLightInvFarPlane);
 	depthShader.setVector3f("lightPos", lightPos);
 
 	/* Render depth pass. */
 	// Room
-	m_room.getModel().setShader("depth");
+	m_room.getModel().setShader(DSname);
 	m_room.setWCSPosition();		// here model is comunicated to the depth shader
 	m_room.draw();
 	// Arcade
-	m_arcade.getModel().setShader("depth");
+	m_arcade.getModel().setShader(DSname);
 	m_arcade.setWCSPosition();
 	m_arcade.draw();
 	// Pool
-	m_pool.setShader("depth");
+	m_pool.setShader(DSname);
 	m_pool.setWCSPosition();
 	m_pool.draw();
 	// Lamp
-	m_lamp.setShader("depth");
+	m_lamp.setShader(DSname);
 	m_lamp.setWCSPosition();
 	m_lamp.draw();
 
@@ -490,26 +492,26 @@ void Scene::shadowSpotMap()
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	/* Depth shader setup. */
-	Shader& depthShader = ResourceManager::getShader("spotDepth");
+	Shader& depthShader = ResourceManager::getShader(sceneData::spotLightDepthShaderName);
 	depthShader.use();
 	depthShader.setMatrix4fv("lightSpaceMatrix", 1, GL_FALSE, lightSpaceMatrix);
 	// other unifs
 
 	/* Render depth pass. */
 	// Room
-	m_room.getModel().setShader("spotDepth");
+	m_room.getModel().setShader(sceneData::spotLightDepthShaderName);
 	m_room.setWCSPosition();		// here model is comunicated to the depth shader
 	m_room.draw();
 	// Arcade
-	m_arcade.getModel().setShader("spotDepth");
+	m_arcade.getModel().setShader(sceneData::spotLightDepthShaderName);
 	m_arcade.setWCSPosition();
 	m_arcade.draw();
 	// Pool
-	m_pool.setShader("spotDepth");
+	m_pool.setShader(sceneData::spotLightDepthShaderName);
 	m_pool.setWCSPosition();
 	m_pool.draw();
 	// Lamp
-	m_lamp.setShader("spotDepth");
+	m_lamp.setShader(sceneData::spotLightDepthShaderName);
 	m_lamp.setWCSPosition();
 	m_lamp.draw();
 

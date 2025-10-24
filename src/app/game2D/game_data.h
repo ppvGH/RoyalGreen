@@ -20,6 +20,7 @@ namespace gameData
 	/* Common data. */
 	inline const float groundLevel = 100.0f;
 	inline const float gravityAcceleration = 1200.0f;
+	inline const std::string gameShaderName = "game";
 
 	/* Player data. */
 
@@ -40,7 +41,6 @@ namespace gameData
 	};
 
 	/* Background data. */
-
 	inline const std::string backgroundTexName = "backgroundTex";
 	inline const glm::vec2 backgroundPosition = { 0.0f, 0.0f };
 	inline const glm::vec2 backgroundSize = { 1422.0f, 600.0f };

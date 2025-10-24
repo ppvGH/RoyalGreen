@@ -6,7 +6,6 @@
 namespace sceneData
 {
 	/* Arcade model data. */
-
 	inline const std::string meshScreenName = "display";
 	inline const std::string matScreenName = "display";
 	inline const std::string matPowerButtonName = "power_button_power_button";
@@ -43,22 +42,31 @@ namespace sceneData
 	/* Geometry data. */
 	inline const float intersectionEpsilon = 1e-6f;
 
-	/* Texture data. */
-	inline const int shadowWidth = 1024;
-	inline const int shadowHeight = 1024;
-
 	/* Framebuffer data. */
 	inline const char FBOtypeColor = 'c';
 	inline const char FBOtypeDepth = 'd';
 	inline const char FBOtypeCubeDepth = 'm';
 
-	/* Light/shadow data. */
-	inline const float lightFovy = 90.0f;
-	inline const float lightAspect = 1.0f;	// square frustum
-	inline const float lightNearPlane = 1.0f;
-	inline const float lightFarPlane = 10.0f;	// covers entire room
-	inline const float lightInvFarPlane = 1.0 / lightFarPlane;
+	/* Shadow data. */
+	inline const int shadowWidth = 1024;
+	inline const int shadowHeight = 1024;
 
+	/* Point light data. */
+	inline const float pointLightFovy = 90.0f;
+	inline const float pointLightAspect = 1.0f;	// square frustum
+	inline const float pointLightNearPlane = 1.0f;
+	inline const float pointLightFarPlane = 10.0f;	// covers entire room
+	inline const float pointLightInvFarPlane = 1.0 / pointLightFarPlane;
+
+	/* Shaders data. */
+
+	/* Names*/
+	inline const std::string blinnPhongShaderName = "blinnPhong";
+	inline const std::string pointLightDepthShaderName = "pointDepth";
+	inline const std::string spotLightDepthShaderName = "spotDepth";
+	inline const std::string CRTShaderName = "CRT";
+	inline const std::string aimShaderName = "aim";
+	inline const std::string gameShaderName = "game";
 
 
 	/* Old data. */

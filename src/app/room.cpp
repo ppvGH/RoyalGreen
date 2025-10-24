@@ -3,7 +3,7 @@
 #include "../core/resource_manager.h"
 
 Room::Room(const std::string& pathModel, Texture* floorTex):
-	m_model(pathModel, &ResourceManager::getShader("basic")),
+	m_model(pathModel, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
 	m_floorTex(floorTex)
 {
 	if (floorTex != nullptr) setFloor(*floorTex);

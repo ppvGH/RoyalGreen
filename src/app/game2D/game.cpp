@@ -15,7 +15,7 @@ Game::Game(int width, int height) :
     m_background(nullptr),
 	m_FBO(width, height, sceneData::FBOtypeColor),
 	m_spriteRenderer(width, height),
-    m_shader(ResourceManager::getShader("tex2D")),
+    m_shader(ResourceManager::getShader(gameData::gameShaderName)),
     m_cameraPosition(0.0f),
     m_cameraMargin(0.0f),
     m_gameMenuOpen(false)
