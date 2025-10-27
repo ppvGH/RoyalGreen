@@ -17,11 +17,15 @@ namespace Path
 	inline const std::string pathPointDepthVert = std::string(SHADERS_DIR) + "pointDepth.vert";
 	inline const std::string pathPointDepthGeom = std::string(SHADERS_DIR) + "pointDepth.geom";
 	inline const std::string pathPointDepthFrag = std::string(SHADERS_DIR) + "pointDepth.frag";
+	inline const std::string pathSpotDepthVert = std::string(SHADERS_DIR) + "spotDepth.vert";
+	inline const std::string pathSpotDepthFrag = std::string(SHADERS_DIR) + "spotDepth.frag";
 
 	inline const std::string pathModel = std::string(MESHES_DIR) + "tempArcade.obj";
 	inline const std::string pathRoom = std::string(MESHES_DIR) + "new_room.obj";
 	inline const std::string pathLamp = std::string(MESHES_DIR) + "lamp.obj";
+	inline const std::string pathMainLamp = std::string(MESHES_DIR) + "mainLamp.obj";
 	inline const std::string pathPool = std::string(MESHES_DIR) + "pool.obj";
+
 
 	inline const std::string pathRospi = std::string(TEXTURE_DIR) + "rospi.png";
 	inline const std::string pathFloorTile = std::string(TEXTURE_DIR) + "floorTile.png";

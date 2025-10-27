@@ -7,17 +7,21 @@ out vec3 fragPos;
 out vec3 normal;
 out vec2 texCoord;
 
+out vec4 fragPosLS; // frag pos in light space
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
 uniform float resizeUV;
 
+uniform mat4 lightSpace; // spot light shadowing
+
 void main()
 {
     fragPos = vec3(model * vec4(pos3D, 1.0)); // WCS
-    normal = mat3(transpose(inverse(model))) * normal3D; // WCS
+    normal = normalize(mat3(transpose(inverse(model))) * normal3D); // WCS
     texCoord = tex3D * resizeUV;
+    fragPosLS = lightSpace * vec4(fragPos, 1.0);
     gl_Position = proj * view * vec4(fragPos,1.0);
-
 }

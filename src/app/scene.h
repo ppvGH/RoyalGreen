@@ -42,6 +42,8 @@ public:
 
 	/* Wrappers for Arcade methods. */
 
+	bool isDisplayOn() const { return m_arcade.isDisplayOn(); }
+
 	void switchArcadeScreen() { m_arcade.screenSwitch(); }
 
 	void setArcadeScreenTex(const Texture& tex) { m_arcade.setScreen(tex); }
@@ -52,8 +54,8 @@ public:
 	// ###########################  Camera methods  ############################
 	// #########################################################################
 
-	/* Initialize camera3D. */
-	void initCam3D() const;
+	/* 3D camera input handler. */
+	void cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D	);
 
 	/* Getter for the animationIsOn boolean. */
 	bool isAnyAnimationOn() const { return m_animInIsOn || m_animOutIsOn; }
@@ -67,7 +69,7 @@ public:
 
 	bool cameraOutAnimation();
 
-	/* Camera methods. */
+	/* Camera getters. */
 
 	Camera& getCam3D() { return m_cam3D; }			// writeable
 	const Camera& getCam3D() const { return m_cam3D; }	// read-only
@@ -83,12 +85,6 @@ public:
 	/* Switch OFF for sight state. */
 	void switchAimOff() { m_aimIsOn = false; }
 
-	void drawAim() const;
-
-	/* Draw the 3D scene. */
-	void drawScene();
-	// 3D camera input handler
-	void cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D	);
 
 	// #########################################################################
 	// #################################  GUI  #################################
@@ -98,11 +94,20 @@ public:
 	void openArcadeMenu() { m_arcadeMenuOpen = true; }
 	void closeArcadeMenu() { m_arcadeMenuOpen = false; }
 
+	// #########################################################################
+	// ##############################  Rendering  ##############################
+	// #########################################################################
+
+	/* Lighting pass. */
+	void drawScene();
+
 	/* Shadow mapping for point light. */
-	void shadowCubeMap();
+	void pointLightShadowMap();
 
 	/* Shadow mapping for spot light. */
-	void shadowSpotMap();
+	void spotLightShadowMap();
+
+	
 
 private:
 	
@@ -115,8 +120,6 @@ private:
 
 	/* Camera stuff. */
 	Camera m_cam3D;
-	//bool m_useCam3D;
-
 
 	/* Callback state. */
 	/* If cursorCentered = false, cursor needs to be centered. */
@@ -124,15 +127,26 @@ private:
 	double m_lastX;
 	double m_lastY;
 
-	/* Scene objects and their position offset.
-	 * Offsets need to be updated after updating the model uniform matrix in the shader. */
-	Arcade m_arcade;
+	/* Scene objects.*/
 	Room m_room;
-	Model m_lamp;
+	Arcade m_arcade;
 	Model m_pool;
+	Model m_mainLamp;
+	Model m_tableLamp;
+	Model m_tmp;
+
+	/* Lights position and data. */
+	glm::vec3 m_pointLightPos;
+	glm::vec3 m_spotLightPos;
+	glm::vec3 m_spotLightTarget;
+	glm::mat4 m_spotLightSpace;
+
+	/* Draw all models with a given shader. */
+	void drawModels(const std::string& shaderName);
 
 	/* Returns false when an animation is finished. */
-	bool m_animInIsOn = false, m_animOutIsOn = false;
+	bool m_animInIsOn = false;
+	bool m_animOutIsOn = false;
 	/* Activates second part of animation. When it is false the first part of animation is active. */
 	bool m_animSecondPart = false;
 	/* Animation auxiliary variable. */
@@ -158,7 +172,6 @@ private:
 
 
 	/* GUI variables and methods. */
-
 	bool m_arcadeMenuOpen = false;
 
 

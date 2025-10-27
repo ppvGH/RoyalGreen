@@ -25,10 +25,16 @@ Scene::Scene(int width, int height) :
 	m_cursorCentered(false),
 	m_lastX((double)width * 0.5),
 	m_lastY((double)height * 0.5),
-	m_arcade(Path::pathModel),
 	m_room(Path::pathRoom, &ResourceManager::getTexture("floorTile")),
-	m_lamp(Path::pathLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_arcade(Path::pathModel),
 	m_pool(Path::pathPool, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_mainLamp(Path::pathMainLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_tableLamp(Path::pathLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_tmp(Path::pathModel, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_pointLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
+	m_spotLightPos(glm::vec3(0.0f)),
+	m_spotLightTarget(glm::vec3(0.0f)),
+	m_spotLightSpace(glm::mat4(0.0f)),
 	m_animInIsOn(false),
 	m_animOutIsOn(false),
 	m_animSecondPart(false),
@@ -49,6 +55,9 @@ Scene::Scene(int width, int height) :
 
 	/* Initialize scene models and their model matrices. */
 	initScene();
+	m_pointLightPos = m_mainLamp.getWCSPosition() + m_mainLamp.getMesh("lamp_light").getCenter();
+	m_spotLightPos = m_pool.getWCSPosition() + glm::vec3(0.0f, 3.0f, 0.0f);
+	m_spotLightTarget = m_pool.getWCSPosition() + glm::vec3(0.0f, +0.8f, 0.0f);
 
 	/* Initialize aim assistant (sight). */
 	initAim();
@@ -70,8 +79,53 @@ void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 		if (picking())
 		{
 			m_cursorCentered = false;
-			openArcadeMenu();//cameraInAnimation();		// TODO: improve here
+			openArcadeMenu();//cameraInAnimation();		// TODO: improve here: l'immagine deve bloccarsi quando si apre il menu (disabilitare update gioco)
 		}			
+}
+
+void Scene::cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D)
+{
+	//if (m_animationIsOn) m_cursorCentered = false;	// added to cameraAnimation.
+	//if (!m_useCam3D || m_animationIsOn) return;		// added to input3DHandler.
+
+	/* ------- Keyboard input: WASD movements. ------- */
+	if (actionMap3D.ongoing(Action::MoveForward))	m_cam3D.moveForward(m_cam3D.getKeyboardSpeed());
+	if (actionMap3D.ongoing(Action::MoveLeft))		m_cam3D.moveLeft(m_cam3D.getKeyboardSpeed());
+	if (actionMap3D.ongoing(Action::MoveBackward))	m_cam3D.moveBackward(m_cam3D.getKeyboardSpeed());
+	if (actionMap3D.ongoing(Action::MoveRight))		m_cam3D.moveRight(m_cam3D.getKeyboardSpeed());
+
+	/* ------- Mouse input: rotations. ------- */
+
+	/* Retrieving window center coordinates. */
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+	int centerX = std::floor(width * 0.5);
+	int centerY = std::floor(height * 0.5);
+
+
+	/* Setting cursor at the window center. */
+	if (!m_cursorCentered)
+	{
+		glfwSetCursorPos(window, centerX, centerY);
+		m_lastX = centerX;
+		m_lastY = centerY;
+		m_cursorCentered = true;
+		return; // skips first frame rotations
+	}
+	/* Retrieving cursor coords. */
+	double posX, posY;
+	glfwGetCursorPos(window, &posX, &posY);
+
+	/* Offset since last frame. */
+	double offX = posX - m_lastX;
+	double offY = m_lastY - posY;
+
+	/* Updates cursor coords. */
+	m_lastX = posX;
+	m_lastY = posY;
+
+	/* Rotation. */
+	if (offX != 0.0 || offY != 0.0) m_cam3D.processMouseInputs(static_cast<float>(offX), static_cast<float>(offY));
 }
 
 bool Scene::picking() const
@@ -81,45 +135,14 @@ bool Scene::picking() const
 	const Model& testModel = m_arcade.getModel();
 	glm::mat4 inverseModel = glm::inverse(testModel.getModelMat());
 	glm::vec3 localOrigin = glm::vec3(inverseModel * glm::vec4(m_cam3D.getPosition(),1.0f));
-	glm::vec3 localDirect = glm::vec3(inverseModel * glm::vec4(m_cam3D.getFront(), 0.0f));			// already local
+	glm::vec3 localDirect = glm::vec3(inverseModel * glm::vec4(m_cam3D.getFront(), 0.0f));			
 
 	Ray localRay(localOrigin, localDirect);
 
 	float t;
 	hit = testModel.intersectRayTriangle(localRay,t);
 
-	/*if (hit) std::cout << "hit! t = " << t << std::endl;
-	else std::cout << "miss!\n";*/
-
 	return hit;
-}
-
-void Scene::initCam3D() const
-{
-
-	/* Setting phong shader uniforms for the scene. */
-	Shader& phong = ResourceManager::getShader(sceneData::blinnPhongShaderName);
-	phong.use();
-	phong.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
-	phong.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
-
-
-
-	/* Setting the lights. */
-	glm::vec3 lampMeshCenter = m_lamp.getMesh("lamp").getCenter()+m_lamp.getWCSPosition();
-	phong.setVector3f("lightPos", lampMeshCenter);
-	phong.setVector3f("viewPos", m_cam3D.getPosition());
-	
-
-	/* Setting CRT shader uniforms for the scene. */
-	Shader& CRT = ResourceManager::getShader(sceneData::CRTShaderName);
-	CRT.use();
-	CRT.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
-	CRT.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
-
-	/* Clear buffers. */
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 bool Scene::cameraInAnimation()
@@ -282,114 +305,52 @@ bool Scene::cameraOutAnimation()
 
 void Scene::drawScene()
 {
-	/* Light pass. */
-
+	
 	/* Viewport and Buffers setup. */
 	glViewport(0, 0, m_width, m_height);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/* Phong shader setup. */
-	Shader& phong = ResourceManager::getShader(sceneData::blinnPhongShaderName);
-	phong.use();
-	phong.setInt("depthMap", 1);
-	phong.setFloat("farPlane", sceneData::pointLightFarPlane);
-
+	/* BlinnPhong shader setup. */
+	Shader& phong = ResourceManager::getShader(sceneData::blinnPhongShaderName).use();
+	// Camera setup
+	phong.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
+	phong.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
+	phong.setVector3f("viewPos", m_cam3D.getPosition());
+	// Point light setup
+	phong.setVector3f("pointLightPos", m_pointLightPos);
+	phong.setInt("pointLightDepthMap", 1);
+	phong.setFloat("pointLightFarPlane", sceneData::pointLightFarPlane);
 	/* Cubemap texture setup. */
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_depthCubeFBO.getTex().getID());
 
+	// Spot light setup
+	phong.setMatrix4fv("lightSpace", 1, GL_FALSE, m_spotLightSpace);
+	phong.setVector3f("spotLightTar", m_spotLightTarget);
+	phong.setVector3f("spotLightPos", m_spotLightPos);
+	phong.setInt("spotLightDepthMap", 2);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_depthSpotFBO.getTex().getID());
+	
+	/* CRT shader setup. */
+	Shader& CRT = ResourceManager::getShader(sceneData::CRTShaderName).use();
+	CRT.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
+	CRT.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
+
 	/* Draw calls. */
-
-	/* Room draw call. */
-	m_room.getModel().setShader(sceneData::blinnPhongShaderName);
-	m_room.setWCSPosition();
-	m_room.draw();
-
-	/* Lamp draw call. */
-	m_lamp.setShader(sceneData::blinnPhongShaderName);
-	m_lamp.setWCSPosition();
-	m_lamp.draw();
-
-	/* Arcade draw call. */
-	m_arcade.resetPhong();
-	m_arcade.setWCSPosition();
-	m_arcade.draw();
-
-	/* Pool draw call. */
-	m_pool.setShader(sceneData::blinnPhongShaderName);
-	m_pool.setWCSPosition();
-	m_pool.draw();
+	drawModels(sceneData::blinnPhongShaderName);
 		
-
-}
-
-void Scene::drawAim() const
-{
+	/* Aim draw call. */
 	if (m_aimIsOn) drawAim(ResourceManager::getShader(sceneData::aimShaderName));
+
 }
 
-void Scene::cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D)
-{
-	//if (m_animationIsOn) m_cursorCentered = false;	// added to cameraAnimation.
-	//if (!m_useCam3D || m_animationIsOn) return;		// added to input3DHandler.
-
-	/* ------- Keyboard input: WASD movements. ------- */
-	if (actionMap3D.ongoing(Action::MoveForward))	m_cam3D.moveForward(m_cam3D.getKeyboardSpeed());
-	if (actionMap3D.ongoing(Action::MoveLeft))		m_cam3D.moveLeft(m_cam3D.getKeyboardSpeed());
-	if (actionMap3D.ongoing(Action::MoveBackward))	m_cam3D.moveBackward(m_cam3D.getKeyboardSpeed());
-	if (actionMap3D.ongoing(Action::MoveRight))		m_cam3D.moveRight(m_cam3D.getKeyboardSpeed());
-
-	/* ------- Mouse input: rotations. ------- */
-
-	/* Retrieving window center coordinates. */
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-	int centerX = std::floor(width * 0.5);
-	int centerY = std::floor(height * 0.5);
-
-
-	/* Setting cursor at the window center. */
-	if (!m_cursorCentered)
-	{
-		glfwSetCursorPos(window, centerX, centerY);
-		m_lastX = centerX;
-		m_lastY = centerY;
-		m_cursorCentered = true;
-		return; // skips first frame rotations
-	}
-	/* Retrieving cursor coords. */
-	double posX, posY;
-	glfwGetCursorPos(window, &posX, &posY);
-
-	/* Offset since last frame. */
-	double offX = posX - m_lastX;
-	double offY = m_lastY - posY;
-
-	/* Updates cursor coords. */
-	m_lastX = posX;
-	m_lastY = posY;
-
-	/* Rotation. */
-	if (offX != 0.0 || offY != 0.0) m_cam3D.processMouseInputs(static_cast<float>(offX), static_cast<float>(offY));
-}
-
-void Scene::drawAim(Shader& shader) const
-{
-	glm::mat4 aimProj = glm::ortho(0.0f, float(m_width), 0.0f, float(m_height));
-	glm::mat4 aimModel = glm::translate(glm::mat4(1.0f), glm::vec3(m_width * 0.5f, m_height * 0.5f, 0.0f));
-	shader.use();
-	shader.setMatrix4fv("projection", 1, GL_FALSE, aimProj);
-	shader.setMatrix4fv("model", 1, GL_FALSE, aimModel);
-	glBindVertexArray(m_aimVAO);
-	glDrawArrays(GL_LINES, 0, 4);
-	glBindVertexArray(0);
-}
-
-void Scene::shadowCubeMap()
+void Scene::pointLightShadowMap()
 {
 	/* Lamp WCS position is the light position.*/
-	glm::vec3 lightPos = m_lamp.getMesh("lamp").getCenter() + m_lamp.getWCSPosition();
+	glm::vec3 lightPos = m_mainLamp.getMesh("lamp_light").getCenter() + m_mainLamp.getWCSPosition();
 	
 	/* Light projection matrix. */
 	glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.3f, 5.0f);
@@ -431,10 +392,7 @@ void Scene::shadowCubeMap()
 	glCullFace(GL_BACK);
 
 	/* Depth shader setup. */
-	/* DSname == Depth Shader name. */
-	const std::string DSname = sceneData::pointLightDepthShaderName;
-	Shader& depthShader = ResourceManager::getShader(DSname);
-	depthShader.use();
+	Shader& depthShader = ResourceManager::getShader(sceneData::pointLightDepthShaderName).use();
 	for (int i = 0; i < 6; i++)
 	{
 		std::string unif = "shadowMats[" + std::to_string(i) + "]";
@@ -444,46 +402,32 @@ void Scene::shadowCubeMap()
 	depthShader.setVector3f("lightPos", lightPos);
 
 	/* Render depth pass. */
-	// Room
-	m_room.getModel().setShader(DSname);
-	m_room.setWCSPosition();		// here model is comunicated to the depth shader
-	m_room.draw();
-	// Arcade
-	m_arcade.getModel().setShader(DSname);
-	m_arcade.setWCSPosition();
-	m_arcade.draw();
-	// Pool
-	m_pool.setShader(DSname);
-	m_pool.setWCSPosition();
-	m_pool.draw();
-	// Lamp
-	m_lamp.setShader(DSname);
-	m_lamp.setWCSPosition();
-	m_lamp.draw();
+	drawModels(sceneData::pointLightDepthShaderName);
 
 	/* Unbind FBO. */
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_CULL_FACE);
 
-	/* After this function ends, it will start drawScene(). */
+	
 }
 
-void Scene::shadowSpotMap()
+void Scene::spotLightShadowMap()
 {
-	/* TODO::TEMP: For now its just one light right above the table. Should be 2 */
 	/* Light position is above the pool table. */
-	glm::vec3 lightPos = m_pool.getWCSPosition() + glm::vec3(0.0f, 2.5f, 0.0f);
+	glm::vec3 lightPos = m_tableLamp.getWCSPosition();
 	/* Light target is the pool table. TODO: ideally the mesh of its cloth stuff. */
-	glm::vec3 lightTarget = m_pool.getWCSPosition();
+	glm::vec3 lightTarget = m_pool.getWCSPosition();// +glm::vec3(0.0f, +0.8f, 0.0f);
 	/* Light projection matrix. */
-	glm::mat4 lightProj = glm::perspective(glm::radians(60.0f), 1.0f, 1.0f, 3.0f);
+	glm::mat4 lightProj = glm::perspective(glm::radians(60.0f), 2.0f, 0.1f, 3.0f);
 
-	glm::vec3 VUP = glm::vec3(0.0f, 1.0f, 0.0);
+	glm::vec3 VUP = glm::vec3(0.0f, 0.0f, -1.0f);
 	/* Light view matrix. */
 	glm::mat4 lightView = glm::lookAt(lightPos, lightTarget, VUP);
 
 	/* Light space matrix. */
-	glm::mat4 lightSpaceMatrix = lightView * lightProj;
+	glm::mat4 lightSpaceMatrix = lightProj * lightView;
+	m_spotLightSpace = lightSpaceMatrix;
+	//printMat4(lightSpaceMatrix);
 
 	/* Depth pass.*/
 	/* FBO and viewport setup. */
@@ -492,31 +436,42 @@ void Scene::shadowSpotMap()
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	/* Depth shader setup. */
-	Shader& depthShader = ResourceManager::getShader(sceneData::spotLightDepthShaderName);
-	depthShader.use();
-	depthShader.setMatrix4fv("lightSpaceMatrix", 1, GL_FALSE, lightSpaceMatrix);
-	// other unifs
+	Shader& shad = ResourceManager::getShader(sceneData::spotLightDepthShaderName).use();
+	shad.setMatrix4fv("lightSpace", 1, GL_FALSE, lightSpaceMatrix);
 
 	/* Render depth pass. */
-	// Room
-	m_room.getModel().setShader(sceneData::spotLightDepthShaderName);
-	m_room.setWCSPosition();		// here model is comunicated to the depth shader
-	m_room.draw();
-	// Arcade
-	m_arcade.getModel().setShader(sceneData::spotLightDepthShaderName);
-	m_arcade.setWCSPosition();
-	m_arcade.draw();
-	// Pool
-	m_pool.setShader(sceneData::spotLightDepthShaderName);
-	m_pool.setWCSPosition();
-	m_pool.draw();
-	// Lamp
-	m_lamp.setShader(sceneData::spotLightDepthShaderName);
-	m_lamp.setWCSPosition();
-	m_lamp.draw();
+	drawModels(sceneData::spotLightDepthShaderName);
 
 	/* Unbind FBO. */
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Scene::drawModels(const std::string& shaderName)
+{
+	/* Room draw call. */
+	m_room.setShader(shaderName);
+	m_room.setWCSPosition();
+	m_room.draw();
+
+	/* Arcade draw call. */
+	m_arcade.setShader(shaderName);
+	m_arcade.setWCSPosition();
+	m_arcade.draw();
+
+	/* Pool draw call. */
+	m_pool.setShader(shaderName);
+	m_pool.setWCSPosition();
+	m_pool.draw();
+
+	/* Main lamp draw call. */
+	m_mainLamp.setShader(shaderName);
+	m_mainLamp.setWCSPosition();
+	m_mainLamp.draw();
+
+	/* Table lamp draw call. */
+	m_tableLamp.setShader(shaderName);
+	m_tableLamp.setWCSPosition();
+	m_tableLamp.draw();
 
 }
 
@@ -530,13 +485,32 @@ void Scene::initScene()
 	/* Set the model matrix of the room model to the 4x4 identity matrix. */
 	m_room.getModel().setModelMat(glm::mat4(1.0f));
 
-	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
-	glm::mat4 lampModelMat = glm::translate(glm::mat4(1.0f), sceneData::lampModelPositionShift);
-	m_lamp.setModelMat(lampModelMat);
-
-	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
+	/* Shift WCS position by the pool position vector and set the model matrix. */
 	glm::mat4 poolModelMat = glm::translate(glm::mat4(1.0f), sceneData::poolModelPositionShift);
 	m_pool.setModelMat(poolModelMat);
+
+	/* Shift WCS position by the main lamp position vector and set the model matrix. */
+	glm::mat4 mainLampModelMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.95f, 0.0f));	
+	m_mainLamp.setModelMat(mainLampModelMat);
+
+	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
+	glm::mat4 tableLampModelMat = glm::translate(glm::mat4(1.0), sceneData::lampModelPositionShift - glm::vec3(0.0f, 0.5f, 0.0f));	// up the lamp
+	tableLampModelMat = glm::translate(tableLampModelMat, sceneData::poolModelPositionShift);			// put it above the table
+	tableLampModelMat = glm::scale(tableLampModelMat, glm::vec3(0.5));									// reduce lamp size
+	m_tableLamp.setModelMat(tableLampModelMat);
+
+}
+
+void Scene::drawAim(Shader& shader) const
+{
+	glm::mat4 aimProj = glm::ortho(0.0f, float(m_width), 0.0f, float(m_height));
+	glm::mat4 aimModel = glm::translate(glm::mat4(1.0f), glm::vec3(m_width * 0.5f, m_height * 0.5f, 0.0f));
+	shader.use();
+	shader.setMatrix4fv("projection", 1, GL_FALSE, aimProj);
+	shader.setMatrix4fv("model", 1, GL_FALSE, aimModel);
+	glBindVertexArray(m_aimVAO);
+	glDrawArrays(GL_LINES, 0, 4);
+	glBindVertexArray(0);
 }
 
 void Scene::initAim()
