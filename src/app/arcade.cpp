@@ -19,11 +19,11 @@ void Arcade::setScreen(const Texture& texture)
 	matScreen.overrideTex(texture);
 }
 
-void Arcade::resetPhong()
+void Arcade::setShader(const std::string& shaderName)
 {
-	m_model.setShader(sceneData::blinnPhongShaderName);
-	if(m_screenIsON) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::CRTShaderName));
-
+	m_model.setShader(shaderName);
+	bool condition = m_screenIsON && (shaderName == sceneData::blinnPhongShaderName);
+	if(condition) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::CRTShaderName));
 }
 
 void Arcade::screenSwitch()
@@ -37,7 +37,7 @@ void Arcade::screenSwitch()
 
 	/* Button turns glowing red when ON. */
 	Material& matPowerButton = m_model.getMaterial(sceneData::matPowerButtonName);
-	matPowerButton.setEmission(glm::vec3(float(m_screenIsON), 0.0f, 0.0f));
+	matPowerButton.setEmission(sceneData::powerButtonEmission * glm::vec3(float(m_screenIsON), 0.0f, 0.0f));
 
 	/* Display material update. */
 	Material& matScreen = m_model.getMaterial(sceneData::matScreenName);

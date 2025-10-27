@@ -18,11 +18,14 @@ public:
 	/* Overrides screen material with a texture. */
 	void setScreen(const Texture& texture);
 
-	/* To be used in Scene::shadowMap to reset shader to Phong for every mesh but paying attention to the display mesh (CRT).*/
-	void resetPhong();
+	/* Customized shader setter able to set CRT shader for the display if input is blinnPhong.*/
+	void setShader(const std::string& shaderName);
 
 	/* Activates/deactivates the screen. */
 	void screenSwitch();
+
+	/* Screen state getter. */
+	bool isDisplayOn() const { return m_screenIsON; }
 
 	/* Draws the model. */
 	void draw() const { m_model.draw(); }
