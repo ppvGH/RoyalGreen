@@ -29,7 +29,7 @@ uniform vec3 viewportResolution;
 #define scanlines 224.0							// number of scanlines of CRT display. should be always an integer. (224 was the exact number of NEOGEO scanlines)
 #define invScanlines 1/scanlines				// inverse of scanlines precomputed
 #define vignStr 0.05							// vignette strength
-#define verConvSamples 64.0						// vertical convolution samples count (-1) (antialiasing for moire effect)
+#define verConvSamples 32.0						// vertical convolution samples count (-1) (antialiasing for moire effect)	//lowered from 64 to 32 so it runs moore smoothly even on CPU
 #define invVerConvSamples 1/verConvSamples		// inverse of vertical convolution samples count precomputed
 #define verConvWidth 3.3						// vertical extension of the blurring (antimoiré blur width). more of this = more vertical blur
 #define lightIntensity 2.25						// intensity for vertical line bleeding
