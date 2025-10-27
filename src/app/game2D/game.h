@@ -16,7 +16,7 @@ public:
 
 	Game(int width, int height);
 
-	void initGame();
+	void resetGame();
 
 	void input2DHandler(const ActionMap& actionMap2D, float dt);
 
@@ -39,12 +39,13 @@ public:
 private:
 
 	/* Internal variables.*/
-	float m_width, m_height;
+	float m_width;
+	float m_height;
 
 
 	/* Game items. */
-	Player* m_player;
-	Background* m_background;
+	Player m_player;
+	Background m_background;
 
 	/* Camera is just an X coordinate for now. */
 	float m_cameraPosition;

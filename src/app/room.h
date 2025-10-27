@@ -2,6 +2,8 @@
 
 #include "../graphics/model.h"
 
+
+// This model gets its own class to set its floor with a texture more easily.
 class Room
 {
 public:
@@ -11,6 +13,9 @@ public:
 
 	/* Creates a Room object from its filepath and a texture for its floor if given. */
 	Room(const std::string& pathModel, Texture* floorTex = nullptr);
+
+	/* Set shader to draw all meshes. */
+	void setShader(const std::string shaderName) { m_model.setShader(shaderName); }
 
 	/* Set model matrix. */
 	void setWCSPosition() const { m_model.setWCSPosition(); }

@@ -25,12 +25,18 @@ public:
 	/* Position and size are entangled with its GameObj body, so they would be meaningless as external inputs. */
 	void render(const SpriteRenderer& spriteRenderer, Shader& shader) const;
 
+	/* Reset player to initial state. */
+	void resetPlayer();
+
 
 	/* Getter, setter. */
 
 	glm::vec2 getPosition() const { return m_body.getPosition(); }
 	glm::vec2 getSize() const { return m_body.getSize(); }
 	const Texture& getTex() const { return m_sprite.getTex(); }
+
+	//void setPosition(const glm::vec2& pos) { m_body.setPosition(pos); }
+	//void setVelocity(const glm::vec2& vel) { m_body.setVelocity(vel); }
 
 
 private:

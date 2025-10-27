@@ -11,35 +11,31 @@
 Game::Game(int width, int height) :
     m_width(width),
     m_height(height),
-    m_player(nullptr),
-    m_background(nullptr),
+    m_player(gameData::playerTexName, gameData::playerPosition, gameData::playerSize, 0.0f),
+    m_background(gameData::backgroundTexName, gameData::backgroundPosition, gameData::backgroundSize),
 	m_FBO(width, height, sceneData::FBOtypeColor),
 	m_spriteRenderer(width, height),
     m_shader(ResourceManager::getShader(gameData::gameShaderName)),
-    m_cameraPosition(0.0f),
-    m_cameraMargin(0.0f),
+    m_cameraPosition(m_player.getPosition().x),
+    m_cameraMargin(m_player.getSize().x * 2.0f),
     m_gameMenuOpen(false)
 {
-    initGame();
 }
 
-void Game::initGame()
-{   
-    /* Initial speed is 0.0f. */
-    m_player = new Player(gameData::playerTexName, gameData::playerPosition, gameData::playerSize, 0.0f); 
 
-    m_background = new Background(gameData::backgroundTexName, gameData::backgroundPosition, gameData::backgroundSize);
-
-    /* Cam centered on the player; dead zone is set to be twice as large as the character sprite. */
-    m_cameraPosition = m_player->getPosition().x;
-    m_cameraMargin = m_player->getSize().x * 2.0;
+void Game::resetGame()
+{
+    m_player.resetPlayer();
+    m_cameraPosition = m_player.getPosition().x;
 }
+
+
 
 void Game::input2DHandler(const ActionMap& actionMap2D, float dt)
 {
     appInputHandler(actionMap2D);
 
-    m_player->inputHandler(actionMap2D, dt);
+    m_player.inputHandler(actionMap2D, dt);
 }
 
 
@@ -49,7 +45,7 @@ void Game::update(float dt)
 {
     updateCamera();
 
-    m_player->update(dt);
+    m_player.update(dt);
 }
 
 
@@ -68,9 +64,9 @@ void Game::render() const
     m_shader.setMatrix4fv("view", 1, GL_FALSE, view);
 
     /* Rendering game elements. */
-    m_background->render(m_spriteRenderer, m_shader);
-    m_background->render(m_spriteRenderer, m_shader, 2.0f * gameData::backgroundPosition);
-    m_player->render(m_spriteRenderer, m_shader);
+    m_background.render(m_spriteRenderer, m_shader);
+    m_background.render(m_spriteRenderer, m_shader, 2.0f * gameData::backgroundPosition);
+    m_player.render(m_spriteRenderer, m_shader);
 
 
     /* Detaches the FBO. */
@@ -82,10 +78,10 @@ void Game::updateCamera()
 {
     /* Right border: (P > C + (W - P)) ---> C = P - (W - P). */
     /* Left border:  (P < C + M )    ------> C = P - M. */
-    if (m_player->getPosition().x > m_cameraPosition + m_width - m_cameraMargin)
-        m_cameraPosition = m_player->getPosition().x - (m_width - m_cameraMargin);
-    else if (m_player->getPosition().x < m_cameraPosition + m_cameraMargin)
-        m_cameraPosition = m_player->getPosition().x - m_cameraMargin;
+    if (m_player.getPosition().x > m_cameraPosition + m_width - m_cameraMargin)
+        m_cameraPosition = m_player.getPosition().x - (m_width - m_cameraMargin);
+    else if (m_player.getPosition().x < m_cameraPosition + m_cameraMargin)
+        m_cameraPosition = m_player.getPosition().x - m_cameraMargin;
 
     /* Bounds cam position to be non-negative. */
     if (m_cameraPosition < 0.0f) m_cameraPosition = 0.0f;

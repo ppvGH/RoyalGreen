@@ -12,6 +12,7 @@ public:
 	float getHorizontalPosition() const { return m_position.x; }
 	float getVerticalPosition() const { return m_position.y; }
 
+	void setPosition(glm::vec2 position) { m_position = position; }
 	void setHorizontalPosition(float horizontalPosition) { m_position.x = horizontalPosition; }
 	void setVerticalPosition(float verticalPosition) { m_position.y = verticalPosition; }
 

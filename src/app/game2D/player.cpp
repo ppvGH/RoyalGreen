@@ -89,6 +89,19 @@ void Player::render(const SpriteRenderer& spriteRenderer, Shader& shader) const
 	m_sprite.render(spriteRenderer, shader, m_body.getPosition(), m_body.getSize());
 }
 
+void Player::resetPlayer()
+{
+	/* Reset position, velocity, state, facingRight. */
+	m_body.setPosition(gameData::playerPosition);
+	m_body.setVelocity(glm::vec2(0.0f));
+	m_state = State::Idle;
+	m_prevState = State::Walk;		
+	m_facingRight = true;
+	m_canWalk = true;
+	
+
+}
+
 void Player::setAnimation(int start, int end, int line, float fps)
 {
 	m_sprite.setAnimation(start, end, line, fps);
