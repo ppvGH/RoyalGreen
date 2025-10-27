@@ -22,13 +22,20 @@ void Model::setShader(const std::string& shaderName)
 	for (auto& mesh : m_meshes) mesh.setShader(ResourceManager::getShader(shaderName));
 }
 
+void Model::printMeshNames()
+{
+	for (const auto& [name, mesh] : m_meshMap)
+		std::cout << name << std::endl;
+
+}
+
 
 const Mesh& Model::getMesh(const std::string& name) const
 {
 	auto it = m_meshMap.find(name);
 	if (it == m_meshMap.end())
 	{
-		std::cout << "getMesh error" << std::endl;
+		std::cout << "ERROR::getMesh: Mesh \"" << name << "\" doesn't exist." << std::endl;
 		throw std::runtime_error("Mesh \"" + name + "\" doesn't exist.");
 	}
 	return *(it->second);
@@ -39,7 +46,7 @@ Mesh& Model::getMesh(const std::string& name)
 	auto it = m_meshMap.find(name);
 	if (it == m_meshMap.end())
 	{
-		std::cout << "getMesh error" << std::endl;
+		std::cout << "ERROR::getMesh: Mesh \"" << name << "\" doesn't exist." << std::endl;
 		throw std::runtime_error("Mesh \"" + name + "\" doesn't exist.");
 	}
 	return *(it->second);

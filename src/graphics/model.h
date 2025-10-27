@@ -50,6 +50,9 @@ public:
 	/* To be used to set every mesh shader for the entire model by its name, outside the model initialization. */
 	void setShader(const std::string& shaderName);
 
+	/* Utility for checking mesh names. */
+	void printMeshNames();
+
 private:
 
 
