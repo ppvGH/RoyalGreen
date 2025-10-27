@@ -94,7 +94,7 @@ void UIManager::drawCabinetMenu(Scene& scene, int width, int height)
 
 	if (ImGui::Button("Play", ImVec2(120, 0)))
 	{
-		scene.switchArcadeScreen();
+		if(!scene.isDisplayOn()) scene.switchArcadeScreen();
 		scene.cameraInAnimation();
 		scene.closeArcadeMenu();
 	}
@@ -133,6 +133,7 @@ void UIManager::drawGameMenu(Scene& scene, Game& game, int width, int height)
 	{
 		game.closeGameMenu();
 		scene.switchArcadeScreen();
+		game.resetGame();
 		scene.cameraOutAnimation();
 	}
 

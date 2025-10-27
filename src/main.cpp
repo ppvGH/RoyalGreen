@@ -35,10 +35,6 @@ extern "C"
     _declspec(dllexport) int NvOptimusEnablement = 1;
 }
 
-/* IF CUSTOM SIZE */
-//constexpr int width = 1000;
-//constexpr int height = 1000;
-
 void assetLoader()
 {
     // shaders
@@ -53,6 +49,10 @@ void assetLoader()
                                 Path::pathPointDepthFrag, 
                                 sceneData::pointLightDepthShaderName);
 
+    /* Spot light depth pass. */
+    ResourceManager::loadShader(Path::pathSpotDepthVert,
+                                Path::pathSpotDepthFrag,
+                                sceneData::spotLightDepthShaderName);
 
     // texture for 3D scene
     ResourceManager::loadTexture(Path::pathRospi, TexParams(), "rospi");
@@ -70,7 +70,7 @@ void keyRegistering(InputManager& input)
     input.registerKey(GLFW_KEY_S);
     input.registerKey(GLFW_KEY_D);
 
-   // input.registerKey(GLFW_KEY_H);
+    input.registerKey(GLFW_KEY_H);
     //input.registerKey(GLFW_KEY_K);
     input.registerKey(GLFW_KEY_M);
     input.registerKey(GLFW_MOUSE_BUTTON_LEFT);
@@ -86,7 +86,7 @@ void keyBindings3D(ActionMap& actionMap)
     actionMap.bind(Action::MoveRight, GLFW_KEY_D);
 
     //actionMap.bind(Action::StartAnimation, GLFW_KEY_K);
-    //actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);
+    actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);
     actionMap.bind(Action::SelectObject, GLFW_MOUSE_BUTTON_LEFT);
 }
 
@@ -147,36 +147,34 @@ int main()
     // #########################################################################
     // Generating scene
     Scene scene(width, height);
-
-
+    // Computing shadow mapping. (needed just once because lights are static).
+    scene.pointLightShadowMap();
+    scene.spotLightShadowMap();
 
     /* Callbacks. (after scene declaration) */
     Callbacks::initCallbacks(window);
 
-    /* 2D Game rendered into the FBO. */
+    /* 2D Game to be rendered into the FBO. */
 
     constexpr int screenWidth = 600;
     constexpr int screenHeight = 600;
     Game gameTest(screenWidth, screenHeight);
+
     ResourceManager::getShader(sceneData::CRTShaderName).use();
     // x, y are the viewport width, height respectively and z is the aspect ratio
     ResourceManager::getShader(sceneData::CRTShaderName).setVector3f("viewportResolution", 
         glm::vec3(width, height, static_cast<float>(width)/ static_cast<float>(height)));
     
-
     // #########################################################################
     // #############################  Render Loop  #############################
     // #########################################################################
-    
+    std::cout<< "Rendered with: " <<glGetString(GL_RENDERER)<<std::endl;
     float lastFrame = 0.0f;
         while (!glfwWindowShouldClose(window))
         {
             /* Polling. */
             glfwPollEvents();
 
-
-            /* Camera3D initialized. */
-            scene.initCam3D();
 
             // #########################################################################
             // ############################ Inputs managing ############################
@@ -209,22 +207,24 @@ int main()
             // ############### 2D rendering into the FrameBuffer Object ################
             // #########################################################################
 
-            gameTest.update(dt);
-            gameTest.render();
-        
+            // update and render the game in the FBO only when display is on
+            if(scene.isDisplayOn())
+            {
+                if (!ui.isMenuOpen()) gameTest.update(dt);   // if gameMenu is open stop the update
+                gameTest.render();
+            }
+
             // reset viewport   
             glViewport(0, 0, width, height);
 
-            // get texture from FBO into the cabinet screen BEFORE inputs from keyboard
             scene.setArcadeScreenTex(gameTest.getFBOTex());
        
             // #########################################################################
             // ########################## 3D scene rendering ###########################
             // #########################################################################
 
-            scene.shadowCubeMap();
+
             scene.drawScene();
-            scene.drawAim();
 
             ui.render(); //over everything
 
