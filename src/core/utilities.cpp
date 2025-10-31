@@ -1,6 +1,6 @@
 #include "utilities.h"
 
-#include "../app/scene.h"
+#include "../app/scene3D/scene.h"
 
 #include <iostream>
 #include <cmath>
@@ -91,6 +91,11 @@ bool initGLAD(GLFWwindow* window)
     }
 
     return true;
+}
+
+void printVec2(const glm::vec2& vec)
+{
+    std::cout << '(' << vec.x << ", " << vec.y << ')' << std::endl;
 }
 
 void printVec3(const glm::vec3& vec)
