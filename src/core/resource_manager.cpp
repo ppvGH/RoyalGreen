@@ -94,7 +94,7 @@ Texture& ResourceManager::getTexture(const std::string& name)
 	}
 	else
 	{
-		std::cerr << "ERROR::RESOURCE_MANAGER::getTexture: Testure\"" << name << "\" not found." << std::endl;
+		std::cerr << "ERROR::RESOURCE_MANAGER::getTexture: Texture\"" << name << "\" not found." << std::endl;
 		throw std::runtime_error("getTexture failure.");
 	}
 }
