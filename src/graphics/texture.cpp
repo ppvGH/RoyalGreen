@@ -1,5 +1,5 @@
 #include "texture.h"
-#include "../app/scene_data.h"
+#include "../app/scene3D/scene_data.h"
 #include <iostream>
 
 TexParams::TexParams(int width, int height, unsigned int format, unsigned int wrapS, unsigned int wrapT, unsigned int minFilter, unsigned int magFilter):

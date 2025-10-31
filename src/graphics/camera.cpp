@@ -1,5 +1,5 @@
 #include "camera.h"
-#include "../app/scene_data.h"
+#include "../app/scene3D/scene_data.h"
 #include<glm/gtx/transform.hpp>
 //#include<iostream>
 #ifndef M_PI

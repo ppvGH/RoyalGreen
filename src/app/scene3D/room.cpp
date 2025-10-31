@@ -1,6 +1,6 @@
 #include "room.h"
 #include "scene_data.h"
-#include "../core/resource_manager.h"
+#include "../../core/resource_manager.h"
 
 Room::Room(const std::string& pathModel, Texture* floorTex):
 	m_model(pathModel, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),

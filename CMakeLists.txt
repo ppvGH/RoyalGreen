@@ -107,18 +107,22 @@ add_executable(royalgreen
   src/graphics/material.cpp
   src/graphics/model.cpp
 
-  src/app/scene.cpp
   src/app/ui_manager.cpp
-  src/app/arcade.cpp
-  src/app/room.cpp
+
+  src/app/scene3D/scene.cpp
+  src/app/scene3D/arcade.cpp
+  src/app/scene3D/room.cpp
 
   src/app/game2D/sprite_renderer.cpp
   src/app/game2D/game.cpp
   src/app/game2D/game_obj.cpp
   src/app/game2D/sprite.cpp
   src/app/game2D/animator.cpp
-  src/app/game2D/player.cpp
   src/app/game2D/background.cpp
+  src/app/game2D/player.cpp
+  src/app/game2D/projectile.cpp
+  src/app/game2D/projectile_manager.cpp
+  src/app/game2D/cat.cpp
 
   external/glad/src/glad.c
  )

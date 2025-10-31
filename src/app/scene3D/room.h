@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../graphics/model.h"
+#include "../../graphics/model.h"
 
 
 // This model gets its own class to set its floor with a texture more easily.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../graphics/model.h"
+#include "../../graphics/model.h"
 
 class Arcade
 {
