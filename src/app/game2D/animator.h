@@ -15,6 +15,11 @@ public:
 	/* Sets member variables. */
 	void setAnimation(int start, int end, int line, float fps);
 
+	/* Returns true when currentFrame == endFrame. */
+	bool isAnimationFinished() const { return m_currentFrame == m_endFrame; }
+
+	int getFrame() const { return m_currentFrame; }
+
 private:
 
 	int m_currentFrame;			// col
