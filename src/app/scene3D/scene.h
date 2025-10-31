@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../graphics/camera.h"
-#include "../graphics/framebuffer.h"
-#include "../core/commonGL.h"
-#include "../core/action_map.h"
+#include "../../graphics/camera.h"
+#include "../../graphics/framebuffer.h"
+#include "../../core/commonGL.h"
+#include "../../core/action_map.h"
 #include "arcade.h"
 #include "room.h"
 
@@ -16,6 +16,11 @@ public:
 
 	/* Scene constructor with window dimensions. */
 	Scene(int width, int height);
+
+
+	void update();
+
+	bool isGameOn() const { return m_gameOn; }
 
 	// #########################################################################
 	// ############################  Input system  #############################
@@ -46,6 +51,7 @@ public:
 
 	void switchArcadeScreen() { m_arcade.screenSwitch(); }
 
+	/* Wrapper for Arcade::setScreen method. */
 	void setArcadeScreenTex(const Texture& tex) { m_arcade.setScreen(tex); }
 
 
@@ -117,6 +123,9 @@ private:
 	/* Input system flags. */
 	bool m_input3D = true;
 	bool m_input2D = false;
+
+	/* Game variable. */
+	bool m_gameOn = false;
 
 	/* Camera stuff. */
 	Camera m_cam3D;

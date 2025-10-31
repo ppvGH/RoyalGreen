@@ -1,12 +1,12 @@
 #include "scene.h"
-#include "path.h"
+#include "../path.h"
 #include "scene_data.h"
 
-#include "../core/resource_manager.h"
+#include "../../core/resource_manager.h"
 #include <glm/gtx/transform.hpp>
 
 #include <iostream> //for debug
-#include "../core/utilities.h"
+#include "../../core/utilities.h"
 
 /* TODO: creare uno sgabello da mettere davanti al cabinato arcade e dare l'opzione "siediti" :
  * se selezionata la camera fa l'animazione che porta davanti al cabinato ma senza entrarci e senza bloccare gli input. 
@@ -21,6 +21,7 @@ Scene::Scene(int width, int height) :
 	m_height(height),
 	m_input3D(true),
 	m_input2D(false),
+	m_gameOn(false),
 	m_cam3D(),
 	m_cursorCentered(false),
 	m_lastX((double)width * 0.5),
@@ -69,9 +70,10 @@ void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 	/* Disable 3D cam inputs when animation is ongoing. */
 	if (!isAnyAnimationOn()) cam3DinputHandler(window, actionMap3D);	//removed m_usecam3D from conditions if(m_useCam3D && ..)
 
-	if (actionMap3D.justStarted(Action::StartAnimation) || m_animInIsOn) cameraInAnimation(); 
-
-	if (m_animOutIsOn) cameraOutAnimation();
+	if (actionMap3D.justStarted(Action::StartAnimation))	// just during testing (bind to key K)
+	{
+		cameraInAnimation();
+	}
 
 	if (actionMap3D.justStarted(Action::SwitchScreen)) switchArcadeScreen();
 
@@ -79,7 +81,7 @@ void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 		if (picking())
 		{
 			m_cursorCentered = false;
-			openArcadeMenu();//cameraInAnimation();		// TODO: improve here: l'immagine deve bloccarsi quando si apre il menu (disabilitare update gioco)
+			openArcadeMenu();	
 		}			
 }
 
@@ -145,8 +147,15 @@ bool Scene::picking() const
 	return hit;
 }
 
+void Scene::update()
+{
+	if (m_animInIsOn) cameraInAnimation();
+	if (m_animOutIsOn) cameraOutAnimation();
+}
+
 bool Scene::cameraInAnimation()
 {
+	
 	/* cursorCentered is set to false so the cursor gets centered again
 	 * at the end of the animation, because cursor position can still change during animation. */
 	m_cursorCentered = false;
@@ -171,6 +180,8 @@ bool Scene::cameraInAnimation()
 	/* First time entering in the function. */
 	if (!m_animInIsOn)
 	{
+		if (!isDisplayOn()) switchArcadeScreen();	// turn on display if off
+
 		m_startPos = m_cam3D.getPosition();
 		m_startFront = m_cam3D.getFront();
 
@@ -243,6 +254,7 @@ bool Scene::cameraInAnimation()
 		{
 			setInput2D(true);
 			m_animInIsOn = false;
+			m_gameOn = true;
 		}
 
 	}
@@ -276,6 +288,7 @@ bool Scene::cameraOutAnimation()
 		setInput2D(false);
 
 		m_animOutIsOn = true;
+		m_gameOn = false;
 	}
 
 	/* Time elapsed since animation started. */
@@ -475,7 +488,6 @@ void Scene::drawModels(const std::string& shaderName)
 
 }
 
-
 void Scene::initScene()
 {
 	/* Shift the WCS position by the arcademodel position vector and set the model matrix. */
@@ -496,7 +508,7 @@ void Scene::initScene()
 	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
 	glm::mat4 tableLampModelMat = glm::translate(glm::mat4(1.0), sceneData::lampModelPositionShift - glm::vec3(0.0f, 0.5f, 0.0f));	// up the lamp
 	tableLampModelMat = glm::translate(tableLampModelMat, sceneData::poolModelPositionShift);			// put it above the table
-	tableLampModelMat = glm::scale(tableLampModelMat, glm::vec3(0.5));									// reduce lamp size
+	tableLampModelMat = glm::scale(tableLampModelMat, glm::vec3(0.75));									// reduce lamp size
 	m_tableLamp.setModelMat(tableLampModelMat);
 
 }
