@@ -1,6 +1,6 @@
 #include "game.h"
 
-#include "../scene_data.h"
+#include "../scene3D/scene_data.h"
 #include "game_data.h"
 
 #include "../../core/resource_manager.h"
@@ -11,8 +11,10 @@
 Game::Game(int width, int height) :
     m_width(width),
     m_height(height),
-    m_player(gameData::playerTexName, gameData::playerPosition, gameData::playerSize, 0.0f),
     m_background(gameData::backgroundTexName, gameData::backgroundPosition, gameData::backgroundSize),
+    m_projectilesSystem(),
+    m_player(gameData::playerTexName, gameData::playerPosition, gameData::playerSize, gameData::playerVelocity),
+    m_cat(gameData::catTexName, gameData::catPosition, gameData::catSize, gameData::catVelocity),
 	m_FBO(width, height, sceneData::FBOtypeColor),
 	m_spriteRenderer(width, height),
     m_shader(ResourceManager::getShader(gameData::gameShaderName)),
@@ -33,9 +35,15 @@ void Game::resetGame()
 
 void Game::input2DHandler(const ActionMap& actionMap2D, float dt)
 {
+    /* Game Inputs. */
     appInputHandler(actionMap2D);
 
-    m_player.inputHandler(actionMap2D, dt);
+    /* Player Inputs. */
+    m_player.inputHandler(actionMap2D, dt, m_projectilesSystem);
+
+    /* Cat (automatic) inputs. */
+    m_cat.autoInput(dt, m_player.getPosition().x);
+
 }
 
 
@@ -45,7 +53,16 @@ void Game::update(float dt)
 {
     updateCamera();
 
-    m_player.update(dt);
+    m_player.update(dt, m_projectilesSystem);
+    m_cat.update(dt, m_projectilesSystem, m_player.getPosition(), m_cameraPosition);
+
+    float rightLim = m_cameraPosition + m_width ;
+    float leftLim = m_cameraPosition - gameData::arrowSize.x;
+    float topLim = m_height;
+    float botLim = 0.0f;
+    m_projectilesSystem.update(dt, rightLim, leftLim, topLim, botLim);
+
+    
 }
 
 
@@ -66,8 +83,12 @@ void Game::render() const
     /* Rendering game elements. */
     m_background.render(m_spriteRenderer, m_shader);
     m_background.render(m_spriteRenderer, m_shader, 2.0f * gameData::backgroundPosition);
+
     m_player.render(m_spriteRenderer, m_shader);
 
+    m_cat.render(m_spriteRenderer, m_shader);
+
+    m_projectilesSystem.render(m_spriteRenderer, m_shader);
 
     /* Detaches the FBO. */
     m_FBO.unbind();
@@ -76,7 +97,7 @@ void Game::render() const
 
 void Game::updateCamera()
 {
-    /* Right border: (P > C + (W - P)) ---> C = P - (W - P). */
+    /* Right border: (P > C + (W - M)) ---> C = P - (W - M). */
     /* Left border:  (P < C + M )    ------> C = P - M. */
     if (m_player.getPosition().x > m_cameraPosition + m_width - m_cameraMargin)
         m_cameraPosition = m_player.getPosition().x - (m_width - m_cameraMargin);
