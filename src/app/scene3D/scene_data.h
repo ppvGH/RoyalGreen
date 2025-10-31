@@ -5,6 +5,20 @@
 
 namespace sceneData
 {
+
+	/* Shaders data. */
+	/* Names*/
+	inline const std::string blinnPhongShaderName = "blinnPhong";
+	inline const std::string pointLightDepthShaderName = "pointDepth";
+	inline const std::string spotLightDepthShaderName = "spotDepth";
+	inline const std::string CRTShaderName = "CRT";
+	inline const std::string aimShaderName = "aim";
+	inline const std::string gameShaderName = "game";
+
+	/* Global shaders settings. */
+	inline const std::string displayShader = CRTShaderName; // blinnPhongShaderName; // 
+	inline const std::string renderShader = blinnPhongShaderName;
+
 	/* Arcade model data. */
 	inline const std::string meshScreenName = "display";
 	inline const std::string matScreenName = "display";
@@ -37,8 +51,8 @@ namespace sceneData
 	inline const float cameraInitKeyboardSpeed = 0.15f;
 
 	/* Camera animation data. */
-	inline const float inAnimationFirstPartDuration = 2.0f;
-	inline const float inAnimationSecondPartDuration = 1.0f;
+	inline const float inAnimationFirstPartDuration = 2.0f; // 0.01f; // 
+	inline const float inAnimationSecondPartDuration = 1.0f; // 0.01f; // 
 
 	/* Geometry data. */
 	inline const float intersectionEpsilon = 1e-6f;
@@ -59,15 +73,7 @@ namespace sceneData
 	inline const float pointLightFarPlane = 10.0f;	// covers entire room
 	inline const float pointLightInvFarPlane = 1.0 / pointLightFarPlane;
 
-	/* Shaders data. */
-
-	/* Names*/
-	inline const std::string blinnPhongShaderName = "blinnPhong";
-	inline const std::string pointLightDepthShaderName = "pointDepth";
-	inline const std::string spotLightDepthShaderName = "spotDepth";
-	inline const std::string CRTShaderName = "CRT";
-	inline const std::string aimShaderName = "aim";
-	inline const std::string gameShaderName = "game";
+	
 
 
 	/* Old data. */
