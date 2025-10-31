@@ -16,8 +16,8 @@
 //#include "core/resource_manager.h"  // contains shader.h and texture.h too
 //#include "graphics/camera.h"
 //#include "graphics/model.h"
-#include "app/scene.h"
-#include "app/scene_data.h"
+#include "app/scene3D/scene.h"
+#include "app/scene3D/scene_data.h"
 #include "app/ui_manager.h"
 //#include "app/arcade.h"
 //#include "app/game2D/sprite_renderer.h"
@@ -59,8 +59,12 @@ void assetLoader()
     ResourceManager::loadTexture(Path::pathFloorTile, TexParams(), "floorTile");
 
     // texture for 2D game
-    ResourceManager::loadTexture(Path::pathPlayerSprite, TexParams(), gameData::playerTexName);
     ResourceManager::loadTexture(Path::pathBackground, TexParams(), gameData::backgroundTexName);
+    ResourceManager::loadTexture(Path::pathPlayerSprite, TexParams(), gameData::playerTexName);
+    ResourceManager::loadTexture(Path::pathArrow, TexParams(), gameData::arrowTexName);
+    ResourceManager::loadTexture(Path::pathCatSprite, TexParams(), gameData::catTexName);
+    ResourceManager::loadTexture(Path::pathEnergyBall, TexParams(), gameData::energyBallTexName);
+
 }
 
 void keyRegistering(InputManager& input)
@@ -71,7 +75,7 @@ void keyRegistering(InputManager& input)
     input.registerKey(GLFW_KEY_D);
 
     input.registerKey(GLFW_KEY_H);
-    //input.registerKey(GLFW_KEY_K);
+    input.registerKey(GLFW_KEY_K);      //testing
     input.registerKey(GLFW_KEY_M);
     input.registerKey(GLFW_MOUSE_BUTTON_LEFT);
 
@@ -85,7 +89,7 @@ void keyBindings3D(ActionMap& actionMap)
     actionMap.bind(Action::MoveBackward, GLFW_KEY_S);
     actionMap.bind(Action::MoveRight, GLFW_KEY_D);
 
-    //actionMap.bind(Action::StartAnimation, GLFW_KEY_K);
+    actionMap.bind(Action::StartAnimation, GLFW_KEY_K);     // testing
     actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);
     actionMap.bind(Action::SelectObject, GLFW_MOUSE_BUTTON_LEFT);
 }
@@ -104,8 +108,9 @@ void keyBindings2D(ActionMap& actionMap)
 int main()
 {
     /* GLFW init and window with display ratio. */
-    GLFWwindow* window = initGLFWwindow("Royal Green", 0.8);
+    GLFWwindow* window = initGLFWwindow("Royal Green", 0.7);
     //GLFWwindow* window = initGLFWwindow(500,800,"Royal Green");  // window with custom size
+    glfwSetWindowPos(window, 400, 200);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     /* GUI. */
@@ -195,7 +200,6 @@ int main()
                 if (scene.isInput3DEnabled()) scene.input3DHandler(window, action3DMap);
                 else if (scene.isInput2DEnabled()) gameTest.input2DHandler(action2DMap, dt);
             }
-        
 
             /*GUI*/
             ui.beginFrame();    
@@ -217,13 +221,14 @@ int main()
             // reset viewport   
             glViewport(0, 0, width, height);
 
+            /* Set game FBO texture as the texture for arcade display material. (texture override)*/
             scene.setArcadeScreenTex(gameTest.getFBOTex());
        
             // #########################################################################
             // ########################## 3D scene rendering ###########################
             // #########################################################################
 
-
+            scene.update();
             scene.drawScene();
 
             ui.render(); //over everything
