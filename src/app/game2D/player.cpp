@@ -189,8 +189,7 @@ void Player::resetPlayer()
 	m_facingRight = true;
 	m_onGround = true;
 	m_canMove = true;
-	
-
+	m_shotFired = false;
 }
 
 void Player::setAnimation(int start, int end, int line, float fps)

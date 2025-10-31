@@ -27,7 +27,16 @@ Game::Game(int width, int height) :
 
 void Game::resetGame()
 {
+    /* Reset player. */
     m_player.resetPlayer();
+
+    /* Reset enemy. */
+    m_cat.resetCat();
+
+    /* Reset projectile manager. */
+    m_projectilesSystem.resetProjSys();
+
+    /* Reset camera. */
     m_cameraPosition = m_player.getPosition().x;
 }
 

@@ -147,7 +147,6 @@ void Cat::jumpMoveHandler(float dt, ProjectileManager& projectileSys, float play
 
 }
 
-
 void Cat::updateFacing(float playerXpos)
 {
 	if (!m_onGround) return;
@@ -155,7 +154,6 @@ void Cat::updateFacing(float playerXpos)
 	if (m_body.getPosition().x < playerXpos) m_facingRight = true;
 	else m_facingRight = false;
 }
-
 
 void Cat::update(float dt, ProjectileManager& projectileSys, glm::vec2 playerPosition, float cameraPos)
 {
@@ -171,6 +169,19 @@ void Cat::update(float dt, ProjectileManager& projectileSys, glm::vec2 playerPos
 	m_sprite.updateTexture(dt, m_facingRight);
 }
 
+void Cat::resetCat()
+{
+	m_body.setPosition(gameData::catPosition);
+	m_body.setVelocity(glm::vec2(0.0f));
+	m_state = State::Idle;
+	m_prevState = State::Walk;
+	m_facingRight = false;
+	m_onGround = true;
+	m_attackTimer = 0.0f;
+	m_energyBallFired = false;
+	m_blastTimer = 0.0f;
+	m_blastCount = 0;
+}
 
 void Cat::setAnimation(int start, int end, int line, float fps)
 {

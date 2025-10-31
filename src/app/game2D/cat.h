@@ -28,6 +28,9 @@ public:
 	/* Manages AI, movements, animations update.*/
 	void update(float dt, ProjectileManager& projectileSys, glm::vec2 playerPosition, float cameraPos);
 
+	/* Reset initial values. */
+	void resetCat();
+
 
 private:
 	GameObj m_body;
