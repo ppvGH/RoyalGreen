@@ -87,11 +87,10 @@ void Model::draw() const
 		}
 
 
-		/* Apply material (set shader uniforms). N.B. materialIndex = 0 is reserved for the Default Material.*/
+		/* Apply material (set shader uniforms and binds textures). N.B. materialIndex = 0 is reserved for the Default Material. */
 		if (mesh.m_matIndex > -1 && mesh.m_matIndex < m_materials.size()) m_materials[mesh.m_matIndex].apply(*shader);
 
 		/* If a shader doesn't have a uniform it shouldn't try to set it. */
-
 		if (glGetUniformLocation(shader->getID(), "resizeUV") != -1)
 		{
 			/* Tiling. */
