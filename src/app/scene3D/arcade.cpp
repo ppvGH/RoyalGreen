@@ -1,6 +1,6 @@
 #include "arcade.h"
 #include "scene_data.h"
-#include "../core/resource_manager.h"
+#include "../../core/resource_manager.h"
 #include <iostream>
 
 Arcade::Arcade(const std::string& pathModel):
@@ -22,8 +22,8 @@ void Arcade::setScreen(const Texture& texture)
 void Arcade::setShader(const std::string& shaderName)
 {
 	m_model.setShader(shaderName);
-	bool condition = m_screenIsON && (shaderName == sceneData::blinnPhongShaderName);
-	if(condition) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::CRTShaderName));
+	bool condition = m_screenIsON && (shaderName == sceneData::renderShader);
+	if(condition) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::displayShader));
 }
 
 void Arcade::screenSwitch()
@@ -32,8 +32,8 @@ void Arcade::screenSwitch()
 	m_screenIsON = !m_screenIsON;
 
 	/* Sets the shader associated with the display mesh. */
-	if (m_screenIsON) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::CRTShaderName));
-	else m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::blinnPhongShaderName));
+	if (m_screenIsON) m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::displayShader));
+	else m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::renderShader));
 
 	/* Button turns glowing red when ON. */
 	Material& matPowerButton = m_model.getMaterial(sceneData::matPowerButtonName);
@@ -41,10 +41,11 @@ void Arcade::screenSwitch()
 
 	/* Display material update. */
 	Material& matScreen = m_model.getMaterial(sceneData::matScreenName);
-	matScreen.setEmission(glm::vec3(m_screenIsON * 1.0f));
+	//matScreen.setEmission(glm::vec3(m_screenIsON * 1.0f));
 
 	/* Inverts the uniform in the phong shader to render the screen content. 
-	 * Allows the sampling of the texture in the Material::apply method. */
+	 * Allows the sampling of the texture in the Material::apply method.
+	 * Indirectly binds the texture. */
 	matScreen.toggleTex();
 
 }
