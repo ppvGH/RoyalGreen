@@ -7,6 +7,10 @@
  * MESHES_DIR = "${CMAKE_SOURCE_DIR}/res/meshes/" */
 namespace Path
 {
+	// #############################################################################################
+	// #######################################  Shaders  ###########################################
+	// #############################################################################################
+
 	inline const std::string pathBlinnPhongVert = std::string(SHADERS_DIR) + "blinnPhong.vert";
 	inline const std::string pathBlinnPhongFrag = std::string(SHADERS_DIR) + "blinnPhong.frag";
 	inline const std::string pathCRTFrag = std::string(SHADERS_DIR) + "CRT.frag";
@@ -20,17 +24,34 @@ namespace Path
 	inline const std::string pathSpotDepthVert = std::string(SHADERS_DIR) + "spotDepth.vert";
 	inline const std::string pathSpotDepthFrag = std::string(SHADERS_DIR) + "spotDepth.frag";
 
+	// #############################################################################################
+	// ########################################  Models  ###########################################
+	// #############################################################################################
+
 	inline const std::string pathModel = std::string(MESHES_DIR) + "tempArcade.obj";
 	inline const std::string pathRoom = std::string(MESHES_DIR) + "new_room.obj";
 	inline const std::string pathLamp = std::string(MESHES_DIR) + "lamp.obj";
 	inline const std::string pathMainLamp = std::string(MESHES_DIR) + "mainLamp.obj";
 	inline const std::string pathPool = std::string(MESHES_DIR) + "pool.obj";
 
+	// #############################################################################################
+	// ########################################  Textures  #########################################
+	// #############################################################################################
 
+	// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*  3D scene  *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*	
+	// testing
 	inline const std::string pathRospi = std::string(TEXTURE_DIR) + "rospi.png";
+	// room
 	inline const std::string pathFloorTile = std::string(TEXTURE_DIR) + "floorTile.png";
 
 
-	inline const std::string pathPlayerSprite = std::string(TEXTURE_DIR) + "player_spritesheet.png";
+	// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*  2D game  *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+	// background
 	inline const std::string pathBackground = std::string(TEXTURE_DIR) + "background.png";
+	// player
+	inline const std::string pathPlayerSprite = std::string(TEXTURE_DIR) + "player_spritesheet.png";
+	inline const std::string pathArrow = std::string(TEXTURE_DIR) + "arrow.png";
+	// enemy
+	inline const std::string pathCatSprite = std::string(TEXTURE_DIR) + "cat_spritesheet.png";
+	inline const std::string pathEnergyBall = std::string(TEXTURE_DIR) + "energyBall.png";
 }
