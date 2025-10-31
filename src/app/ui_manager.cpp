@@ -68,7 +68,7 @@ void UIManager::drawUI(Scene& scene, Game& game, int width, int height)
 		m_isAnyMenuOpen = true;
 	}
 
-	drawDebugOverlay(scene, width, height);
+	drawDebugOverlay(scene, game, width, height);
 }
 
 void UIManager::render()
@@ -105,7 +105,7 @@ void UIManager::drawCabinetMenu(Scene& scene, int width, int height)
 
 	// Needed for both buttons, because input3D can move camera during animation. 
 	// TODO: maybe to avoid this problem it is needed to detach camera movement control from input control
-	if (!scene.isArcadeMenuOpen()) scene.setInput3D(true);
+	//if (!scene.isArcadeMenuOpen()) scene.setInput3D(true);
 
 	ImGui::End();
 }
@@ -141,7 +141,7 @@ void UIManager::drawGameMenu(Scene& scene, Game& game, int width, int height)
 
 }
 
-void UIManager::drawDebugOverlay(Scene& scene, int width, int height)
+void UIManager::drawDebugOverlay(Scene& scene, Game& game, int width, int height)
 {
 	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
 	ImGui::SetNextWindowBgAlpha(0.3f);
@@ -152,10 +152,14 @@ void UIManager::drawDebugOverlay(Scene& scene, int width, int height)
 		ImGuiWindowFlags_NoTitleBar);
 
 	ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-	ImGui::Text("Camera Pos: (%.2f, %.2f, %.2f)",
-		scene.getCam3D().getPosition().x,
-		scene.getCam3D().getPosition().y,
-		scene.getCam3D().getPosition().z);
+	if(!scene.isDisplayOn())
+	{
+		ImGui::Text("Camera Pos: (%.2f, %.2f, %.2f)",
+			scene.getCam3D().getPosition().x,
+			scene.getCam3D().getPosition().y,
+			scene.getCam3D().getPosition().z);
+	}
+	else ImGui::Text("Camera Pos : %.2f", game.getCamPos());
 
 	ImGui::End();
 }

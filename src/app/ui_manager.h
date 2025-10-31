@@ -2,7 +2,7 @@
 
 #include "../core/commonGL.h"
 #include "../core/input_manager.h"
-#include "scene.h"
+#include "scene3D/scene.h"
 #include "game2D/game.h"
 
 
@@ -26,5 +26,5 @@ private:
 
 	void drawCabinetMenu(Scene& scene, int width, int height);
 	void drawGameMenu(Scene& scene, Game& game, int width, int height);
-	void drawDebugOverlay(Scene& scene, int width, int height);
+	void drawDebugOverlay(Scene& scene, Game& game, int width, int height);
 };
