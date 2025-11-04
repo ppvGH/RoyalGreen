@@ -4,12 +4,14 @@
 #include "game_obj.h"
 #include "../../core/action_map.h"
 #include "state.h"
+#include "../../core/collision.h"
 
 class ProjectileManager;	// fwd decl
 
 class Player
 {
 public:
+	/* Parametric constructor initializes sprite, game object and BB with arguments. */
 	Player(const std::string& texName, glm::vec2 position, glm::vec2 size, glm::vec2 velocity);
 
 	/* Input manager. Sets states. */
@@ -30,14 +32,25 @@ public:
 	glm::vec2 getPosition() const { return m_body.getPosition(); }
 	glm::vec2 getSize() const { return m_body.getSize(); }
 	const Texture& getTex() const { return m_sprite.getTex(); }
+	State getState() const { return m_state; }
+
 
 	//void setPosition(const glm::vec2& pos) { m_body.setPosition(pos); }
 	//void setVelocity(const glm::vec2& vel) { m_body.setVelocity(vel); }
+
+	void hasBeenHit() { m_isHit = true; }
+
+
+	const GameObj& getGameObj() const { return m_body; }
+	const BoundingBox getBB() const { return m_BB; }
 
 
 private:
 	GameObj m_body;
 	Sprite m_sprite;
+
+	BoundingBox m_BB;
+
 	/* Current state. */
 	State m_state;
 	/* Previous state. Set in updateAnimation(). */
@@ -55,7 +68,8 @@ private:
 	bool m_facingRight = true;
 	bool m_onGround = true;	// false while jumping
 	bool m_canMove = true;	// false while shooting
-	bool m_shotFired = false;	// true after shot, reset false when attack animation ends
+	bool m_shotFired = false;	// true after shooting an arrow, reset false when attack animation ends
+	bool m_isHit = false;		// true if hit by enemy
 
 	bool isIdle(const ActionMap& actionMap2D);
 	void atIdle();
@@ -64,9 +78,11 @@ private:
 	void jumpHandler(float dt);
 	void setAttack();
 	void attackHandler(ProjectileManager& projectilesSys);
+	void deathHandler();
 
 	/* Emits projectile object. */
 	void shootArrow(ProjectileManager& projectilesSys);
+
 
 	/* Prints state when there is a variation.*/
 	void printNewState(const ActionMap& actionMap2D);

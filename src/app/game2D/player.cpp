@@ -9,12 +9,14 @@
 Player::Player(const std::string& texName, glm::vec2 position, glm::vec2 size, glm::vec2 velocity):
 	m_body(position, size, velocity),
 	m_sprite(texName, gameData::playerSheetRows, gameData::playerSheetColumns),
+	m_BB(position + gameData::bbOffsetPosition, gameData::bbSize),
 	m_state(State::Idle),
 	m_prevState(State::Walk),		// different from m_state to start sprite animations
 	m_facingRight(true),
 	m_onGround(true),
 	m_canMove(true),
-	m_shotFired(false)
+	m_shotFired(false),
+	m_isHit(false)
 {
 }
 
@@ -23,6 +25,7 @@ void Player::inputHandler(const ActionMap& actionMap2D, float dt, ProjectileMana
 	if (!m_canMove) return;
 
 	if (isIdle(actionMap2D)) atIdle();
+
 	if (actionMap2D.ongoing(Action::P1MoveRight)) walk(true);
 	if (actionMap2D.ongoing(Action::P1MoveLeft)) walk(false);
 
@@ -40,7 +43,7 @@ bool Player::isIdle(const ActionMap& actionMap2D)
 	/* Actions condition. */
 	bool actions = !(actionMap2D.ongoing(Action::P1MoveRight) || actionMap2D.ongoing(Action::P1MoveLeft)); // walking
 	/* States condition. */
-	bool states = !(m_state == State::Jump || m_state == State::Attack);
+	bool states = m_state == State::Walk;
 
 	return (actions && states) || m_state == State::Idle;
 }
@@ -111,7 +114,7 @@ void Player::setAttack()
 
 void Player::attackHandler(ProjectileManager& projectilesSys)
 {
-	// enter function only if State::Attack is ongoing since 2+ frames
+	// enter function only if State::Attack
 	if (m_state != State::Attack) return;	
 
 	bool shootingFrameCond = m_sprite.getAnimator().getFrame() == gameData::playerShootFrame;
@@ -121,7 +124,7 @@ void Player::attackHandler(ProjectileManager& projectilesSys)
 		shootArrow(projectilesSys);
 		m_shotFired = true;		// shoots only once
 	}
-	else if (m_sprite.getAnimator().isAnimationFinished())
+	else if (m_sprite.getAnimator().isAnimationFinished())		//else makes it skip first time in the function
 	{
 		m_state = State::Idle;
 		m_canMove = true;
@@ -133,16 +136,33 @@ void Player::attackHandler(ProjectileManager& projectilesSys)
 void Player::shootArrow(ProjectileManager& projectilesSys)
 {	
 	/* Projectile position adjusted for crossbow height. */
-	glm::vec2 pos = m_body.getPosition() + glm::vec2(0.0f, 0.1f * m_body.getSize().y);
+	glm::vec2 pos = m_body.getPosition() + glm::vec2(0.0f, gameData::arrowHeight * m_body.getSize().y);
 	if (m_facingRight) pos.x += 0.55f * m_body.getSize().x;
-	else pos.x -= 0.05f * m_body.getSize().x;
+	//else pos.x -= 0.05f * m_body.getSize().x;	//not needed after resize of arrow.png
 
 	/* Projectile velocity. */
 	glm::vec2 velocity = gameData::arrowSpeed * glm::vec2(1.0f, 0.0f);	// speed * direction
 	if(!m_facingRight) velocity *= -1;		// invert speed if facing left
 
 	/* Creates a projectile with given position, speed, size, verse (+-facingRight). */
-	projectilesSys.emit(gameData::arrowTexName, pos, gameData::arrowSize, velocity, m_facingRight);
+	projectilesSys.emit(gameData::arrowTexName, pos, gameData::arrowSize, velocity, m_facingRight, ProjectileOwner::Player);
+}
+
+void Player::deathHandler()
+{
+	if (m_state == State::Hit && m_sprite.getAnimator().isAnimationFinished())
+	{
+		m_state = State::Dead;
+	}
+	else if (m_isHit && m_state != State::Dead) 
+	{
+		m_body.setVerticalPosition(gameData::groundLevel);
+		m_body.setVelocity(glm::vec2(0.0f));
+		m_canMove = false;
+		m_state = State::Hit;
+	}
+
+
 }
 
 void Player::printNewState(const ActionMap& actionMap2D)
@@ -168,14 +188,19 @@ void Player::update(float dt, ProjectileManager& projectileSys)
 
 	/* Position update. */
 	m_body.updatePosition(dt);
+	/* BB update. */
+	m_BB.updateBB(m_body.getPosition() + gameData::bbOffsetPosition);
 
 	/* States behaviour update. */
 	jumpHandler(dt);
 	attackHandler(projectileSys);
+	deathHandler();
 }
 
 void Player::render(const SpriteRenderer& spriteRenderer, Shader& shader) const
 {
+	/* TODO: If here shader becomes a member (m_shader) which is update when a change of state happens. 
+	 * i.e. when hit the shader flashes, could be cool. */
 	m_sprite.render(spriteRenderer, shader, m_body.getPosition(), m_body.getSize());
 }
 
@@ -190,6 +215,7 @@ void Player::resetPlayer()
 	m_onGround = true;
 	m_canMove = true;
 	m_shotFired = false;
+	m_isHit = false;
 }
 
 void Player::setAnimation(int start, int end, int line, float fps)
