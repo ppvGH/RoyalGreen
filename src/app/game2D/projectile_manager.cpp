@@ -1,9 +1,11 @@
 #include "projectile_manager.h"
 #include <iostream>
 
-void ProjectileManager::emit(const std::string& texName, glm::vec2 pos, glm::vec2 size, glm::vec2 vel, bool facingRight)
+void ProjectileManager::emit(const std::string& texName, 
+	glm::vec2 pos, glm::vec2 size, glm::vec2 vel, bool facingRight,
+	ProjectileOwner owner)
 {
-	m_projectilesContainer.push_back(std::make_unique<Projectile>(texName, pos, size, vel, facingRight));
+	m_projectilesContainer.push_back(std::make_unique<Projectile>(texName, pos, size, vel, facingRight, owner));
 }
 
 void ProjectileManager::cancel(float rightLim, float leftLim, float topLim, float botLim)
@@ -12,8 +14,9 @@ void ProjectileManager::cancel(float rightLim, float leftLim, float topLim, floa
 	for (int i = m_projectilesContainer.size() - 1; i >= 0; i--)
 	{
 		glm::vec2 projPos = m_projectilesContainer[i]->getPosition();
-		
-		if (projPos.x > rightLim || projPos.x < leftLim) m_projectilesContainer.erase(m_projectilesContainer.begin() + i);	//proj out right/left
+		bool projStatus = m_projectilesContainer[i]->getStatus();
+		if (!projStatus) m_projectilesContainer.erase(m_projectilesContainer.begin() + i);	// collision
+		else if (projPos.x > rightLim || projPos.x < leftLim) m_projectilesContainer.erase(m_projectilesContainer.begin() + i);	//proj out right/left
 		else if(projPos.y > topLim || projPos.y < botLim) m_projectilesContainer.erase(m_projectilesContainer.begin() + i);	//proj out top/bot
 	}
 }
