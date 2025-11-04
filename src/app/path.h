@@ -54,4 +54,6 @@ namespace Path
 	// enemy
 	inline const std::string pathCatSprite = std::string(TEXTURE_DIR) + "cat_spritesheet.png";
 	inline const std::string pathEnergyBall = std::string(TEXTURE_DIR) + "energyBall.png";
+	// HUD
+	inline const std::string pathCatLife = std::string(TEXTURE_DIR) + "catLife.png";
 }
