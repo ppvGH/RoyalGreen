@@ -94,11 +94,11 @@ void UIManager::drawCabinetMenu(Scene& scene, int width, int height)
 
 	if (ImGui::Button("Play", ImVec2(120, 0)))
 	{
-		if(!scene.isDisplayOn()) scene.switchArcadeScreen();
+		if (!scene.isDisplayOn()) scene.switchArcadeScreen();
 		scene.cameraInAnimation();
 		scene.closeArcadeMenu();
 	}
-	if (ImGui::Button("Exit", ImVec2(120, 0))) 
+	if (ImGui::Button("Exit", ImVec2(120, 0)))
 	{
 		scene.closeArcadeMenu();
 	}
@@ -128,7 +128,12 @@ void UIManager::drawGameMenu(Scene& scene, Game& game, int width, int height)
 		game.closeGameMenu();
 		scene.setInput2D(true);
 	}
-	
+	if (ImGui::Button("Reset game", ImVec2(120, 0)))
+	{
+		game.closeGameMenu();
+		game.resetGame();
+		scene.setInput2D(true);
+	}
 	if (ImGui::Button("Exit game", ImVec2(120, 0)))
 	{
 		game.closeGameMenu();
@@ -159,7 +164,11 @@ void UIManager::drawDebugOverlay(Scene& scene, Game& game, int width, int height
 			scene.getCam3D().getPosition().y,
 			scene.getCam3D().getPosition().z);
 	}
-	else ImGui::Text("Camera Pos : %.2f", game.getCamPos());
+	else
+	{
+		ImGui::Text("Camera Pos : %.2f", game.getCamPos());
+		ImGui::Text("Cat Lives : %d", game.getCatLives());
+	}
 
 	ImGui::End();
 }
