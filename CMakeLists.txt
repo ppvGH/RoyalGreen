@@ -96,6 +96,7 @@ add_executable(royalgreen
   src/core/input_manager.cpp
   src/core/action_map.cpp
   src/core/geometry.cpp
+  src/core/collision.cpp
 
   src/graphics/shader.cpp
   src/graphics/texture.cpp
@@ -123,6 +124,10 @@ add_executable(royalgreen
   src/app/game2D/projectile.cpp
   src/app/game2D/projectile_manager.cpp
   src/app/game2D/cat.cpp
+  src/app/game2D/collision_system.cpp
+  src/app/game2D/gameHUD.cpp
+
+
 
   external/glad/src/glad.c
  )
