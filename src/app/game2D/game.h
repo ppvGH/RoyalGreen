@@ -6,6 +6,8 @@
 #include "projectile_manager.h"
 #include "player.h"
 #include "cat.h"
+#include "collision_system.h"
+#include "gameHUD.h"
 
 #include "../../core/action_map.h"
 
@@ -44,6 +46,7 @@ public:
 	/* GUI. */
 	bool isGameMenuOpen() const { return m_gameMenuOpen; }
 	void closeGameMenu() { m_gameMenuOpen = false; }
+	int getCatLives() const { return m_cat.getLives(); }
 
 private:
 
@@ -52,11 +55,15 @@ private:
 	float m_height;
 
 
-	/* Game items. */
+	/* Game items (renderable). */
 	Background m_background;
 	ProjectileManager m_projectilesSystem;
 	Player m_player;
 	Cat m_cat;
+	GameHUD m_gameHUD;
+
+	/* Collision system. */
+	CollisionSystem m_collisionSystem;
 
 	/* Camera is just an X coordinate, corresponding to left border of the screen. */
 	float m_cameraPosition;

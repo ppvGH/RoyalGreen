@@ -15,6 +15,8 @@ Game::Game(int width, int height) :
     m_projectilesSystem(),
     m_player(gameData::playerTexName, gameData::playerPosition, gameData::playerSize, gameData::playerVelocity),
     m_cat(gameData::catTexName, gameData::catPosition, gameData::catSize, gameData::catVelocity),
+    m_gameHUD(gameData::catLifeTexName),
+    m_collisionSystem(m_player, m_cat, m_projectilesSystem),
 	m_FBO(width, height, sceneData::FBOtypeColor),
 	m_spriteRenderer(width, height),
     m_shader(ResourceManager::getShader(gameData::gameShaderName)),
@@ -60,16 +62,30 @@ void Game::input2DHandler(const ActionMap& actionMap2D, float dt)
 
 void Game::update(float dt)
 {
-    updateCamera();
 
-    m_player.update(dt, m_projectilesSystem);
-    m_cat.update(dt, m_projectilesSystem, m_player.getPosition(), m_cameraPosition);
+    if (m_player.getState() != State::Dead && m_cat.getState() != State::Dead)
+    {
+        updateCamera();
 
-    float rightLim = m_cameraPosition + m_width ;
-    float leftLim = m_cameraPosition - gameData::arrowSize.x;
-    float topLim = m_height;
-    float botLim = 0.0f;
-    m_projectilesSystem.update(dt, rightLim, leftLim, topLim, botLim);
+        m_player.update(dt, m_projectilesSystem);
+        m_cat.update(dt, m_projectilesSystem, m_player.getPosition(), m_cameraPosition);
+
+
+        /* Updates projectiles position and if they are out of camera view it removes them. */
+        float rightLim = m_cameraPosition + m_width;
+        float leftLim = m_cameraPosition - gameData::arrowSize.x;
+        float topLim = m_height;
+        float botLim = 0.0f;
+        m_projectilesSystem.update(dt, rightLim, leftLim, topLim, botLim);
+
+        /* Collision system update. */
+        m_collisionSystem.checkCollision();
+    }
+    else
+    {
+        openGameMenu();
+    }
+
 
     
 }
@@ -98,6 +114,16 @@ void Game::render() const
     m_cat.render(m_spriteRenderer, m_shader);
 
     m_projectilesSystem.render(m_spriteRenderer, m_shader);
+
+    /* TODO: adjust HUD. */
+    glm::vec2 firstLifePosition = glm::vec2(m_cameraPosition + m_width - gameData::catLifeSize.x - 10.0f, 550.0f);
+    for(int i = 0; i < m_cat.getLives(); i++)
+    {
+        glm::vec2 catLifePosition = firstLifePosition - glm::vec2(static_cast<float>(i) * gameData::catLifeSize.x + 5.0f, 0.0f);
+        m_gameHUD.render(m_spriteRenderer, m_shader, catLifePosition, gameData::catLifeSize);
+    }
+
+
 
     /* Detaches the FBO. */
     m_FBO.unbind();
