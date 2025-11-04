@@ -4,6 +4,8 @@
 #include "sprite.h"
 #include "state.h"
 
+#include "../../core/collision.h"
+
 class ProjectileManager;
 
 class Cat
@@ -31,19 +33,35 @@ public:
 	/* Reset initial values. */
 	void resetCat();
 
+	/* Getter. */
+	glm::vec2 getPosition() const { return m_body.getPosition(); }
+	State getState() const { return m_state; }
+	int getLives() const { return m_lives; }
+	GameObj& getGameObj() { return m_body; }
+	const BoundingBox getBB() const { return m_BB; }
+
+	/* Hit manager. */
+	void hasBeenHit();
+
 
 private:
 	GameObj m_body;
 	Sprite m_sprite;
 
+	BoundingBox m_BB;
+
 	State m_state;
-	/* Set in updateAnimation method. */
-	State m_prevState;
+	State m_prevState;	// used only for animation, not logic
+
+	int m_lives = 9;
 
 	bool m_facingRight = false;
+	bool m_canMove = true;
 	bool m_onGround = true;
 	float m_attackTimer = 0.0f;
+	bool m_setJumpMove = false;		// flag to setup jump move attack when first entering the function
 	bool m_energyBallFired = false;
+	bool m_blastCharge = true;		// false after blast charge by lives count, reset after every hit
 	float m_blastTimer = 0.0f;
 	int m_blastCount = 0;
 
@@ -58,6 +76,8 @@ private:
 	void setJumpMove();
 
 	void updateFacing(float playerXpos);
+
+	void deathHandler();
 
 	void updateAnimation();
 };
