@@ -64,6 +64,7 @@ void assetLoader()
     ResourceManager::loadTexture(Path::pathArrow, TexParams(), gameData::arrowTexName);
     ResourceManager::loadTexture(Path::pathCatSprite, TexParams(), gameData::catTexName);
     ResourceManager::loadTexture(Path::pathEnergyBall, TexParams(), gameData::energyBallTexName);
+    ResourceManager::loadTexture(Path::pathCatLife, TexParams(), gameData::catLifeTexName);
 
 }
 
