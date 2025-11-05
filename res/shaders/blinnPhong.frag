@@ -37,7 +37,7 @@ uniform samplerCube tablePLDepthMap;    // depth map FBO texture
 uniform float tablePLFarPlane;          // far plane
 
 // fixing near plane issue
-uniform float tableLightHeightFix;
+uniform float tableLightYoffset;
 
 // smoothing edges
 uniform float tableCosInner;
@@ -178,8 +178,8 @@ float pointLightShadowCalc(vec3 pointL, vec3 pointLightPos, samplerCube pointLig
     bool condYforXZ = (fragPos.y > tablePLPos.y - 0.7);                                           // fragments above the quote at which unwanted lights appear that
     bool condXZ = (abs(fragPos.x - tablePLPos.x) > 0.3) || (abs(fragPos.z - tablePLPos.z) > 0.3); // are also out of a square centered at the light src 
     if(condYforXZ && condXZ) tableShadowPL = tableShadowIntensity;                                // are put in shadow
-    bool condY = (fragPos.y > tablePLPos.y + tableLightHeightFix);             // the part before left a square on the ceiling not in shadow, so with this
-    if(condY) tableShadowPL = tableShadowIntensity;                       // those frags are also put in shadow
+    bool condY = (fragPos.y > tablePLPos.y + tableLightYoffset);             // the part before left a square on the ceiling not in shadow, so with this
+    if(condY) tableShadowPL = tableShadowIntensity;                            // those frags are also put in shadow
 
     // final intensity
     vec3 tableIPL = tablePoint_l*(tablePoint_d*D+tablePoint_s*S)*(1.0 - tableShadowPL);        // no ambient or emission to reduce cumulative lighting effects

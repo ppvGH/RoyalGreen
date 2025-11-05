@@ -74,14 +74,15 @@ namespace sceneData
 	inline const float mainPointLightInvFarPlane = 1.0 / mainPointLightFarPlane;
 
 	/* Table point light data. */
-	inline const float tableLampHeightFix = 0.00f;	// table PL height fix: just above the lightbulb to shrink the light cone projected
+	inline const float tableLampHeightFix = 0.00f;	// table PL height fix: just above the lightbulb to shrink(>0) or enlarge(<0) the light cone projected
+	inline const float tableLightYoffset = 0.05f;	// value for the shader to lighten the internal part of lampshade
 
 	inline const float tablePointLightNearPlane = 0.1f;
-	inline const float tablePointLightFarPlane = 5.0f;	// covers entire room
+	inline const float tablePointLightFarPlane = 5.0f;	
 	inline const float tablePointLightInvFarPlane = 1.0 / tablePointLightFarPlane;
 
-	inline const float tableCosInnerAngle = glm::cos(glm::radians(35.0f));
-	inline const float tableCosOuterAngle = glm::cos(glm::radians(45.0f));
+	inline const float tableCosInnerAngle = glm::cos(glm::radians(35.0f));		// if heightFix >0 --> lower this || if heightFix < 0 --> up this
+	inline const float tableCosOuterAngle = glm::cos(glm::radians(45.0f));		// if heightFix >0 --> lower this || if heightFix < 0 --> up this
 	inline const float tableInvCosDelta = 1 / (tableCosInnerAngle - tableCosOuterAngle);
 
 	

@@ -352,7 +352,7 @@ void Scene::drawScene()
 	phong.setVector3f("tablePLPos", m_tablePointLightPos);
 	phong.setInt("tablePLDepthMap", 2);
 	phong.setFloat("tablePLFarPlane", sceneData::tablePointLightFarPlane);
-	phong.setFloat("tableLightHeightFix", sceneData::tableLampHeightFix);
+	phong.setFloat("tableLightYoffset", sceneData::tableLightYoffset);
 	phong.setFloat("tableCosInner", sceneData::tableCosInnerAngle);
 	phong.setFloat("tableCosOuter", sceneData::tableCosOuterAngle);
 	phong.setFloat("invCosDelta", sceneData::tableInvCosDelta);
