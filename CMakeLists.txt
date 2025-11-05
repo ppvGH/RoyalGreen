@@ -26,6 +26,7 @@ FetchContent_MakeAvailable(imgui)
 FetchContent_Declare(
   assimp
   URL https://github.com/assimp/assimp/archive/refs/tags/v6.0.2.tar.gz
+  EXCLUDE_FROM_ALL
 )
 
 # Lighter build without tests / samples / tools
@@ -147,9 +148,13 @@ target_link_libraries(royalgreen PRIVATE
   imgui_lib
   OpenGL::GL
 )
-# Shaders directory definition -------------------------------------------------
+# Directories definition --------------------------------------------------------
 target_compile_definitions(royalgreen PRIVATE
   SHADERS_DIR="${CMAKE_SOURCE_DIR}/res/shaders/"
   MESHES_DIR="${CMAKE_SOURCE_DIR}/res/meshes/"
   TEXTURE_DIR="${CMAKE_SOURCE_DIR}/res/textures/"
 )
+
+# Installation rules -----------------------------------------------------------
+install(TARGETS royalgreen 
+        RUNTIME DESTINATION bin)
