@@ -32,10 +32,11 @@ Scene::Scene(int width, int height) :
 	m_mainLamp(Path::pathMainLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
 	m_tableLamp(Path::pathLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
 	m_tmp(Path::pathModel, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
-	m_pointLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
-	m_spotLightPos(glm::vec3(0.0f)),
-	m_spotLightTarget(glm::vec3(0.0f)),
-	m_spotLightSpace(glm::mat4(0.0f)),
+	m_mainPointLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
+	m_tablePointLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
+	// m_spotLightPos(glm::vec3(0.0f)),
+	// m_spotLightTarget(glm::vec3(0.0f)),
+	// m_spotLightSpace(glm::mat4(0.0f)),
 	m_animInIsOn(false),
 	m_animOutIsOn(false),
 	m_animSecondPart(false),
@@ -47,8 +48,9 @@ Scene::Scene(int width, int height) :
 	m_animSecondPartDuration(sceneData::inAnimationSecondPartDuration),
 	m_aimVAO(0),
 	m_aimIsOn(true),
-	m_depthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth),
-	m_depthSpotFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeDepth)
+	m_mainDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth),
+	m_tableDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth)
+	//m_depthSpotFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeDepth)
 {
 	/* Set aspect = width/height for camera 3D. */
 	float aspect = static_cast<float>(width) / static_cast<float>(height);
@@ -56,9 +58,15 @@ Scene::Scene(int width, int height) :
 
 	/* Initialize scene models and their model matrices. */
 	initScene();
-	m_pointLightPos = m_mainLamp.getWCSPosition() + m_mainLamp.getMesh("lamp_light").getCenter();
-	m_spotLightPos = m_pool.getWCSPosition() + glm::vec3(0.0f, 3.0f, 0.0f);
-	m_spotLightTarget = m_pool.getWCSPosition() + glm::vec3(0.0f, +0.8f, 0.0f);
+
+	/* Save positions for light sources for the shader passes. */
+	m_mainPointLightPos = m_mainLamp.getWCSPosition() + m_mainLamp.getMesh("lamp_light").getCenter();
+	m_tablePointLightPos = m_tableLamp.getWCSPosition() + m_tableLamp.getMesh("lamp_plastic").getCenter() + 
+		glm::vec3(0.0f, sceneData::tableLampHeightFix, 0.0f);
+
+	//m_spotLightPos = m_tableLamp.getWCSPosition() + m_tableLamp.getMesh("lamp_plastic").getCenter();
+	//m_spotLightPos = m_pool.getWCSPosition() + glm::vec3(0.0f, 3.0f, 0.0f);
+	//m_spotLightTarget = m_pool.getWCSPosition() + glm::vec3(0.0f, +0.8f, 0.0f);
 
 	/* Initialize aim assistant (sight). */
 	initAim();
@@ -273,7 +281,8 @@ bool Scene::cameraOutAnimation()
 	glm::vec3 dN = m_arcade.getModel().getMesh("display").getGlobalNormal();
 
 	/* Final camera position. */
-	glm::vec3 endPos = glm::vec3((dC + 4.0f * dN).x, sceneData::cameraAltitude, 0.0f);
+	glm::vec3 endPos = dC + 5.0f * dN; endPos.y = sceneData::cameraAltitude;
+	//glm::vec3 endPos = glm::vec3((dC + 3.0f * dN).x, sceneData::cameraAltitude, (dC));
 
 	/* First time entering in the function. */
 	if (!m_animOutIsOn)
@@ -318,7 +327,8 @@ bool Scene::cameraOutAnimation()
 
 void Scene::drawScene()
 {
-	
+	/* TODO: separate uniforms setup that dont change during scene rendering and setup them just once in the main before render loop. */
+
 	/* Viewport and Buffers setup. */
 	glViewport(0, 0, m_width, m_height);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -330,22 +340,35 @@ void Scene::drawScene()
 	phong.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
 	phong.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
 	phong.setVector3f("viewPos", m_cam3D.getPosition());
-	// Point light setup
-	phong.setVector3f("pointLightPos", m_pointLightPos);
-	phong.setInt("pointLightDepthMap", 1);
-	phong.setFloat("pointLightFarPlane", sceneData::pointLightFarPlane);
-	/* Cubemap texture setup. */
+	// MAIN Point light setup
+	phong.setVector3f("mainPLPos", m_mainPointLightPos);
+	phong.setInt("mainPLDepthMap", 1);
+	phong.setFloat("mainPLFarPlane", sceneData::mainPointLightFarPlane);
+	/* MAIN Cubemap texture setup. */
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, m_depthCubeFBO.getTex().getID());
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_mainDepthCubeFBO.getTex().getID());
+
+	// TABLE Point light setup
+	phong.setVector3f("tablePLPos", m_tablePointLightPos);
+	phong.setInt("tablePLDepthMap", 2);
+	phong.setFloat("tablePLFarPlane", sceneData::tablePointLightFarPlane);
+	phong.setFloat("tableLightHeightFix", sceneData::tableLampHeightFix);
+	phong.setFloat("tableCosInner", sceneData::tableCosInnerAngle);
+	phong.setFloat("tableCosOuter", sceneData::tableCosOuterAngle);
+	phong.setFloat("invCosDelta", sceneData::tableInvCosDelta);
+
+	/* MAIN Cubemap texture setup. */
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_tableDepthCubeFBO.getTex().getID());
 
 	// Spot light setup
-	phong.setMatrix4fv("lightSpace", 1, GL_FALSE, m_spotLightSpace);
+	/*phong.setMatrix4fv("lightSpace", 1, GL_FALSE, m_spotLightSpace);
 	phong.setVector3f("spotLightTar", m_spotLightTarget);
 	phong.setVector3f("spotLightPos", m_spotLightPos);
-	phong.setInt("spotLightDepthMap", 2);
+	phong.setInt("spotLightDepthMap", 2);*/
 
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, m_depthSpotFBO.getTex().getID());
+	//glActiveTexture(GL_TEXTURE2);
+	//glBindTexture(GL_TEXTURE_2D, m_depthSpotFBO.getTex().getID());
 	
 	/* CRT shader setup. */
 	Shader& CRT = ResourceManager::getShader(sceneData::CRTShaderName).use();
@@ -360,13 +383,13 @@ void Scene::drawScene()
 
 }
 
-void Scene::pointLightShadowMap()
+void Scene::pointLightShadowMap(glm::vec3 lightPos, Framebuffer& fbo, float nearPlane, float farPlane)
 {
 	/* Lamp WCS position is the light position.*/
-	glm::vec3 lightPos = m_mainLamp.getMesh("lamp_light").getCenter() + m_mainLamp.getWCSPosition();
+	//glm::vec3 lightPos = m_mainLamp.getMesh("lamp_light").getCenter() + m_mainLamp.getWCSPosition();
 	
 	/* Light projection matrix. */
-	glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.3f, 5.0f);
+	glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
 
 	/* Data for light view matrices (one for each cube face). */
 	glm::vec3 axes[6] =
@@ -399,7 +422,7 @@ void Scene::pointLightShadowMap()
 	/* Depth pass. */
 	/* FBO and viewport setup. */
 	glViewport(0, 0, sceneData::shadowWidth, sceneData::shadowHeight);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_depthCubeFBO.getID());
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo.getID());
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -411,7 +434,7 @@ void Scene::pointLightShadowMap()
 		std::string unif = "shadowMats[" + std::to_string(i) + "]";
 		depthShader.setMatrix4fv(unif, 1, GL_FALSE, lightPVs[i]);
 	}
-	depthShader.setFloat("invFarPlane", sceneData::pointLightInvFarPlane);
+	depthShader.setFloat("invFarPlane", 1/farPlane);
 	depthShader.setVector3f("lightPos", lightPos);
 
 	/* Render depth pass. */
@@ -424,14 +447,20 @@ void Scene::pointLightShadowMap()
 	
 }
 
-void Scene::spotLightShadowMap()
+void Scene::depthPass()
 {
-	/* Light position is above the pool table. */
-	glm::vec3 lightPos = m_tableLamp.getWCSPosition();
-	/* Light target is the pool table. TODO: ideally the mesh of its cloth stuff. */
-	glm::vec3 lightTarget = m_pool.getWCSPosition();// +glm::vec3(0.0f, +0.8f, 0.0f);
+	/* Main light depth pass. */
+	pointLightShadowMap(m_mainPointLightPos, m_mainDepthCubeFBO, sceneData::mainPointLightNearPlane, sceneData::mainPointLightFarPlane);
+	/* Table light depth pass. */
+	pointLightShadowMap(m_tablePointLightPos, m_tableDepthCubeFBO, sceneData::tablePointLightNearPlane, sceneData::tablePointLightFarPlane);
+
+}
+
+void Scene::spotLightShadowMap(glm::vec3 lightPos, glm::vec3 lightTarget, glm::mat4& spotLightSpace, Framebuffer& fbo, float fovy, float aspect, float nearPlane, float farPlane)
+{
+	
 	/* Light projection matrix. */
-	glm::mat4 lightProj = glm::perspective(glm::radians(60.0f), 2.0f, 0.1f, 3.0f);
+	glm::mat4 lightProj = glm::perspective(glm::radians(fovy), aspect, nearPlane, farPlane);
 
 	glm::vec3 VUP = glm::vec3(0.0f, 0.0f, -1.0f);
 	/* Light view matrix. */
@@ -439,13 +468,13 @@ void Scene::spotLightShadowMap()
 
 	/* Light space matrix. */
 	glm::mat4 lightSpaceMatrix = lightProj * lightView;
-	m_spotLightSpace = lightSpaceMatrix;
+	spotLightSpace = lightSpaceMatrix;
 	//printMat4(lightSpaceMatrix);
 
 	/* Depth pass.*/
 	/* FBO and viewport setup. */
 	glViewport(0, 0, sceneData::shadowWidth, sceneData::shadowHeight);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_depthSpotFBO.getID());
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo.getID());
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	/* Depth shader setup. */
@@ -502,13 +531,12 @@ void Scene::initScene()
 	m_pool.setModelMat(poolModelMat);
 
 	/* Shift WCS position by the main lamp position vector and set the model matrix. */
-	glm::mat4 mainLampModelMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.95f, 0.0f));	
+	glm::mat4 mainLampModelMat = glm::translate(glm::mat4(1.0f), sceneData::mainLampModelPositionShift);	
 	m_mainLamp.setModelMat(mainLampModelMat);
 
 	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
-	glm::mat4 tableLampModelMat = glm::translate(glm::mat4(1.0), sceneData::lampModelPositionShift - glm::vec3(0.0f, 0.5f, 0.0f));	// up the lamp
-	tableLampModelMat = glm::translate(tableLampModelMat, sceneData::poolModelPositionShift);			// put it above the table
-	tableLampModelMat = glm::scale(tableLampModelMat, glm::vec3(0.75));									// reduce lamp size
+	glm::mat4 tableLampModelMat = glm::translate(glm::mat4(1.0), sceneData::tableLampModelPositionShift);	// up the lamp
+	tableLampModelMat = glm::translate(tableLampModelMat, m_pool.getWCSPosition());			// put it above the table
 	m_tableLamp.setModelMat(tableLampModelMat);
 
 }

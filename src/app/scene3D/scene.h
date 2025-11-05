@@ -107,12 +107,8 @@ public:
 	/* Lighting pass. */
 	void drawScene();
 
-	/* Shadow mapping for point light. */
-	void pointLightShadowMap();
-
-	/* Shadow mapping for spot light. */
-	void spotLightShadowMap();
-
+	/* Depth pass. */
+	void depthPass();
 	
 
 private:
@@ -145,10 +141,23 @@ private:
 	Model m_tmp;
 
 	/* Lights position and data. */
-	glm::vec3 m_pointLightPos;
-	glm::vec3 m_spotLightPos;
-	glm::vec3 m_spotLightTarget;
-	glm::mat4 m_spotLightSpace;
+	glm::vec3 m_mainPointLightPos;
+	glm::vec3 m_tablePointLightPos;
+
+	// glm::vec3 m_spotLightPos;
+	// glm::vec3 m_spotLightTarget;
+	// glm::mat4 m_spotLightSpace;
+
+	/* Framebuffers for scene lights. */
+	Framebuffer m_mainDepthCubeFBO;
+	Framebuffer m_tableDepthCubeFBO;
+	// Framebuffer m_depthSpotFBO;
+
+	/* Depth pass for a single point light. fbo is a 3D depth framebuffer. */
+	void pointLightShadowMap(glm::vec3 lightPos, Framebuffer& fbo, float nearPlane, float farPlane);
+
+	/* Depth pass for a single spot light. spotLightSpace fbo is a 2D depth framebuffer. fovy is in degrees. */
+	void spotLightShadowMap(glm::vec3 lightPos, glm::vec3 lightTarget, glm::mat4& spotLightSpace, Framebuffer& fbo, float fovy, float aspect, float nearPlane, float farPlane);
 
 	/* Draw all models with a given shader. */
 	void drawModels(const std::string& shaderName);
@@ -156,8 +165,10 @@ private:
 	/* Returns false when an animation is finished. */
 	bool m_animInIsOn = false;
 	bool m_animOutIsOn = false;
+
 	/* Activates second part of animation. When it is false the first part of animation is active. */
 	bool m_animSecondPart = false;
+
 	/* Animation auxiliary variable. */
 	glm::vec3 m_startPos, m_startFront;
 	float m_animStartTime = 0.0f;
@@ -184,8 +195,6 @@ private:
 	bool m_arcadeMenuOpen = false;
 
 
-	/* Shadow Mapping variables. */
-	Framebuffer m_depthCubeFBO;
-	Framebuffer m_depthSpotFBO;
+	
 };
 
