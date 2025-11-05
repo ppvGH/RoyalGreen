@@ -154,8 +154,7 @@ int main()
     // Generating scene
     Scene scene(width, height);
     // Computing shadow mapping. (needed just once because lights are static).
-    scene.pointLightShadowMap();
-    scene.spotLightShadowMap();
+    scene.depthPass();
 
     /* Callbacks. (after scene declaration) */
     Callbacks::initCallbacks(window);
