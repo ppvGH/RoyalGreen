@@ -1,7 +1,7 @@
 # RoyalGreen
 
 RoyalGreen is a work-in-progress 3D simulation of a retro arcade room. Its name and some of its details are a tribute to an old arcade bar.
-The application is written in **C++17**, and the graphics API used is **OpenGL** `3.3 Core Profile`.
+The application is written in **C++17**, and the graphics API used is **OpenGL** `3.3 Core Profile`. All 3D models are created in Blender.
 
 
 
