@@ -68,6 +68,15 @@ void UIManager::drawUI(Scene& scene, Game& game, int width, int height)
 		m_isAnyMenuOpen = true;
 	}
 
+	if(!scene.isDisplayOn())
+	{
+		if (scene.isHelpOverlayOn()) drawHelpOverlay3D(scene, width, height);
+	}
+	else
+	{
+		if (game.isHelpOverlayOn()) drawHelpOverlay2D(game, width, height);
+	}
+
 	drawDebugOverlay(scene, game, width, height);
 }
 
@@ -146,6 +155,44 @@ void UIManager::drawGameMenu(Scene& scene, Game& game, int width, int height)
 
 }
 
+void UIManager::drawHelpOverlay3D(Scene& scene, int width, int height)
+{
+	ImGui::SetNextWindowPos(ImVec2(10, 50), ImGuiCond_Always);
+	ImGui::SetNextWindowBgAlpha(0.3f);
+
+	ImGui::Begin("Scene helper.", nullptr,
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoCollapse);
+
+	ImGui::Text("WASD: Move camera.");
+	ImGui::Text("F: Fix camera height.");
+	ImGui::Text("Click on arcade: play!");
+	ImGui::Text("H: Show/Hide the helper.");
+
+	ImGui::End();
+
+}
+
+void UIManager::drawHelpOverlay2D(Game& game, int width, int height)
+{
+	ImGui::SetNextWindowPos(ImVec2(10, 50), ImGuiCond_Always);
+	ImGui::SetNextWindowBgAlpha(0.3f);
+
+	ImGui::Begin("Game helper.", nullptr,
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoCollapse);
+
+	ImGui::Text("A/D: Move left/right.");
+	ImGui::Text("W: Jump.");
+	ImGui::Text("S: Shoot.");
+	ImGui::Text("M: Open menu.");
+	ImGui::Text("H: Show/Hide the helper.");
+
+	ImGui::End();
+
+}
+
+
 void UIManager::drawDebugOverlay(Scene& scene, Game& game, int width, int height)
 {
 	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
@@ -157,18 +204,18 @@ void UIManager::drawDebugOverlay(Scene& scene, Game& game, int width, int height
 		ImGuiWindowFlags_NoTitleBar);
 
 	ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-	if(!scene.isDisplayOn())
+	/*if(!scene.isDisplayOn())
 	{
 		ImGui::Text("Camera Pos: (%.2f, %.2f, %.2f)",
 			scene.getCam3D().getPosition().x,
 			scene.getCam3D().getPosition().y,
 			scene.getCam3D().getPosition().z);
-	}
-	else
-	{
-		ImGui::Text("Camera Pos : %.2f", game.getCamPos());
-		ImGui::Text("Cat Lives : %d", game.getCatLives());
-	}
+	}*/
+	//if(scene.isDisplayOn())
+	//{
+	//	//ImGui::Text("Camera Pos : %.2f", game.getCamPos());
+	//	//ImGui::Text("Cat Lives : %d", game.getCatLives());
+	//}
 
 	ImGui::End();
 }

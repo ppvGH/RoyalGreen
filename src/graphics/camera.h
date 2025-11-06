@@ -34,6 +34,8 @@ public:
 
 
 	// Getters.
+	bool getGrounded() const { return m_grounded; }
+
 	/* Returns prospective projection matrix. */
 	glm::mat4 getPerspectiveProjMatrix() const;
 

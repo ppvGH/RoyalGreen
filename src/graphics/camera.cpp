@@ -103,6 +103,8 @@ void Camera::updateCameraVectors(bool frontNeedsUpdate)
 	m_right = glm::normalize(glm::cross(m_front, m_VUP));
 	m_up = glm::cross(m_right, m_front);
 
+	// update altitude so when camera gets fixed it preserves current height
+	m_altitude = m_position.y;
 	//std::cout << "m_front = (" << m_front.x << ", " << m_front.y << ", " << m_front.z << ")\n";
 	
 }

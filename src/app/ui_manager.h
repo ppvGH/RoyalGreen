@@ -26,5 +26,7 @@ private:
 
 	void drawCabinetMenu(Scene& scene, int width, int height);
 	void drawGameMenu(Scene& scene, Game& game, int width, int height);
+	void drawHelpOverlay3D(Scene& scene, int width, int height);
+	void drawHelpOverlay2D(Game& game, int width, int height);
 	void drawDebugOverlay(Scene& scene, Game& game, int width, int height);
 };

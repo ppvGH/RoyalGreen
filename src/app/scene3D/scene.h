@@ -72,13 +72,14 @@ public:
 	 * the camera points to the center of the display.
 	 * TODO: maybe BOOLEAN return type is not needed anymore. */
 	bool cameraInAnimation();
-
 	bool cameraOutAnimation();
 
 	/* Camera getters. */
-
 	Camera& getCam3D() { return m_cam3D; }			// writeable
 	const Camera& getCam3D() const { return m_cam3D; }	// read-only
+
+	/* Camera fix height. */
+	void switchCameraGrounded() { m_cam3D.setGrounded(!m_cam3D.getGrounded()); }
 
 	// #########################################################################
 	// #################################  Aim  #################################
@@ -99,6 +100,9 @@ public:
 	bool isArcadeMenuOpen() const { return m_arcadeMenuOpen; }
 	void openArcadeMenu() { m_arcadeMenuOpen = true; }
 	void closeArcadeMenu() { m_arcadeMenuOpen = false; }
+
+	bool isHelpOverlayOn() const { return m_helpOverlay; }
+	void switchHelpOverlay() { m_helpOverlay = !m_helpOverlay; }
 
 	// #########################################################################
 	// ##############################  Rendering  ##############################
@@ -195,6 +199,7 @@ private:
 
 	/* GUI variables and methods. */
 	bool m_arcadeMenuOpen = false;
+	bool m_helpOverlay = true;
 
 
 	

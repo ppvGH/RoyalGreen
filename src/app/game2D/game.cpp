@@ -22,7 +22,8 @@ Game::Game(int width, int height) :
     m_shader(ResourceManager::getShader(gameData::gameShaderName)),
     m_cameraPosition(m_player.getPosition().x),
     m_cameraMargin(m_player.getSize().x * 2.0f),
-    m_gameMenuOpen(false)
+    m_gameMenuOpen(false),
+    m_helpOverlay(true)
 {
 }
 
@@ -147,4 +148,5 @@ void Game::updateCamera()
 void Game::appInputHandler(const ActionMap& actionMap2D)
 {
     if (actionMap2D.justStarted(Action::GameMenu)) openGameMenu();
+    if (actionMap2D.justStarted(Action::HelpOverlay2D)) switchHelpOverlay();
 }

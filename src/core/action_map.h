@@ -14,15 +14,19 @@ enum class Action
 	MoveBackward,
 	MoveLeft,
 	MoveRight,
+	SwitchCameraGrounded,
 
 	// Scene actions
 	SwitchScreen,
 	StartAnimation,
 	SelectObject,
+	HelpOverlay3D,
+
 
 	/* 2D actions */
 	// Game actions
 	GameMenu,
+	HelpOverlay2D,
 
 	// Player actions
 	P1MoveRight,
