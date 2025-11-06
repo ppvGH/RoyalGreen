@@ -168,6 +168,7 @@ void UIManager::drawHelpOverlay3D(Scene& scene, int width, int height)
 	ImGui::Text("F: Fix camera height.");
 	ImGui::Text("Click on arcade: play!");
 	ImGui::Text("H: Show/Hide the helper.");
+	ImGui::Text("T: Show/Hide the aim cross.");
 
 	ImGui::End();
 
