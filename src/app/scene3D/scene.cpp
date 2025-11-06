@@ -30,10 +30,11 @@ Scene::Scene(int width, int height) :
 	m_arcade(Path::pathModel),
 	m_pool(Path::pathPool, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
 	m_mainLamp(Path::pathMainLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
-	m_tableLamp(Path::pathLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
-	m_tmp(Path::pathModel, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
-	m_mainPointLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
-	m_tablePointLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
+	//m_tableLamp(Path::pathLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_tableLamps(Path::pathTableLamps, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_mainLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
+	m_tableXMinLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
+	m_tableXPlusLightPos(glm::vec3(0.0f)),		// position is set in the constructor body after the initScene() method
 	// m_spotLightPos(glm::vec3(0.0f)),
 	// m_spotLightTarget(glm::vec3(0.0f)),
 	// m_spotLightSpace(glm::mat4(0.0f)),
@@ -49,7 +50,8 @@ Scene::Scene(int width, int height) :
 	m_aimVAO(0),
 	m_aimIsOn(true),
 	m_mainDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth),
-	m_tableDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth)
+	m_tableXMinDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth),
+	m_tableXPlusDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth)
 	//m_depthSpotFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeDepth)
 {
 	/* Set aspect = width/height for camera 3D. */
@@ -60,9 +62,10 @@ Scene::Scene(int width, int height) :
 	initScene();
 
 	/* Save positions for light sources for the shader passes. */
-	m_mainPointLightPos = m_mainLamp.getWCSPosition() + m_mainLamp.getMesh("lamp_light").getCenter();
-	m_tablePointLightPos = m_tableLamp.getWCSPosition() + m_tableLamp.getMesh("lamp_plastic").getCenter() + 
-		glm::vec3(0.0f, sceneData::tableLampHeightFix, 0.0f);
+	m_mainLightPos = m_mainLamp.getWCSPosition() + m_mainLamp.getMesh("lamp_light").getCenter();
+	m_tableXMinLightPos = m_tableLamps.getWCSPosition() + m_tableLamps.getMesh("lamp_x_min_plastic").getCenter();
+	m_tableXPlusLightPos = m_tableLamps.getWCSPosition() + m_tableLamps.getMesh("lamp_x_plastic").getCenter();
+	
 
 	//m_spotLightPos = m_tableLamp.getWCSPosition() + m_tableLamp.getMesh("lamp_plastic").getCenter();
 	//m_spotLightPos = m_pool.getWCSPosition() + glm::vec3(0.0f, 3.0f, 0.0f);
@@ -341,25 +344,30 @@ void Scene::drawScene()
 	phong.setMatrix4fv("proj", 1, GL_FALSE, m_cam3D.getPerspectiveProjMatrix());
 	phong.setVector3f("viewPos", m_cam3D.getPosition());
 	// MAIN Point light setup
-	phong.setVector3f("mainPLPos", m_mainPointLightPos);
+	phong.setVector3f("mainPLPos", m_mainLightPos);
 	phong.setInt("mainPLDepthMap", 1);
 	phong.setFloat("mainPLFarPlane", sceneData::mainPointLightFarPlane);
 	/* MAIN Cubemap texture setup. */
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_mainDepthCubeFBO.getTex().getID());
 
-	// TABLE Point light setup
-	phong.setVector3f("tablePLPos", m_tablePointLightPos);
-	phong.setInt("tablePLDepthMap", 2);
+	/* *-*-*-*-*-*-*-*-*-*-*-*-*-*-* TABLE Point lights setup *-*-*-*-*-*-*-*-*-*-*-*-*-*-* */
+	// common
 	phong.setFloat("tablePLFarPlane", sceneData::tablePointLightFarPlane);
 	phong.setFloat("tableLightYoffset", sceneData::tableLightYoffset);
 	phong.setFloat("tableCosInner", sceneData::tableCosInnerAngle);
 	phong.setFloat("tableCosOuter", sceneData::tableCosOuterAngle);
 	phong.setFloat("invCosDelta", sceneData::tableInvCosDelta);
-
-	/* MAIN Cubemap texture setup. */
+	// x min
+	phong.setVector3f("tableXMinPLPos", m_tableXMinLightPos);		// position
+	phong.setInt("tableXMinPLDepthMap", 2);		// GL_TEXTURE2
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, m_tableDepthCubeFBO.getTex().getID());
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_tableXMinDepthCubeFBO.getTex().getID());
+	// x plus
+	phong.setVector3f("tableXPlusPLPos", m_tableXPlusLightPos);		// position
+	phong.setInt("tableXPlusPLDepthMap", 3);		// GL_TEXTURE3
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_tableXPlusDepthCubeFBO.getTex().getID());
 
 	// Spot light setup
 	/*phong.setMatrix4fv("lightSpace", 1, GL_FALSE, m_spotLightSpace);
@@ -450,9 +458,13 @@ void Scene::pointLightShadowMap(glm::vec3 lightPos, Framebuffer& fbo, float near
 void Scene::depthPass()
 {
 	/* Main light depth pass. */
-	pointLightShadowMap(m_mainPointLightPos, m_mainDepthCubeFBO, sceneData::mainPointLightNearPlane, sceneData::mainPointLightFarPlane);
-	/* Table light depth pass. */
-	pointLightShadowMap(m_tablePointLightPos, m_tableDepthCubeFBO, sceneData::tablePointLightNearPlane, sceneData::tablePointLightFarPlane);
+	pointLightShadowMap(m_mainLightPos, m_mainDepthCubeFBO, sceneData::mainPointLightNearPlane, sceneData::mainPointLightFarPlane);
+
+	/* Table lights depth pass. */
+	// xmin
+	pointLightShadowMap(m_tableXMinLightPos, m_tableXMinDepthCubeFBO, sceneData::tablePointLightNearPlane, sceneData::tablePointLightFarPlane);
+	// xplus
+	pointLightShadowMap(m_tableXPlusLightPos, m_tableXPlusDepthCubeFBO, sceneData::tablePointLightNearPlane, sceneData::tablePointLightFarPlane);
 
 }
 
@@ -510,10 +522,10 @@ void Scene::drawModels(const std::string& shaderName)
 	m_mainLamp.setWCSPosition();
 	m_mainLamp.draw();
 
-	/* Table lamp draw call. */
-	m_tableLamp.setShader(shaderName);
-	m_tableLamp.setWCSPosition();
-	m_tableLamp.draw();
+	/* Table lamps draw call. */
+	 m_tableLamps.setShader(shaderName);
+	 m_tableLamps.setWCSPosition();
+	 m_tableLamps.draw();
 
 }
 
@@ -535,9 +547,9 @@ void Scene::initScene()
 	m_mainLamp.setModelMat(mainLampModelMat);
 
 	/* Shift WCS position by the lampmodel position vector and set the model matrix. */
-	glm::mat4 tableLampModelMat = glm::translate(glm::mat4(1.0), sceneData::tableLampModelPositionShift);	// up the lamp
-	tableLampModelMat = glm::translate(tableLampModelMat, m_pool.getWCSPosition());			// put it above the table
-	m_tableLamp.setModelMat(tableLampModelMat);
+	glm::mat4 tableLampsModelMat = glm::translate(glm::mat4(1.0), sceneData::tableLampModelPositionShift);	// up the lamp
+	tableLampsModelMat = glm::translate(tableLampsModelMat, m_pool.getWCSPosition());			// put it above the table
+	m_tableLamps.setModelMat(tableLampsModelMat);
 
 }
 
