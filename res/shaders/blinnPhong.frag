@@ -53,11 +53,11 @@ uniform samplerCube tableXPlusPLDepthMap;    // depth map FBO texture
 /* *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* Constants *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* */
 
 // modulate how dark is the shadow (from 0.0 to 1.0, higher = darker)
-#define mainShadowIntensity 1.0             
+#define mainShadowIntensity 0.95             
 #define tableShadowIntensity 1.0
 // source light intensity (from 0.0 to 1.0, higher = brighter)
-#define mainLightIntensity 0.75             
-#define tableLightIntensity 1.0   
+#define mainLightIntensity 1.0             
+#define tableLightIntensity 2.0   
 // how ambient factor impact the lighting
 #define ambientIntensity 0.0001           
 // give color to light
@@ -89,10 +89,10 @@ float PLShadowCalcPCF(vec3 pointL, vec3 pointLightPos, samplerCube pointLightDep
 
     // If current fragment depth (minus a bias) is greater than the depth sampled from the depthMap
     // means it is behind another object, so it is in shadow. Otherwise it is lightened.
-    float bias = max(0.2 * (1.0 - dot(normal, pointL)), 0.1);
-    int samples = 16;
+    float bias = max(0.2 * (1.0 - dot(normal, pointL)), 0.25);
+    int samples = 20;
     float viewDistance = length(viewPos - fragPos);
-    float diskRadius = (1.0 + (viewDistance / pointLightFarPlane)) / 100.0;
+    float diskRadius = (1.75 + (viewDistance / pointLightFarPlane)) / 100.0;
     float shadow = 0.0f;
     for(int i = 0; i < samples; ++i)
     {
