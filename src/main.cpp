@@ -79,6 +79,7 @@ void keyRegistering(InputManager& input)
     input.registerKey(GLFW_KEY_K);      
     input.registerKey(GLFW_KEY_M);
     input.registerKey(GLFW_KEY_F);
+    input.registerKey(GLFW_KEY_T);
     input.registerKey(GLFW_MOUSE_BUTTON_LEFT);
 
 }
@@ -95,6 +96,7 @@ void keyBindings3D(ActionMap& actionMap)
     //actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);       // for testing
     actionMap.bind(Action::SwitchCameraGrounded, GLFW_KEY_F);
     actionMap.bind(Action::HelpOverlay3D, GLFW_KEY_H);
+    actionMap.bind(Action::ToggleAim, GLFW_KEY_T);
     actionMap.bind(Action::SelectObject, GLFW_MOUSE_BUTTON_LEFT);
 }
 

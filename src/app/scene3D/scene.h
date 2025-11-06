@@ -190,6 +190,7 @@ private:
 	unsigned int m_aimVAO;
 	/* Control variable for sight. */
 	bool m_aimIsOn;
+	void toggleAim() { m_aimIsOn = !m_aimIsOn; }
 	/* Initialization of sight. */
 	void initAim();
 	/* Draw sight at the center of the screen. */

@@ -21,6 +21,7 @@ enum class Action
 	StartAnimation,
 	SelectObject,
 	HelpOverlay3D,
+	ToggleAim,
 
 
 	/* 2D actions */

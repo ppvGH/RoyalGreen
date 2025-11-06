@@ -98,6 +98,7 @@ void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 		}			
 	if (actionMap3D.justStarted(Action::HelpOverlay3D)) switchHelpOverlay();
 	if (actionMap3D.justStarted(Action::SwitchCameraGrounded)) switchCameraGrounded();
+	if (actionMap3D.justStarted(Action::ToggleAim)) toggleAim();
 }
 
 void Scene::cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D)
