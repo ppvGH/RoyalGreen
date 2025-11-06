@@ -46,5 +46,13 @@ Alternatively, you can build the application manually with **CMake**.
 ---
 ## Preview.
 
+![Screenshot](preview/panoramic.png)
+![Screenshot](preview/arcadeCabinet.png)
+![Screenshot](preview/tableLamps.png)
+![Screenshot](preview/poolShot.png)
+![Screenshot](preview/gameStart.png)
+![Screenshot](preview/game1.png)
+
+
 
 
