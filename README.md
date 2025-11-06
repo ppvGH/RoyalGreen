@@ -43,6 +43,8 @@ Alternatively, you can build the application manually with **CMake**.
 - After the process completes, you will find the executable inside: `RoyalGreen-main\build\Debug\royalgreen.exe`.
 - Run the executable.
 
+---
+## Preview.
 
 
 
