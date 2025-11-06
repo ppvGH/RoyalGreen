@@ -43,6 +43,14 @@ Alternatively, you can build the application manually with **CMake**.
 - After the process completes, you will find the executable inside: `RoyalGreen-main\build\Debug\royalgreen.exe`.
 - Run the executable.
 
+## Dependencies
+**CMake** uses `FetchContent` to retrieve external dependencies from public repositories:
+- **GLFW** `3.4` for window creation, input handling, and OpenGL context management  .
+- **Dear ImGui** `v1.91.9` for debugging interfaces and menus.
+- **Assimp** `v6.0.2` for importing and processing 3D model in `OBJ` format. 
+- **stb** `master` for image loading and texture handling.
+- **glm** `0.9.9.8` for mathematics and linear algebra operations.
+
 ---
 ## Preview.
 
