@@ -48,7 +48,7 @@ namespace sceneData
 	inline const float cameraAspect = 16.0f / 9.0f;		// default for now is same ratio as my display. TODO: check user display ratio
 	inline const float cameraNearPlane = 0.1f;
 	inline const float cameraFarPlane = 20.0f;
-	inline const float cameraInitialGrounded = true;
+	inline const bool cameraInitialGrounded = false;
 	inline const float cameraInitMouseSpeed = 0.001f;
 	inline const float cameraInitKeyboardSpeed = 0.15f;
 
@@ -74,14 +74,15 @@ namespace sceneData
 	inline const float mainPointLightInvFarPlane = 1.0 / mainPointLightFarPlane;
 
 	/* Table point light data. */
-	inline const float tableLampHeightFix = 0.00f;	// table PL height fix: just above the lightbulb to shrink the light cone projected
+	inline const float tableLampHeightFix = 0.04f;	// table PL height fix: just above the lightbulb to shrink(>0) or enlarge(<0) the light cone projected
+	inline const float tableLightYoffset = 0.05f;	// value for the shader to lighten the internal part of lampshade
 
 	inline const float tablePointLightNearPlane = 0.1f;
-	inline const float tablePointLightFarPlane = 5.0f;	// covers entire room
+	inline const float tablePointLightFarPlane = 3.0f;	
 	inline const float tablePointLightInvFarPlane = 1.0 / tablePointLightFarPlane;
 
-	inline const float tableCosInnerAngle = glm::cos(glm::radians(35.0f));
-	inline const float tableCosOuterAngle = glm::cos(glm::radians(45.0f));
+	inline const float tableCosInnerAngle = glm::cos(glm::radians(30.0f));		// if heightFix >0 --> lower this || if heightFix < 0 --> up this
+	inline const float tableCosOuterAngle = glm::cos(glm::radians(40.0f));		// if heightFix >0 --> lower this || if heightFix < 0 --> up this
 	inline const float tableInvCosDelta = 1 / (tableCosInnerAngle - tableCosOuterAngle);
 
 	

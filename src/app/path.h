@@ -33,6 +33,8 @@ namespace Path
 	inline const std::string pathLamp = std::string(MESHES_DIR) + "lamp.obj";
 	inline const std::string pathMainLamp = std::string(MESHES_DIR) + "mainLamp.obj";
 	inline const std::string pathPool = std::string(MESHES_DIR) + "pool.obj";
+	inline const std::string pathTableLamps = std::string(MESHES_DIR) + "tableLamps.obj";
+
 
 	// #############################################################################################
 	// ########################################  Textures  #########################################

@@ -137,12 +137,13 @@ private:
 	Arcade m_arcade;
 	Model m_pool;
 	Model m_mainLamp;
-	Model m_tableLamp;
-	Model m_tmp;
+	//Model m_tableLamp;
+	Model m_tableLamps;
 
 	/* Lights position and data. */
-	glm::vec3 m_mainPointLightPos;
-	glm::vec3 m_tablePointLightPos;
+	glm::vec3 m_mainLightPos;			// point light
+	glm::vec3 m_tableXMinLightPos;		// point light
+	glm::vec3 m_tableXPlusLightPos;		// point light
 
 	// glm::vec3 m_spotLightPos;
 	// glm::vec3 m_spotLightTarget;
@@ -150,7 +151,8 @@ private:
 
 	/* Framebuffers for scene lights. */
 	Framebuffer m_mainDepthCubeFBO;
-	Framebuffer m_tableDepthCubeFBO;
+	Framebuffer m_tableXMinDepthCubeFBO;	
+	Framebuffer m_tableXPlusDepthCubeFBO;	
 	// Framebuffer m_depthSpotFBO;
 
 	/* Depth pass for a single point light. fbo is a 3D depth framebuffer. */
