@@ -51,8 +51,10 @@ Scene::Scene(int width, int height) :
 	m_aimIsOn(true),
 	m_mainDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth),
 	m_tableXMinDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth),
-	m_tableXPlusDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth)
-	//m_depthSpotFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeDepth)
+	m_tableXPlusDepthCubeFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeCubeDepth),
+	//m_depthSpotFBO(sceneData::shadowWidth, sceneData::shadowHeight, sceneData::FBOtypeDepth),
+	m_arcadeMenuOpen(false),
+	m_helpOverlay(true)
 {
 	/* Set aspect = width/height for camera 3D. */
 	float aspect = static_cast<float>(width) / static_cast<float>(height);
@@ -94,6 +96,9 @@ void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 			m_cursorCentered = false;
 			openArcadeMenu();	
 		}			
+	if (actionMap3D.justStarted(Action::HelpOverlay3D)) switchHelpOverlay();
+	if (actionMap3D.justStarted(Action::SwitchCameraGrounded)) switchCameraGrounded();
+	if (actionMap3D.justStarted(Action::ToggleAim)) toggleAim();
 }
 
 void Scene::cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D)

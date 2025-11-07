@@ -42,11 +42,15 @@ public:
 	const SpriteRenderer& getSpriteRenderer() const { return m_spriteRenderer; }
 	const Texture& getFBOTex() const { return m_FBO.getTex(); }
 	float getCamPos() const { return m_cameraPosition; }
+	int getCatLives() const { return m_cat.getLives(); }
 
 	/* GUI. */
 	bool isGameMenuOpen() const { return m_gameMenuOpen; }
 	void closeGameMenu() { m_gameMenuOpen = false; }
-	int getCatLives() const { return m_cat.getLives(); }
+
+	bool isHelpOverlayOn() const { return m_helpOverlay; }
+	void switchHelpOverlay() { m_helpOverlay = !m_helpOverlay; }
+
 
 private:
 
@@ -74,6 +78,7 @@ private:
 
 	/* Input management. */
 	bool m_gameMenuOpen = false;
+	bool m_helpOverlay = true;
 
 	void appInputHandler(const ActionMap& actionMap2D);
 	void openGameMenu() { m_gameMenuOpen = true; }

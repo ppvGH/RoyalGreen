@@ -76,8 +76,10 @@ void keyRegistering(InputManager& input)
     input.registerKey(GLFW_KEY_D);
 
     input.registerKey(GLFW_KEY_H);
-    input.registerKey(GLFW_KEY_K);      //testing
+    input.registerKey(GLFW_KEY_K);      
     input.registerKey(GLFW_KEY_M);
+    input.registerKey(GLFW_KEY_F);
+    input.registerKey(GLFW_KEY_T);
     input.registerKey(GLFW_MOUSE_BUTTON_LEFT);
 
 }
@@ -90,8 +92,11 @@ void keyBindings3D(ActionMap& actionMap)
     actionMap.bind(Action::MoveBackward, GLFW_KEY_S);
     actionMap.bind(Action::MoveRight, GLFW_KEY_D);
 
-    actionMap.bind(Action::StartAnimation, GLFW_KEY_K);     // testing
-    actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);
+    //actionMap.bind(Action::StartAnimation, GLFW_KEY_K);     // for testing
+    //actionMap.bind(Action::SwitchScreen, GLFW_KEY_H);       // for testing
+    actionMap.bind(Action::SwitchCameraGrounded, GLFW_KEY_F);
+    actionMap.bind(Action::HelpOverlay3D, GLFW_KEY_H);
+    actionMap.bind(Action::ToggleAim, GLFW_KEY_T);
     actionMap.bind(Action::SelectObject, GLFW_MOUSE_BUTTON_LEFT);
 }
 
@@ -103,6 +108,7 @@ void keyBindings2D(ActionMap& actionMap)
     actionMap.bind(Action::P1MoveRight, GLFW_KEY_D);
 
     actionMap.bind(Action::GameMenu, GLFW_KEY_M);
+    actionMap.bind(Action::HelpOverlay2D, GLFW_KEY_H);
 }
 
 

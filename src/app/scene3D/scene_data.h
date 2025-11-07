@@ -69,7 +69,7 @@ namespace sceneData
 	inline const int shadowHeight = 1024;
 
 	/* Main point light data. */
-	inline const float mainPointLightNearPlane = 1.0f;
+	inline const float mainPointLightNearPlane = 0.2f;
 	inline const float mainPointLightFarPlane = 10.0f;	// covers entire room
 	inline const float mainPointLightInvFarPlane = 1.0 / mainPointLightFarPlane;
 
