@@ -27,7 +27,7 @@ Scene::Scene(int width, int height) :
 	m_lastX((double)width * 0.5),
 	m_lastY((double)height * 0.5),
 	m_room(Path::pathRoom, &ResourceManager::getTexture("floorTile")),
-	m_arcade(Path::pathModel),
+	m_arcade(Path::pathTestModel, &ResourceManager::getTexture("arcadeFace")),
 	m_pool(Path::pathPool, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
 	m_mainLamp(Path::pathMainLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
 	//m_tableLamp(Path::pathLamp, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),

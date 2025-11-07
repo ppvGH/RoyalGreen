@@ -29,6 +29,7 @@ namespace Path
 	// #############################################################################################
 
 	inline const std::string pathModel = std::string(MESHES_DIR) + "tempArcade.obj";
+	inline const std::string pathTestModel = std::string(MESHES_DIR) + "arcadeTest.obj";
 	inline const std::string pathRoom = std::string(MESHES_DIR) + "new_room.obj";
 	inline const std::string pathLamp = std::string(MESHES_DIR) + "lamp.obj";
 	inline const std::string pathMainLamp = std::string(MESHES_DIR) + "mainLamp.obj";
@@ -45,6 +46,8 @@ namespace Path
 	inline const std::string pathRospi = std::string(TEXTURE_DIR) + "rospi.png";
 	// room
 	inline const std::string pathFloorTile = std::string(TEXTURE_DIR) + "floorTile.png";
+	// arcade
+	inline const std::string pathFaceArcade = std::string(TEXTURE_DIR) + "faceArcade.png";
 
 
 	// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*  2D game  *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*

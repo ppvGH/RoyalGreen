@@ -201,7 +201,7 @@ void Model::loadModel(const std::string& filepath)
 
 	/* Populates the map with the (reference of) last inserted mesh and its name. */
 	for (auto& mesh : m_meshes) m_meshMap[mesh.m_meshName] = &mesh;
-	//for (auto& mesh : m_meshes) std::cout << mesh.m_meshName << std::endl;
+	for (auto& mesh : m_meshes) std::cout << mesh.m_meshName << std::endl;
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
