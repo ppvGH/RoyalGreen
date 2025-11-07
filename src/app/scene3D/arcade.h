@@ -10,7 +10,9 @@ public:
 	Arcade() = delete;
 
 	/* Creates an Arcade object from its filepath. */
-	Arcade(const std::string& pathModel);
+	Arcade(const std::string& pathModel, Texture* yMinFaceTex);
+
+
 
 	/* Set model matrix. */
 	void setWCSPosition() const { m_model.setWCSPosition(); }
@@ -36,8 +38,9 @@ public:
 	const Model& getModel() const { return m_model; }
 
 private:
+	void setArcadeFace(const Texture& texture);
 
 	Model m_model;
-
+	Texture* m_yMinFaceTex;
 	bool m_screenIsON;
 };

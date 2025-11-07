@@ -28,7 +28,9 @@ public:
 	/* Getters for meshes and materials. */
 	const Mesh& getMesh(const std::string& name) const;
 	Mesh& getMesh(const std::string& name);
+	// Name of the mesh.
 	Material& getMaterial(const std::string& name);
+	// Mesh object.
 	Material& getMaterial(const Mesh& mesh);
 
 	/* Draws all meshes. */

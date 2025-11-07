@@ -21,8 +21,8 @@ namespace sceneData
 
 	/* Arcade model data. */
 	inline const std::string meshScreenName = "display";
-	inline const std::string matScreenName = "display";
-	inline const std::string matPowerButtonName = "power_button_power_button";
+	inline const std::string meshYMinFace = "cabinet_y_min_face";
+	inline const std::string meshPowerButtonName = "power_button_power_button";
 	inline const glm::vec3 arcadeModelPositionShift = glm::vec3(-2.9f, 0.02f, -0.8f); // 0.02 is to lift the model a tiny bit.
 	inline const float powerButtonEmission = 10.0f;
 

@@ -57,6 +57,7 @@ void assetLoader()
     // texture for 3D scene
     ResourceManager::loadTexture(Path::pathRospi, TexParams(), "rospi");
     ResourceManager::loadTexture(Path::pathFloorTile, TexParams(), "floorTile");
+    ResourceManager::loadTexture(Path::pathFaceArcade, TexParams(), "arcadeFace");
 
     // texture for 2D game
     ResourceManager::loadTexture(Path::pathBackground, TexParams(), gameData::backgroundTexName);

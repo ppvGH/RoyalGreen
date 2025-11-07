@@ -3,19 +3,33 @@
 #include "../../core/resource_manager.h"
 #include <iostream>
 
-Arcade::Arcade(const std::string& pathModel):
+Arcade::Arcade(const std::string& pathModel, Texture* yMinFaceTex):
 	m_model(pathModel, &ResourceManager::getShader(sceneData::blinnPhongShaderName)),
+	m_yMinFaceTex(yMinFaceTex),
 	m_screenIsON(false)
 {
 	// when the texture is rendered into the screen, dont mix the color with lighting model
 	m_model.getMesh(sceneData::meshScreenName).m_mixTex = false;
 
+	// set y_min face material of the cabinet to the texture
+	if (yMinFaceTex != nullptr) setArcadeFace(*yMinFaceTex);
+
+}
+
+void Arcade::setArcadeFace(const Texture& texture)
+{
+	/* Override material with an external texture. */
+	Material& matYMinFace = m_model.getMaterial(sceneData::meshYMinFace);
+	matYMinFace.overrideTex(texture);
+
+	/* Texture is fixed and not switchable. */
+	matYMinFace.setUseTex(true);
 }
 
 
 void Arcade::setScreen(const Texture& texture)
 {
-	Material& matScreen = m_model.getMaterial(sceneData::matScreenName);
+	Material& matScreen = m_model.getMaterial(sceneData::meshScreenName);
 	matScreen.overrideTex(texture);
 }
 
@@ -36,11 +50,11 @@ void Arcade::screenSwitch()
 	else m_model.getMesh(sceneData::meshScreenName).setShader(ResourceManager::getShader(sceneData::renderShader));
 
 	/* Button turns glowing red when ON. */
-	Material& matPowerButton = m_model.getMaterial(sceneData::matPowerButtonName);
+	Material& matPowerButton = m_model.getMaterial(sceneData::meshPowerButtonName);
 	matPowerButton.setEmission(sceneData::powerButtonEmission * glm::vec3(float(m_screenIsON), 0.0f, 0.0f));
 
 	/* Display material update. */
-	Material& matScreen = m_model.getMaterial(sceneData::matScreenName);
+	Material& matScreen = m_model.getMaterial(sceneData::meshScreenName);
 	//matScreen.setEmission(glm::vec3(m_screenIsON * 1.0f));
 
 	/* Inverts the uniform in the phong shader to render the screen content. 
