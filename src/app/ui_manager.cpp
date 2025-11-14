@@ -110,6 +110,7 @@ void UIManager::drawCabinetMenu(Scene& scene, int width, int height)
 	if (ImGui::Button("Exit", ImVec2(120, 0)))
 	{
 		scene.closeArcadeMenu();
+		scene.setInput3D(true);
 	}
 
 	// Needed for both buttons, because input3D can move camera during animation. 
