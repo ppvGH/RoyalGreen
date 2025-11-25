@@ -23,5 +23,5 @@ void main()
     normal = normalize(mat3(transpose(inverse(model))) * normal3D); // WCS
     texCoord = tex3D * resizeUV;
     //fragPosLS = lightSpace * vec4(fragPos, 1.0);
-    gl_Position = proj * view * vec4(fragPos,1.0);
+    gl_Position = proj * view * model * vec4(pos3D,1.0);
 }

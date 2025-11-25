@@ -9,12 +9,12 @@
 #include "../../core/utilities.h"
 
 /* TODO: creare uno sgabello da mettere davanti al cabinato arcade e dare l'opzione "siediti" :
- * se selezionata la camera fa l'animazione che porta davanti al cabinato ma senza entrarci e senza bloccare gli input. 
+ * se selezionata la camera fa l'animazione che porta davanti al cabinato ma senza entrarci e senza bloccare gli input.
  * blocca solo la posizione della camera. poi con il comando alzati la camera si rialza. */
 
-/*TODO: per creare un contenitore con vari tipi di oggetti (Arcade, Room, Chair, Table, ...) potrei creare una classe base astratta
- * SceneObject con metodi virtuali getModel() = 0 e far ereditare Arcade,Room,Chair... da questa.
- * così poi in Scene posso fare std::vector<std::unique_ptr<SceneObject>> m_items; m_items.push_back(std::make_unique<Arcade>()) .. */
+ /*TODO: per creare un contenitore con vari tipi di oggetti (Arcade, Room, Chair, Table, ...) potrei creare una classe base astratta
+  * SceneObject con metodi virtuali getModel() = 0 e far ereditare Arcade,Room,Chair... da questa.
+  * così poi in Scene posso fare std::vector<std::unique_ptr<SceneObject>> m_items; m_items.push_back(std::make_unique<Arcade>()) .. */
 
 Scene::Scene(int width, int height) :
 	m_width(width),
@@ -67,7 +67,7 @@ Scene::Scene(int width, int height) :
 	m_mainLightPos = m_mainLamp.getWCSPosition() + m_mainLamp.getMesh("lamp_light").getCenter();
 	m_tableXMinLightPos = m_tableLamps.getWCSPosition() + m_tableLamps.getMesh("lamp_x_min_plastic").getCenter();
 	m_tableXPlusLightPos = m_tableLamps.getWCSPosition() + m_tableLamps.getMesh("lamp_x_plastic").getCenter();
-	
+
 
 	//m_spotLightPos = m_tableLamp.getWCSPosition() + m_tableLamp.getMesh("lamp_plastic").getCenter();
 	//m_spotLightPos = m_pool.getWCSPosition() + glm::vec3(0.0f, 3.0f, 0.0f);
@@ -94,8 +94,8 @@ void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 		if (picking())
 		{
 			m_cursorCentered = false;
-			openArcadeMenu();	
-		}			
+			openArcadeMenu();
+		}
 	if (actionMap3D.justStarted(Action::HelpOverlay3D)) switchHelpOverlay();
 	if (actionMap3D.justStarted(Action::SwitchCameraGrounded)) switchCameraGrounded();
 	if (actionMap3D.justStarted(Action::ToggleAim)) toggleAim();
@@ -152,13 +152,13 @@ bool Scene::picking() const
 
 	const Model& testModel = m_arcade.getModel();
 	glm::mat4 inverseModel = glm::inverse(testModel.getModelMat());
-	glm::vec3 localOrigin = glm::vec3(inverseModel * glm::vec4(m_cam3D.getPosition(),1.0f));
-	glm::vec3 localDirect = glm::vec3(inverseModel * glm::vec4(m_cam3D.getFront(), 0.0f));			
+	glm::vec3 localOrigin = glm::vec3(inverseModel * glm::vec4(m_cam3D.getPosition(), 1.0f));
+	glm::vec3 localDirect = glm::vec3(inverseModel * glm::vec4(m_cam3D.getFront(), 0.0f));
 
 	Ray localRay(localOrigin, localDirect);
 
 	float t;
-	hit = testModel.intersectRayTriangle(localRay,t);
+	hit = testModel.intersectRayTriangle(localRay, t);
 
 	return hit;
 }
@@ -171,7 +171,7 @@ void Scene::update()
 
 bool Scene::cameraInAnimation()
 {
-	
+
 	/* cursorCentered is set to false so the cursor gets centered again
 	 * at the end of the animation, because cursor position can still change during animation. */
 	m_cursorCentered = false;
@@ -216,12 +216,12 @@ bool Scene::cameraInAnimation()
 	// ##################################   Animation first part: current to mid point   ###############################
 	// #################################################################################################################
 
-	if(!m_animSecondPart)
+	if (!m_animSecondPart)
 	{
 		/* Time elapsed since animation started. */
 		float elapsed = glfwGetTime() - m_animStartTime;
 
-		/* Interpolation variable. 
+		/* Interpolation variable.
 		 * It is 0 at the beginning of the animation and 1 when elapsed equals the duration of the first part of the animation. */
 		float t = glm::clamp(elapsed / m_animFirstPartDuration, 0.0f, 1.0f);
 
@@ -234,9 +234,9 @@ bool Scene::cameraInAnimation()
 		m_cam3D.setPosition(currPos);
 		m_cam3D.setFront(currFront);
 
-		/* When either one of the vector interpolated reaches its destination 
-		 * set camera vectors to their target and setup the second part of the animation. 
-		 * It is often the case that the front condition fails, maybe because of normalization issues. 
+		/* When either one of the vector interpolated reaches its destination
+		 * set camera vectors to their target and setup the second part of the animation.
+		 * It is often the case that the front condition fails, maybe because of normalization issues.
 		 * Nonetheless once the position vector reaches its target, the front vector basically does too. */
 		if (currPos == midPos || currFront == midFront)
 		{
@@ -254,7 +254,7 @@ bool Scene::cameraInAnimation()
 		/* Time elapsed since second part of animation started. */
 		float elapsed = glfwGetTime() - m_animMidTime;
 		/* Interpolation variable.
-		 * It is 0 at the beginning of the second part of the animation 
+		 * It is 0 at the beginning of the second part of the animation
 		 * and 1 when elapsed equals the duration of the second part of the animation. */
 		float t = glm::clamp(elapsed / m_animSecondPartDuration, 0.0f, 1.0f);
 
@@ -264,9 +264,9 @@ bool Scene::cameraInAnimation()
 		/* Set camera position to current position to animate the scene. */
 		m_cam3D.setPosition(currPos);
 
-		/* Once current position reached its target, end the animation 
+		/* Once current position reached its target, end the animation
 		 * and block 3D inputs to enable 2D inputs for the game. */
-		if (currPos == endPos) 
+		if (currPos == endPos)
 		{
 			setInput2D(true);
 			m_animInIsOn = false;
@@ -329,7 +329,7 @@ bool Scene::cameraOutAnimation()
 		m_cam3D.setGrounded(true);
 		m_animOutIsOn = false;
 	}
-	
+
 	return m_animOutIsOn;
 }
 
@@ -382,7 +382,7 @@ void Scene::drawScene()
 
 	//glActiveTexture(GL_TEXTURE2);
 	//glBindTexture(GL_TEXTURE_2D, m_depthSpotFBO.getTex().getID());
-	
+
 	/* CRT shader setup. */
 	Shader& CRT = ResourceManager::getShader(sceneData::CRTShaderName).use();
 	CRT.setMatrix4fv("view", 1, GL_FALSE, m_cam3D.getViewMatrix());
@@ -390,7 +390,7 @@ void Scene::drawScene()
 
 	/* Draw calls. */
 	drawModels(sceneData::blinnPhongShaderName);
-		
+
 	/* Aim draw call. */
 	if (m_aimIsOn) drawAim(ResourceManager::getShader(sceneData::aimShaderName));
 
@@ -400,7 +400,7 @@ void Scene::pointLightShadowMap(glm::vec3 lightPos, Framebuffer& fbo, float near
 {
 	/* Lamp WCS position is the light position.*/
 	//glm::vec3 lightPos = m_mainLamp.getMesh("lamp_light").getCenter() + m_mainLamp.getWCSPosition();
-	
+
 	/* Light projection matrix. */
 	glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
 
@@ -426,7 +426,7 @@ void Scene::pointLightShadowMap(glm::vec3 lightPos, Framebuffer& fbo, float near
 
 	/* Light view matrices. */
 	std::vector<glm::mat4> lightPVs;
-	for (int i = 0; i < 6; i++) 
+	for (int i = 0; i < 6; i++)
 	{
 		lightPVs.push_back(lightProj * glm::lookAt(lightPos, lightPos + axes[i], VUPs[i]));
 	}
@@ -447,7 +447,7 @@ void Scene::pointLightShadowMap(glm::vec3 lightPos, Framebuffer& fbo, float near
 		std::string unif = "shadowMats[" + std::to_string(i) + "]";
 		depthShader.setMatrix4fv(unif, 1, GL_FALSE, lightPVs[i]);
 	}
-	depthShader.setFloat("invFarPlane", 1/farPlane);
+	depthShader.setFloat("invFarPlane", 1 / farPlane);
 	depthShader.setVector3f("lightPos", lightPos);
 
 	/* Render depth pass. */
@@ -457,7 +457,7 @@ void Scene::pointLightShadowMap(glm::vec3 lightPos, Framebuffer& fbo, float near
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_CULL_FACE);
 
-	
+
 }
 
 void Scene::depthPass()
@@ -475,7 +475,7 @@ void Scene::depthPass()
 
 void Scene::spotLightShadowMap(glm::vec3 lightPos, glm::vec3 lightTarget, glm::mat4& spotLightSpace, Framebuffer& fbo, float fovy, float aspect, float nearPlane, float farPlane)
 {
-	
+
 	/* Light projection matrix. */
 	glm::mat4 lightProj = glm::perspective(glm::radians(fovy), aspect, nearPlane, farPlane);
 
@@ -528,16 +528,16 @@ void Scene::drawModels(const std::string& shaderName)
 	m_mainLamp.draw();
 
 	/* Table lamps draw call. */
-	 m_tableLamps.setShader(shaderName);
-	 m_tableLamps.setWCSPosition();
-	 m_tableLamps.draw();
+	m_tableLamps.setShader(shaderName);
+	m_tableLamps.setWCSPosition();
+	m_tableLamps.draw();
 
 }
 
 void Scene::initScene()
 {
 	/* Shift the WCS position by the arcademodel position vector and set the model matrix. */
-	glm::mat4 arcadeModelMat = glm::translate(glm::mat4(1.0f), sceneData::arcadeModelPositionShift);	
+	glm::mat4 arcadeModelMat = glm::translate(glm::mat4(1.0f), sceneData::arcadeModelPositionShift);
 	m_arcade.getModel().setModelMat(arcadeModelMat);
 
 	/* Set the model matrix of the room model to the 4x4 identity matrix. */
@@ -548,7 +548,7 @@ void Scene::initScene()
 	m_pool.setModelMat(poolModelMat);
 
 	/* Shift WCS position by the main lamp position vector and set the model matrix. */
-	glm::mat4 mainLampModelMat = glm::translate(glm::mat4(1.0f), sceneData::mainLampModelPositionShift);	
+	glm::mat4 mainLampModelMat = glm::translate(glm::mat4(1.0f), sceneData::mainLampModelPositionShift);
 	m_mainLamp.setModelMat(mainLampModelMat);
 
 	/* Shift WCS position by the lampmodel position vector and set the model matrix. */

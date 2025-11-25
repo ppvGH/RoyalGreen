@@ -61,7 +61,7 @@ uniform samplerCube tableXPlusPLDepthMap;    // depth map FBO texture
 // how ambient factor impact the lighting
 #define ambientIntensity 0.0001           
 // give color to light
-#define mainColorFilter normalize(vec3(0.1, 0.1, 0.8)) 
+#define mainColorFilter normalize(vec3(0.15, 0.15, 0.8)) 
 // gamma factor 1.0/2.2
 #define gamma 0.454545454545
 // -Y (direction of fake spotlight shed by table lights)
