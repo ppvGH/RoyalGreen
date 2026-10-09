@@ -48,3 +48,10 @@ Thumbs.db
 /res/textures/SMPTE.png
 /res/textures/white.png
 /install
+
+# Exam tooling outputs
+__pycache__/
+*.py[cod]
+/coverage/
+/docs/html/
+/imgui.ini
