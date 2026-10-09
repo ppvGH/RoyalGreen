@@ -1,5 +1,7 @@
 # RoyalGreen
 
+[![sac4ap verification](https://github.com/ppvGH/RoyalGreen/actions/workflows/sac4ap.yml/badge.svg?branch=sac4ap)](https://github.com/ppvGH/RoyalGreen/actions/workflows/sac4ap.yml?query=branch%3Asac4ap)
+
 RoyalGreen is a C++17/OpenGL 3.3 desktop application: explore a retro arcade room, select its cabinet, and play a small 2D combat game rendered on the cabinet screen. The room includes imported Blender models, materials, lighting, and shadows.
 
 **[English documentation](docs/index.md)** provides installation instructions, a playable tutorial, architecture and API references, and testing guidance. This is an educational project with known limitations; see [validation](docs/validation.md) for recorded results.

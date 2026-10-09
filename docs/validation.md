@@ -85,9 +85,28 @@ and `scripts/run_checks.ps1 -Configuration Release -BuildApplication` also compi
 and link the original application. JUnit reports are saved under
 `build/tests/test-results-Debug.xml` and `test-results-Release.xml`.
 
-The CI workflow is configured for independent Windows Debug/Release runs. Remote
-execution is pending publication of this branch; its presence alone is not
-evidence of a completed remote run.
+### Completed clean-runner validation
+
+The first published implementation commit
+`cb8cfb550667cb4b81ee97f893db3711f1726fa3` passed the
+[GitHub Actions run](https://github.com/ppvGH/RoyalGreen/actions/runs/37998954041)
+on **10 October 2026** (Europe/Rome; 9 October in the UTC runner logs).
+
+| Independent Windows 2022 job | Recorded result |
+| --- | --- |
+| [Debug](https://github.com/ppvGH/RoyalGreen/actions/runs/37998954041/job/114052025767) | **PASS: 99/99 CTest entries**, original application built, diagnostics uploaded. |
+| [Release](https://github.com/ppvGH/RoyalGreen/actions/runs/37998954041/job/114052025960) | **PASS: 99/99 CTest entries**, original application built, diagnostics uploaded. |
+
+Both jobs started from clean clones with full history and fetched dependencies.
+The runner used MSVC **19.44.35229.0**, CMake **3.31.6** and Python **3.12.10**.
+JUnit reports and CTest logs are downloadable from that run's artifacts. This
+establishes independent compilation and scoped automated checks; it does not
+establish a second physical-machine play session or GPU rendering correctness.
+
+For subsequent commits, inspect the
+[branch workflow results](https://github.com/ppvGH/RoyalGreen/actions/workflows/sac4ap.yml?query=branch%3Asac4ap)
+for the exact submitted SHA. This dated record identifies the tested commit
+rather than assuming that all future branch states also pass.
 
 ## Explicitly not established by this local record
 

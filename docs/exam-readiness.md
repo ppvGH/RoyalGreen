@@ -10,14 +10,14 @@ infrastructure while keeping all original commits and production behavior.
 
 | Course criterion | Evidence in this branch | Remaining limit/action |
 | --- | --- | --- |
-| Public version-controlled project | Existing GitHub repository; `sac4ap` descends from original `main` tip `20ae124` with all 263 original commits. | Publish/access the exam branch, not just the default `main` landing page. |
+| Public version-controlled project | Existing GitHub repository; `sac4ap` descends from original `main` tip `20ae124` with all 263 original commits. | Use the published `sac4ap` branch URL rather than the default `main` landing page. |
 | Clear commit history | New descriptive, focused commits at the actual resumption date; no history rewrite or fabricated dates. | Follow the same discipline for later changes. |
 | Runs on another machine | Explicit Windows x64/MSVC/OpenGL requirements and step-by-step clean checkout build commands. | Fresh build required; keep resources in the configuring checkout. Other operating systems are not claimed. |
 | Understandable code and algorithms | [Architecture](architecture.md), [API](api.md), targeted contract/rationale comments, and algorithm assumptions. | Existing naming/style/global-state design is preserved; proposed refactors remain in the report. |
 | English documentation available from landing page | README and [documentation index](index.md) link tutorial, how-to, reference, explanation, tests and limitations. | Optional Doxygen HTML is generated locally with `doxygen Doxyfile`; it is not a deployed site. |
 | Executable, separated tests | Catch2/CTest tests compile original code; standard-library Python tests check tools and packaged data. | Graphics/gameplay integration is only partially automated; see [testing](testing.md). |
 | Expected results asserted | Analytic geometric/kinematic expectations, tolerant float comparisons, deterministic properties and negative fixtures. | Unchecked invalid inputs are documented preconditions, not claimed validation features. |
-| Automation on a clean environment | Windows Debug/Release CI, explicit CMake/Python versions, saved JUnit/CTest diagnostics. | Remote CI results and manual checks must be distinguished from local build/test results. |
+| Automation on a clean environment | Windows Debug/Release CI, explicit CMake/Python versions, saved JUnit/CTest diagnostics. | Clean-runner Debug/Release success is linked in [validation](validation.md); manual gameplay remains separate. |
 | Reproducibility | Listed dependencies, asset preflight and unchanged-source guard with immutable baseline. | Original `stb master` dependency is still mutable; no whole-project coverage percentage is claimed. |
 
 ## Boundaries of this adaptation
