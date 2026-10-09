@@ -1,6 +1,7 @@
 #pragma once
 
 
+/* Gameplay state identifiers; string conversion below does not change state. */
 enum class State
 {
 	Idle,
@@ -11,6 +12,8 @@ enum class State
 	Dead
 };
 
+/* Returns a static, null-terminated uppercase name for every named state.
+ * Unnamed values of the enum's fixed underlying int type return "UNKNOWN". */
 inline const char* stateToString(State state)
 {
 	switch (state)

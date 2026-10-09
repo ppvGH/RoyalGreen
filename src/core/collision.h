@@ -1,5 +1,10 @@
 #pragma once
 
+/** @file
+ * Axis-aligned collision primitives in 2D game coordinates (pixels).
+ * Sizes must be positive; constructors deliberately do not validate inputs.
+ */
+
 #include <glm/glm.hpp>
 
 struct BoundingBox
@@ -8,18 +13,17 @@ struct BoundingBox
 	glm::vec2 m_max;
 	glm::vec2 m_size;
 
-	/* Parametric constructor. */
+	/** Position is the lower-left corner; size is the positive width/height. */
 	BoundingBox(glm::vec2 pos, glm::vec2 size);
 
-	/* Update BB when position moves. */
+	/** Move both corners while preserving the original size. */
 	void updateBB(glm::vec2 pos);
 
 };
 
 
-/* Intersection between two bounding boxes.
- * When boxes overlaps it is always true that:
- * x1 < X2 && y1 < Y2 && X1 > x1 && Y2 > y2,
- * where 1 and 2 represents the indices for bb1 and bb2, and
- * (x,y) := min, (X,Y) := max. */
+/** Return true for strictly overlapping axis-aligned boxes.
+ * Touching edges/corners do not collide: this avoids treating mere contact
+ * as a projectile hit. No epsilon or geometric input validation is applied.
+ */
 bool intersectBB(const BoundingBox& bb1, const BoundingBox& bb2);

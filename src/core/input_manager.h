@@ -1,5 +1,10 @@
 #pragma once
 
+/** @file
+ * Frame-sampled input state. Poll GLFW events before update(), then query actions.
+ * Released is a persistent state, not a one-frame release event.
+ */
+
 #include <unordered_map>
 #include "commonGL.h"
 
@@ -11,10 +16,13 @@ class InputManager
 public:
 	InputManager() = default;
 
-	/* Insert a key into the keyStates map. */
+	/** Register a GLFW keyboard or mouse code; re-registration resets it to Released. */
 	void registerKey(int key);
 
-	/* Updates all keys states. */
+	/** Sample registered codes once per frame using a valid GLFW window.
+	 * A press transitions Released -> Pressed -> Held; release stays Released.
+	 * Very short taps between samples can be missed, so this is a polling API.
+	 */
 	void update(GLFWwindow* window);
 
 	/* Info about a certain state of a given key.
@@ -23,8 +31,10 @@ public:
 
 	bool isPressed(int key) const;
 	bool isHeld(int key) const;
+	/** True for a registered key that is currently up, including before its first press. */
 	bool isReleased(int key) const;
 
+	/** GLFW mouse codes occupy [GLFW_MOUSE_BUTTON_1, GLFW_MOUSE_BUTTON_LAST]. */
 	bool isMouseButton(int key);
 
 

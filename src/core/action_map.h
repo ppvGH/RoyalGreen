@@ -1,5 +1,10 @@
 #pragma once
 
+/** @file
+ * Map domain actions to registered input codes without depending on a keyboard
+ * layout in game/scene logic. InputManager must outlive every referencing map.
+ */
+
 #include <unordered_map>
 #include "input_manager.h"
 
@@ -42,9 +47,10 @@ enum class Action
 class ActionMap
 {
 public:
-	/* TODO documentation*/
+	/** Borrow an existing InputManager; binding does not register a key automatically. */
 	ActionMap(const InputManager& inputManager);
 
+	/** Bind/rebind an action to a GLFW code; register it in InputManager separately. */
 	void bind(const Action& action, int key);
 
 	/* Has this action just started? (Has this button just been pressed?). */
@@ -53,7 +59,9 @@ public:
 	/* Is this action ongoing? (Is this button being held? [just for some actions] ). */
 	bool ongoing(const Action& action) const;
 
-	/* Has this action just finished? (Has this button just been released?). */
+	/** True while the bound registered input is Released (persistent, not an edge).
+	 * An unbound action or unregistered input always returns false.
+	 */
 	bool justFinished(const Action& action) const;
 
 private:
