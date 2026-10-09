@@ -1,0 +1,23 @@
+# Generate browsable local API HTML: doxygen Doxyfile (optional development tool).
+PROJECT_NAME           = RoyalGreen
+PROJECT_BRIEF          = "Interactive 3D arcade room and embedded 2D game"
+OUTPUT_DIRECTORY       = docs
+INPUT                  = README.md docs src tests
+FILE_PATTERNS          = *.h *.cpp *.md
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = YES
+FULL_PATH_NAMES        = NO
+USE_MDFILE_AS_MAINPAGE  = README.md
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_TREEVIEW      = YES
+HTML_TIMESTAMP         = NO
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+GENERATE_LATEX         = NO
+HAVE_DOT               = NO
+WARN_IF_UNDOCUMENTED   = NO
+WARN_LOGFILE           = build/doxygen-warnings.log
+QUIET                  = YES

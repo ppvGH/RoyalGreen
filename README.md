@@ -1,66 +1,53 @@
 # RoyalGreen
 
-RoyalGreen is a work-in-progress 3D simulation of a retro arcade room. Its name and some of its details are a tribute to an old arcade bar.
-The application is written in **C++17**, and the graphics API used is **OpenGL** `3.3 Core Profile`. All 3D models are created in Blender.
+RoyalGreen is a C++17/OpenGL 3.3 desktop application: explore a retro arcade room, select its cabinet, and play a small 2D combat game rendered on the cabinet screen. The room includes imported Blender models, materials, lighting, and shadows.
 
+**[English documentation](docs/index.md)** provides installation instructions, a playable tutorial, architecture and API references, and testing guidance. This is an educational project with known limitations; see [validation](docs/validation.md) for recorded results.
 
+The `sac4ap` branch adapts this project for the Software and Computing for Applied Physics exam. It preserves all **263 original commits** and changes existing production files only through comments; the original application CMake files and assets remain unchanged. See [exam readiness](docs/exam-readiness.md) for assessment evidence and [the improvement report](docs/improvement-report.md) for proposed changes.
 
-## How to run the application
-The fastest (and simplest) way to run the application:
-- Create the directory `C:\dev\RoyalGreen\` on your system.
-- Download the `res` folder from the repository and put it in `C:\dev\RoyalGreen\`.
-- Download `royalgreen.exe` from the latest release.
-- Run the executable.
+## Quickstart on Windows
 
-Alternatively, you can build the application manually with **CMake**.
+Use Windows 10/11 x64, Visual Studio 2022 with the v143 C++ tools and a Windows SDK, Git, and **CMake 3.24 or newer within the 3.x series**. A graphics driver supporting OpenGL 3.3 Core is required. Initial configuration downloads dependencies.
 
+Run these commands in PowerShell:
 
+```powershell
+git clone --branch sac4ap https://github.com/ppvGH/RoyalGreen.git
+Set-Location RoyalGreen
+cmake --version
+cmake -S . -B build/app -G "Visual Studio 17 2022" -A x64
+cmake --build build/app --config Debug --target royalgreen --parallel
+.\build\app\Debug\royalgreen.exe
+```
 
-## How to build the application
+For Release, build with `--config Release` and run `.\build\app\Release\royalgreen.exe`. See [installation and troubleshooting](docs/installation.md), including tool setup and running on another machine.
 
-> **Important:**  
-> This project depends on the library **glm** (version `0.9.9.8`), which requires  
-> `cmake_minimum_required(VERSION 3.2)`.  
-> Starting from **CMake 4.0**, compatibility with versions `< 3.5` has been dropped.
-> **Visual Studio 2022** version `17.14.x` includes a **CMake** version that still supports `< 3.5`.  
-> For example, **Visual Studio 2022** `17.14.0` ships with **CMake 3.31.6-msvc6**.
+A self-built executable uses resource paths embedded from **your clone folder**. Keep that folder and its `res/` directory in place. The original install target does not produce a standalone package.
 
+## First play
 
+Use **W/A/S/D** and the mouse to explore. **F** toggles fixed camera height, **T** toggles the aiming cross, and **H** toggles help. Aim at the arcade cabinet, left-click, and choose **Play**.
 
-### Build with **Visual Studio**
-- Download the source code and extract the `RoyalGreen-main` directory wherever you want.
-- Open the directory with **Visual Studio**.
-- **CMake** compilation should start by itself. If not, press `F5`.
-- After the **CMake** build is complete, you can compile and run the code (with the GUI button or with `F5`).
+Inside the game: **A/D** move, **W** jumps, **S** shoots, **M** opens the menu, and **H** toggles help. The menu offers **Return to game**, **Reset game**, and **Exit game**. **Esc** or the window close button closes the application. Follow the [tutorial](docs/tutorial.md) for a complete example.
 
+## Checks
 
+The separate test project leaves the original application CMake project intact. With Python 3.10+ installed:
 
-### Build with **CMake** (only if you have a version of **CMake** compatible with version `<3.5`)
-- Download the source code and extract the `RoyalGreen-main` directory wherever you want.
-- Open the directory in a terminal. Verify your **CMake** installation with the command: `cmake --version`.
-- Run: `cmake -S . -B build`.
-- Then: `cmake --build build`.
-- After the process completes, you will find the executable inside: `RoyalGreen-main\build\Debug\royalgreen.exe`.
-- Run the executable.
+```powershell
+python scripts/verify_assets.py
+python scripts/check_source_unchanged.py
+cmake -S tests -B build/tests -G "Visual Studio 17 2022" -A x64
+cmake --build build/tests --config Debug --parallel
+ctest --test-dir build/tests -C Debug --output-on-failure
+```
 
-## Dependencies
-**CMake** uses `FetchContent` to retrieve external dependencies from public repositories:
-- **GLFW** `3.4` for window creation, input handling, and OpenGL context management  .
-- **Dear ImGui** `v1.91.9` for debugging interfaces and menus.
-- **Assimp** `v6.0.2` for importing and processing 3D model in `OBJ` format. 
-- **stb** `master` for image loading and texture handling.
-- **glm** `0.9.9.8` for mathematics and linear algebra operations.
+See [automated testing](docs/testing.md) and the [manual checklist](docs/manual-testing.md) for coverage, limitations, and result records.
 
----
-## Preview.
+## Preview
 
-![Screenshot](preview/panoramic.png)
-![Screenshot](preview/arcadeCabinet.png)
-![Screenshot](preview/tableLamps.png)
-![Screenshot](preview/poolShot.png)
-![Screenshot](preview/gameStart.png)
-![Screenshot](preview/game1.png)
+Repository screenshots illustrate the project; they are not evidence of a new test run.
 
-
-
-
+![The RoyalGreen arcade room](preview/panoramic.png)
+![The 2D game on the arcade cabinet](preview/game1.png)
