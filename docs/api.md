@@ -117,7 +117,7 @@ GPU objects must be released before context termination. Do not clear/replace ma
 
 ## Gameplay coordination
 
-[GameSession](../src/app/game2D/game_session.h) constructs a CPU encounter from arena width/height; dimensions must contain actors and ground. Named actor/projectile textures are prerequisites even without rendering.
+[GameSession](../src/app/game2D/game_session.h) constructs a CPU encounter from arena width/height; dimensions must contain actors and ground. Named actor/projectile textures are prerequisites even without rendering. Sessions are noncopyable/nonmovable because collision coordination borrows their owned actors.
 
 | Interface | Meaning |
 | --- | --- |

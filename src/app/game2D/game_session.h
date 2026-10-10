@@ -8,6 +8,11 @@
 class GameSession {
 public:
     GameSession(int width,int height);
+    // CollisionSystem borrows these actors; moving/copying would detach its references.
+    GameSession(const GameSession&) = delete;
+    GameSession& operator=(const GameSession&) = delete;
+    GameSession(GameSession&&) = delete;
+    GameSession& operator=(GameSession&&) = delete;
     void input(const ActionMap&,float dt);
     void update(float dt);
     void reset();

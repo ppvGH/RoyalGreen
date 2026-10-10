@@ -2,6 +2,11 @@
 #include "../core/validation.h"
 #include <utility>
 #include <limits>
+#include <cstddef>
+#include <type_traits>
+
+// GPU attribute offsets require a standard-layout vertex on every compiler.
+static_assert(std::is_standard_layout_v<Vertex>, "Vertex layout must support offsetof");
 #include <glad/glad.h>
 
 Mesh::Mesh() :
@@ -48,12 +53,12 @@ void Mesh::setup()
 
 	// Layout location 1: normal.
 	// Pointer position is computed by offsetof macro.
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::m_normal));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_normal));
 	glEnableVertexAttribArray(1);
 
 	// Layout location 2: texCoords.
 	// Pointer position is computed by offsetof macro.
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::m_texCoords));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_texCoords));
 	glEnableVertexAttribArray(2);
 
 	// Unbind the Vertex Array.

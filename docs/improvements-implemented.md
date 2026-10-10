@@ -7,7 +7,7 @@ This branch descends from completed `sac4ap`. Production changes were subsequent
 | Proposal / added request | Implementation | Verification |
 | --- | --- | --- |
 | Clear startup failures | Validate window/GLAD; exceptions for missing/invalid resources, nonzero startup status | Fake window failures, missing-file cases, actual context error checks |
-| Immutable dependencies | Git hashes, archive SHA256, header-only GLM, portable C++ calls | Native clean CI builds |
+| Immutable dependencies | Git hashes, archive SHA256, header-only GLM, portable C++ calls/standard member offsets | Native clean CI builds |
 | Relocatable package | Executable-relative/explicit asset root, copy/install, static Windows runtime, ZIP/notices | PE/asset bytes; relocated package launched from unrelated directory |
 | Camera timing | Pass elapsed seconds once; speed 1.35 units/s, immediate basis refresh | Equal travel at 30/60/120 updates |
 | Animation timing/events | Full intervals/remainder, crossed-frame events, nonlooping combat | Partition, skipped events, consecutive attacks |

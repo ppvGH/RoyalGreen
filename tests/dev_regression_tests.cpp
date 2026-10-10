@@ -119,6 +119,8 @@ TEST_CASE("Failed named resources leave maps intact without GPU calls", "[resour
     REQUIRE_FALSE(ResourceManager::shadersMap.count("missing"));
 }
 TEST_CASE("GPU owners cannot be copied and zero handles move safely", "[resources][dev]") {
+    STATIC_REQUIRE_FALSE(std::is_copy_constructible_v<GameSession>);
+    STATIC_REQUIRE_FALSE(std::is_move_constructible_v<GameSession>);
     STATIC_REQUIRE_FALSE(std::is_copy_constructible_v<Texture>);STATIC_REQUIRE_FALSE(std::is_copy_constructible_v<Shader>);STATIC_REQUIRE_FALSE(std::is_copy_constructible_v<Mesh>);
     Texture texture;Texture moved(std::move(texture));REQUIRE(texture.getID()==0);REQUIRE(moved.getID()==0);
     Shader shader;Shader movedShader(std::move(shader));REQUIRE(shader.getID()==0);REQUIRE(movedShader.getID()==0);
