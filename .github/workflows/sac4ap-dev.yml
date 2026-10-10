@@ -1,0 +1,101 @@
+name: sac4ap-dev verification
+
+on:
+  push:
+    branches: [sac4ap-dev]
+  pull_request:
+    branches: [sac4ap-dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: python -m pip install cmake==3.31.6
+      - name: Build tests and application
+        shell: pwsh
+        run: ./scripts/run_checks.ps1 -Configuration ${{ matrix.configuration }} -BuildApplication
+      - name: Package and verify Windows x64
+        if: matrix.configuration == 'Release'
+        shell: pwsh
+        run: |
+          ./scripts/package_release.ps1
+          ./scripts/check_windows_package.ps1 -Archive build/packages/RoyalGreen-0.2.0-Windows-AMD64.zip
+      - name: Keep Windows package
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v7
+        with:
+          name: RoyalGreen-Windows-x64
+          path: |
+            build/packages/*.zip
+            build/packages/*.sha256
+            build/packages/*.manifest.json
+      - name: Keep test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-${{ matrix.configuration }}-tests
+          path: |
+            build/tests/test-results-*.xml
+            build/tests/Testing/Temporary/LastTest.log
+          if-no-files-found: warn
+  native:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, macos-15-intel]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: python -m pip install cmake==3.31.6
+      - name: Linux native dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev xvfb
+      - name: Build CPU tests and app
+        run: |
+          cmake -S tests -B build/tests -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/tests --parallel 4
+          ctest --test-dir build/tests --output-on-failure --parallel 4 --output-junit test-results.xml
+          cmake -S . -B build/app -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/app --parallel 4
+          ./build/app/royalgreen --help
+      - name: Linux context and normal session checks
+        if: runner.os == 'Linux'
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          xvfb-run -a ./build/app/royalgreen --graphics-check
+          xvfb-run -a ./build/app/royalgreen --exit-after 2
+      - name: Keep native diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-${{ matrix.os }}-tests
+          path: |
+            build/tests/test-results.xml
+            build/tests/Testing/Temporary/LastTest.log
+          if-no-files-found: warn

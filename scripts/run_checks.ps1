@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Build and run the sac4ap checks without changing the application's CMake project.
+Build sac4ap-dev regression checks and optionally the application.
 .EXAMPLE
 .\scripts\run_checks.ps1 -Configuration Debug -BuildApplication
 #>
@@ -26,7 +26,7 @@ $taskVersionOutput = & cmake --version
 if ($LASTEXITCODE -ne 0) { throw 'CMake is required.' }
 $taskVersion = [version]([regex]::Match($taskVersionOutput[0], '\d+\.\d+\.\d+').Value)
 if ($taskVersion -lt [version]'3.24' -or $taskVersion -ge [version]'4.0') {
-    throw 'Use CMake >= 3.24 and < 4.0 for the unchanged application dependencies (verified: 3.31.6).'
+    throw 'Use CMake >= 3.24 and < 4.0 for this documented build (verified: 3.31.6).'
 }
 Push-Location -LiteralPath $taskRoot
 try {
