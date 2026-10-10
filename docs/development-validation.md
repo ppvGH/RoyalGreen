@@ -16,10 +16,10 @@ Actual local checks completed on **10 October 2026 (Europe/Rome)** on `sac4ap-de
 
 | Check | Result / evidence under ignored build/ |
 | --- | --- |
-| CPU suite Debug | **126/126 CTest entries PASS**, `dev-ctest-Debug.log`, `tests/dev-Debug.xml` |
-| CPU suite Release | **126/126 PASS**, `dev-ctest-Release.log`, `tests/dev-Release.xml` |
+| CPU suite Debug | **126/126 CTest entries PASS**, `dev-final-Debug-tests.log`, `tests/test-results-Debug.xml` |
+| CPU suite Release | **126/126 PASS**, `dev-final-Release-tests.log`, `tests/test-results-Release.xml` |
 | Test population | 123 C++ cases; 25 Python validator fixtures inside one CTest container; asset/history checks separately |
-| App build Debug/Release | **PASS**, `dev-app-Debug.log`, `dev-package.log` |
+| App build Debug/Release | **PASS**, `dev-app-Debug.log`, `dev-package-final.log` |
 | Real graphics Debug | **PASS**, actual assets/model import + game/room draw, ownership/moved-from cube reuse/failed reload/missing files/handle deletion/no pending GL error; `dev-graphics-Debug.stdout.log` |
 | Windows Release package | **PASS**, CPack ZIP, AMD64 PE check, all **34** asset files byte-identical, config and **8** upstream notices |
 | Relocated extracted package | **PASS**, path with spaces; launched from system temp directory, not checkout/package working directory |
@@ -32,7 +32,13 @@ The local package is `build/packages/RoyalGreen-0.2.0-Windows-AMD64.zip` (~2.64 
 
 ## Remote checks
 
-The [development workflow](../.github/workflows/sac4ap-dev.yml) builds/tests Windows Debug/Release, Ubuntu 24.04 and macOS 15 native ARM/Intel. Windows Release creates an artifact; Linux adds Xvfb/Mesa graphics/normal-session checks. Completed run links/results are recorded after execution; configuration alone is not a success claim.
+The [development workflow](../.github/workflows/sac4ap-dev.yml) builds/tests Windows Debug/Release, Ubuntu 24.04 and macOS 15 native ARM/Intel. Windows Release creates an artifact; Linux adds Xvfb/Mesa graphics/normal-session checks. **PASS: all five jobs** in [run 38041472579](https://github.com/ppvGH/RoyalGreen/actions/runs/38041472579) for code commit `c4a8440467add7b9583bf694d052548c13be2a79`:
+
+- Windows Server 2022 x64: Debug and Release, 126/126 checks each; Release ZIP/CLI/package verification and artifact upload.
+- Ubuntu 24.04 x64: native app and 126/126 checks; Mesa/llvmpipe OpenGL regression and normal session.
+- macOS 15 Apple Silicon and macOS 15 Intel: native app, 126/126 checks each and CLI help; hardware drawing/gameplay not asserted.
+
+The first native run exposed the original qualified `offsetof` syntax accepted by MSVC; standard member offsets fixed it. The successful run above validates the fix and final texture-reuse checks. This documentation update does not alter application code.
 
 ## Limits
 

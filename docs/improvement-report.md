@@ -1,6 +1,6 @@
 # Improvement report
 
-> Historical audit of `sac4ap`. Proposals were subsequently authorized on **sac4ap-dev**; see [implementation report](improvements-implemented.md). Descriptions below refer to the earlier code.
+> Historical audit of `sac4ap`. Proposals were subsequently authorized on **sac4ap-dev**; see [implementation report](improvements-implemented.md). Descriptions below refer to the earlier code. [Preserved original audit](https://github.com/ppvGH/RoyalGreen/blob/b3b13c28737518e8082cac0408ccc4de26a463c5/docs/improvement-report.md).
 
 [Documentation index](index.md) · [Testing scope](testing.md) · [Exam readiness](exam-readiness.md)
 
