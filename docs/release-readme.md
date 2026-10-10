@@ -14,6 +14,6 @@ options. `--config FILE` reads key=value settings; command-line settings win.
 `royalgreen.exe --width 1280 --height 720 --camera-speed 1.35` is an example.
 
 Linux and macOS require their own source builds; a Windows EXE is not a native
-application on those platforms. See the repository's installation guide.
+application on those platforms. See the [source build guide](https://github.com/ppvGH/RoyalGreen/blob/sac4ap-dev/docs/installation.md).
 Third-party library notices are in `third-party/`. Asset provenance and the
 project-license decision are recorded in `asset-provenance.md`.

@@ -20,7 +20,7 @@ Actual local checks completed on **10 October 2026 (Europe/Rome)** on `sac4ap-de
 | CPU suite Release | **126/126 PASS**, `dev-ctest-Release.log`, `tests/dev-Release.xml` |
 | Test population | 123 C++ cases; 25 Python validator fixtures inside one CTest container; asset/history checks separately |
 | App build Debug/Release | **PASS**, `dev-app-Debug.log`, `dev-package.log` |
-| Real graphics Debug | **PASS**, actual assets/model import + game/room draw, ownership/failed reload/missing files/handle deletion/no pending GL error; `dev-graphics-Debug.stdout.log` |
+| Real graphics Debug | **PASS**, actual assets/model import + game/room draw, ownership/moved-from cube reuse/failed reload/missing files/handle deletion/no pending GL error; `dev-graphics-Debug.stdout.log` |
 | Windows Release package | **PASS**, CPack ZIP, AMD64 PE check, all **34** asset files byte-identical, config and **8** upstream notices |
 | Relocated extracted package | **PASS**, path with spaces; launched from system temp directory, not checkout/package working directory |
 | Packaged CLI/error | `--help` exit0; missing `--assets` exit1 with diagnostic |

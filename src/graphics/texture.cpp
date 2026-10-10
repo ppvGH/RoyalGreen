@@ -34,7 +34,8 @@ void Texture::genColorMap(const TexParams& params, unsigned char* data)
 		throw std::logic_error("Texture is already initialized");
 	}
 
-	/* Generation and binding. */
+	/* A moved-from cube owner can be reused for a 2D texture. */
+    m_target = GL_TEXTURE_2D;
 	glGenTextures(1, &m_ID);
 	glBindTexture(GL_TEXTURE_2D, m_ID);
 
@@ -60,7 +61,8 @@ void Texture::genDepthMap(int width, int height)
 		throw std::logic_error("Texture is already initialized");
 	}
 
-	/* Generation and binding. */
+	/* A moved-from cube owner can be reused for a 2D texture. */
+    m_target = GL_TEXTURE_2D;
 	glGenTextures(1, &m_ID);
 	glBindTexture(GL_TEXTURE_2D, m_ID);
 

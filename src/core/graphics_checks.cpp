@@ -17,6 +17,15 @@ void runGraphicsChecks() {
         unsigned char pixel[]={255,255,255,255};Texture texture(TexParams(1,1),pixel);
         textureID=texture.getID();check(glIsTexture(textureID),"Texture allocation failed");
         Texture moved(std::move(texture));check(!texture.getID() && moved.getID()==textureID,"Texture move duplicated ownership");
+        // Reuse moved-from cube owners as color/depth textures. Target state
+        // must follow the new allocation rather than the previous cube map.
+        Texture cube;cube.genCubeDepthMap();Texture cubeOwner(std::move(cube));
+        cube.genColorMap(TexParams(1,1),pixel);cube.bind();
+        int bound=0;glGetIntegerv(GL_TEXTURE_BINDING_2D,&bound);
+        check(static_cast<unsigned int>(bound)==cube.getID(),"Reused color texture retained cube target");cube.unbind();
+        Texture secondCube;secondCube.genCubeDepthMap();Texture secondOwner(std::move(secondCube));
+        secondCube.genDepthMap(16,16);secondCube.bind();glGetIntegerv(GL_TEXTURE_BINDING_2D,&bound);
+        check(static_cast<unsigned int>(bound)==secondCube.getID(),"Reused depth texture retained cube target");secondCube.unbind();
         Shader shader;shader.linkProgram("#version 330 core\nvoid main(){gl_Position=vec4(0,0,0,1);}","#version 330 core\nout vec4 color;void main(){color=vec4(1);}");
         programID=shader.getID();check(glIsProgram(programID),"Shader allocation failed");
         rejects([&]{shader.linkProgram("#version 330 core\ninvalid syntax", "#version 330 core\nout vec4 color;void main(){color=vec4(1);}");},"Invalid shader did not fail");
