@@ -59,7 +59,7 @@ public:
 	/* Is this action ongoing? (Is this button being held? [just for some actions] ). */
 	bool ongoing(const Action& action) const;
 
-	/** True while the bound registered input is Released (persistent, not an edge).
+	/** True for the release edge of the bound registered input (one sample).
 	 * An unbound action or unregistered input always returns false.
 	 */
 	bool justFinished(const Action& action) const;

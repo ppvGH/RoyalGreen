@@ -50,7 +50,7 @@ namespace sceneData
 	inline const float cameraFarPlane = 20.0f;
 	inline const bool cameraInitialGrounded = false;
 	inline const float cameraInitMouseSpeed = 0.001f;
-	inline const float cameraInitKeyboardSpeed = 0.15f;
+	inline const float cameraInitKeyboardSpeed = 1.35f;
 
 	/* Camera animation data. */
 	inline const float inAnimationFirstPartDuration = 2.0f; // 0.01f; // 

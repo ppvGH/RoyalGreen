@@ -1,4 +1,7 @@
 #include "mesh.h"
+#include "../core/validation.h"
+#include <utility>
+#include <limits>
 #include <glad/glad.h>
 
 Mesh::Mesh() :
@@ -7,13 +10,16 @@ Mesh::Mesh() :
 	m_EBO(0),
 	m_matIndex(-1),
 	m_UVresize(0),
-	m_mixTex(true)
+	m_mixTex(true),
+    m_shader(nullptr)
 {
 }
 
 
 void Mesh::setup()
 {
+	if(m_VAO || m_VBO || m_EBO)throw std::logic_error("Mesh is already uploaded");
+    validation::require(!m_vertices.empty() && !m_indices.empty(),"Cannot upload empty mesh");
 	// Generate the Vertex Array Object.
 	glGenVertexArrays(1, &m_VAO);
 	// Generate the Vertex Buffer Object.
@@ -64,6 +70,7 @@ void Mesh::draw() const
 
 glm::vec3 Mesh::getCenter() const
 {
+	validation::require(!m_vertices.empty(),"Cannot compute center of empty mesh");
 	/* Average of vertices positions. */
 	glm::vec3 center = glm::vec3(0.0f);
 	for (const auto& vert : m_vertices) center += vert.getPosition();
@@ -77,6 +84,7 @@ glm::vec3 Mesh::getGlobalNormal() const
 	/* Normalized sum of the vertices normals. */
 	glm::vec3 gNormal = glm::vec3(0.0f);
 	for (const auto& vert : m_vertices)	gNormal += vert.getNormal();
+	validation::require(validation::finite(gNormal) && glm::length(gNormal)>0,"Mesh normals have no finite nonzero sum");
 	gNormal = glm::normalize(gNormal);
 
 	return gNormal;
@@ -103,4 +111,31 @@ bool Mesh::intersectRayTriangle(const Ray& localRay, float& tOut) const
 
 	if (hit) tOut = tMin;
 	return hit;
+}
+
+void Mesh::release() noexcept { if(m_VAO)glDeleteVertexArrays(1,&m_VAO);if(m_VBO)glDeleteBuffers(1,&m_VBO);if(m_EBO)glDeleteBuffers(1,&m_EBO);m_VAO=m_VBO=m_EBO=0; }
+Mesh::~Mesh() { release(); }
+Mesh::Mesh(Mesh&& other) noexcept:Mesh() { *this=std::move(other); }
+Mesh& Mesh::operator=(Mesh&& other) noexcept {
+    if(this==&other)return *this;
+    release();m_meshName=std::move(other.m_meshName);m_vertices=std::move(other.m_vertices);
+    m_indices=std::move(other.m_indices);m_triangleData=std::move(other.m_triangleData);
+    m_matIndex=other.m_matIndex;m_UVresize=other.m_UVresize;m_mixTex=other.m_mixTex;m_shader=other.m_shader;
+    m_VAO=std::exchange(other.m_VAO,0);m_VBO=std::exchange(other.m_VBO,0);m_EBO=std::exchange(other.m_EBO,0);return *this;
+}
+
+void Mesh::rebuildTriangleCache() {
+    validation::require(m_indices.size()%3==0,"Triangle indices must occur in triples");
+    std::vector<TriangleData> cache;
+    for(std::size_t i=0;i<m_indices.size();i+=3) {
+        auto a=m_indices[i],b=m_indices[i+1],c=m_indices[i+2];
+        const auto& A=m_vertices.at(a).getPosition();const auto& B=m_vertices.at(b).getPosition();const auto& C=m_vertices.at(c).getPosition();
+        auto normal=glm::cross(B-A,C-A);
+        validation::require(validation::finite(A) && validation::finite(B) && validation::finite(C) && validation::finite(normal),"Imported triangle positions must be finite");
+        // Blender exports include zero-area faces. Keep the draw indices, but
+        // omit unpickable degenerate faces from the intersection cache.
+        if(glm::length(normal)==0)continue;
+        cache.emplace_back(a,b,c,m_vertices);
+    }
+    m_triangleData=std::move(cache);
 }

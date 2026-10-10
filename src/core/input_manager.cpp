@@ -1,37 +1,23 @@
 #include "input_manager.h"
-#include <imgui_impl_glfw.h>
-#include <iostream>
 
 void InputManager::registerKey(int key)
 {
-	/* Init keys to Released state. */
-	m_keyStates[key] = KeyState::Released;
+	// Registration has no synthetic release event.
+	m_keyStates[key] = KeyState::Up;
 }
 
 void InputManager::update(GLFWwindow* window)
 { 
 	for (auto& [key, state] : m_keyStates)
 	{
-	 //   // Skip update for navigation control keys (because of imgui)
-		//bool isNavKey = (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN ||
-		//	key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT ||
-		//	key == GLFW_KEY_ENTER);
-
-		//if (isNavKey) continue;
-
-		/* glfwGetKey returns the last state reported for the specified key to the specified window.
-		 * States can be only GLFW_PRESS or GLFW_RELEASE. 
-		 * if GLFW_PRESS: if state is released, set it to (just) pressed, if not then set it to held;
-		 * else (GLFW_RELEASE) + if state is NOT released: set state to released. 
-		 * N.B. the Held state can appear fast as one single tap of a key is equivalent to 4-5 frames. 
-		 * N.B. glfwGetKey works only with keyboard inputs. For mouse buttons one needs glfwGetMouseButton. */
+        // Polling can miss taps occurring entirely between two samples.
 
 		int item = isMouseButton(key) ? glfwGetMouseButton(window, key) : glfwGetKey(window, key);
 
 		if(item == GLFW_PRESS)
-			state = (state == KeyState::Released) ? KeyState::Pressed : KeyState::Held;
-		else if (state != KeyState::Released)
-			state = KeyState::Released;
+			state = (state == KeyState::Released || state == KeyState::Up) ? KeyState::Pressed : KeyState::Held;
+		else
+			state = (state == KeyState::Pressed || state == KeyState::Held) ? KeyState::Released : KeyState::Up;
 	}
 }
 

@@ -25,6 +25,7 @@ public:
 
 	/* Reset player to initial state. */
 	void resetPlayer();
+	void constrainToArena(float width);
 
 
 	/* Getter, setter. */

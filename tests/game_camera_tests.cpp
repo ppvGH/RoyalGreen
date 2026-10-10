@@ -227,84 +227,24 @@ TEST_CASE("All camera translations use signed local-basis distances", "[camera]"
     }
 }
 
-TEST_CASE("Grounding uses a saved altitude and only constrains forward and backward", "[camera]")
+TEST_CASE("Grounding captures current height and respects explicit position changes", "[camera]")
 {
-    // WHY: Setter order and local vertical movement expose the legacy saved-height caveat.
-    Camera camera = tiltedCamera();
-    camera.setGrounded(2.5f);
-    REQUIRE(camera.getGrounded());
-    camera.setGrounded(-0.25f);
-    REQUIRE(camera.getGrounded());
-    camera.setGrounded(0.0f);
-    REQUIRE_FALSE(camera.getGrounded());
-    requireVector(camera.getPosition(), glm::vec3(3.0f, 4.0f, 0.0f));
-    camera.setGrounded(1.0f);
-    SECTION("Constructor altitude applies even to zero-distance forward")
-    {
-        camera.moveForward(0.0f);
-        requireVector(camera.getPosition(), glm::vec3(3.0f, sceneData::cameraAltitude, 0.0f));
-    }
-    SECTION("Constructor altitude applies even to zero-distance backward")
-    {
-        camera.moveBackward(0.0f);
-        requireVector(camera.getPosition(), glm::vec3(3.0f, sceneData::cameraAltitude, 0.0f));
-    }
-    SECTION("Front updates capture height while position setters do not")
-    {
-        camera.setPosition(glm::vec3(3.0f, 8.0f, 0.0f));
-        camera.setFront(glm::vec3(-0.6f, -0.8f, 0.0f));
-        camera.setPosition(glm::vec3(3.0f, 12.0f, 0.0f));
-        camera.moveForward(2.0f);
-        requireVector(camera.getPosition(), glm::vec3(3.0f - 1.2f * camera.getKeyboardSpeed(), 8.0f, 0.0f));
-    }
-    SECTION("Zero mouse offsets capture a new altitude")
-    {
-        camera.setPosition(glm::vec3(3.0f, 8.0f, 0.0f));
-        camera.processMouseInputs(0.0f, 0.0f);
-        camera.setPosition(glm::vec3(3.0f, 12.0f, 0.0f));
-        camera.moveBackward(2.0f);
-        requireVector(camera.getPosition(), glm::vec3(3.0f + 1.2f * camera.getKeyboardSpeed(), 8.0f, 0.0f));
-    }
-    SECTION("Up and down change height until forward or backward restores it")
-    {
-        camera.setFront(glm::vec3(-0.6f, -0.8f, 0.0f));
-        const float distance = 2.0f * camera.getKeyboardSpeed();
-        camera.moveUp(2.0f);
-        requireVector(camera.getPosition(), glm::vec3(3.0f - 0.8f * distance, 4.0f + 0.6f * distance, 0.0f));
-        camera.moveForward(0.0f);
-        requireVector(camera.getPosition(), glm::vec3(3.0f - 0.8f * distance, 4.0f, 0.0f));
-        camera.moveDown(2.0f);
-        requireVector(camera.getPosition(), glm::vec3(3.0f, 4.0f - 0.6f * distance, 0.0f));
-        camera.moveBackward(0.0f);
-        requireVector(camera.getPosition(), glm::vec3(3.0f, 4.0f, 0.0f));
-    }
+    Camera camera=tiltedCamera();camera.setGrounded(1);camera.moveForward(0);
+    requireVector(camera.getPosition(),glm::vec3(3,4,0));
+    camera.setPosition({3,12,0});camera.moveForward(2);
+    requireVector(camera.getPosition(),glm::vec3(3-1.2f*camera.getKeyboardSpeed(),12,0));
+    camera.moveUp(2);float height=camera.getPosition().y;camera.moveForward(0);
+    REQUIRE(camera.getPosition().y==nearFloat(height));
 }
 
-TEST_CASE("Standalone rotations defer vectors and pitch clamping until mouse processing", "[camera]")
+TEST_CASE("Standalone rotations refresh basis and clamp pitch immediately", "[camera]")
 {
-    // WHY: Direct angle setters leave view/movement stale and do not clamp the pitch.
-    Camera camera = tiltedCamera();
-    camera.setGrounded(0.0f);
-    camera.rotateOnXAxis(125.0f);
-    camera.rotateOnYAxis(250.0f);
-    const float yaw = -pi / 2.0f - 125.0f * camera.getMouseSpeed();
-    const float pitch = std::asin(-0.8f) + 250.0f * camera.getMouseSpeed();
-    REQUIRE(camera.getYaw() == nearFloat(yaw));
-    REQUIRE(camera.getPitch() == nearFloat(pitch));
-    requireVector(camera.getFront(), glm::vec3(-0.6f, -0.8f, 0.0f));
-    requireMatrix(camera.getViewMatrix(), tiltedView());
-    camera.moveForward(2.0f);
-    requireVector(camera.getPosition(), glm::vec3(3.0f - 1.2f * camera.getKeyboardSpeed(),
-                                                4.0f - 1.6f * camera.getKeyboardSpeed(), 0.0f));
-    camera.processMouseInputs(0.0f, 0.0f);
-    const glm::vec3 front(std::cos(pitch) * std::sin(yaw),
-                           std::sin(pitch), std::cos(pitch) * std::cos(yaw));
-    requireVector(camera.getFront(), front);
-    camera.rotateOnYAxis(4000.0f);
-    REQUIRE(camera.getPitch() == nearFloat(pitch + 4000.0f * camera.getMouseSpeed()));
-    requireVector(camera.getFront(), front);
-    camera.processMouseInputs(0.0f, 0.0f);
-    REQUIRE(camera.getPitch() == nearFloat(89.0f * pi / 180.0f));
+    Camera camera=tiltedCamera();camera.rotateOnXAxis(125);camera.rotateOnYAxis(250);
+    float yaw=-pi/2-125*camera.getMouseSpeed(),pitch=std::asin(-0.8f)+250*camera.getMouseSpeed();
+    glm::vec3 front(std::cos(pitch)*std::sin(yaw),std::sin(pitch),std::cos(pitch)*std::cos(yaw));
+    requireVector(camera.getFront(),front);REQUIRE(camera.getYaw()==nearFloat(yaw));
+    camera.rotateOnYAxis(4000);REQUIRE(camera.getPitch()==nearFloat(89*pi/180));
+    REQUIRE(glm::length(camera.getFront())==nearFloat(1));
 }
 
 TEST_CASE("Mouse input rebuilds an analytic elevated view and movement basis", "[camera]")
@@ -342,40 +282,20 @@ TEST_CASE("Mouse input rebuilds an analytic elevated view and movement basis", "
     }
 }
 
-TEST_CASE("Camera pitch limits cover both poles and mouse recovery", "[camera]")
+TEST_CASE("Camera front normalization and pitch limits keep a finite orthonormal basis", "[camera]")
 {
-    // WHY: Both signs detect one-sided clamps; setFront's distinct limit must preserve its input.
-    for (float sign : {-1.0f, 1.0f})
-    {
-        INFO("pitch sign " << sign);
-        Camera camera(glm::vec3(5.0f, 0.0f, 0.0f), 90.0f, 2.0f, 2.0f, 10.0f);
-        camera.processMouseInputs(0.0f, sign * 100000.0f);
-        const float limit = sign * 89.0f * pi / 180.0f;
-        REQUIRE(camera.getPitch() == nearFloat(limit));
-        requireVector(camera.getFront(), glm::vec3(-0.0174524064f, sign * 0.9998476952f, 0.0f));
-        REQUIRE(glm::length(camera.getFront()) == nearFloat(1.0f));
-        camera.processMouseInputs(0.0f, -sign * 200.0f);
-        const float recovered = limit - sign * 200.0f * camera.getMouseSpeed();
-        REQUIRE(camera.getPitch() == nearFloat(recovered));
-        requireVector(camera.getFront(), glm::vec3(-std::cos(recovered), std::sin(recovered), 0.0f));
-
-        const float angle = 89.95f * pi / 180.0f;
-        const glm::vec3 supplied(std::cos(angle), sign * std::sin(angle), 0.0f);
-        camera.setFront(supplied);
-        requireVector(camera.getFront(), supplied);
-        REQUIRE(camera.getYaw() == nearFloat(pi / 2.0f));
-        REQUIRE(camera.getPitch() == nearFloat(sign * 89.9f * pi / 180.0f));
-        camera.processMouseInputs(0.0f, 0.0f);
-        REQUIRE(camera.getPitch() == nearFloat(limit));
-        requireVector(camera.getFront(), glm::vec3(0.0174524064f, sign * 0.9998476952f, 0.0f));
-    }
+    for(float sign:{-1.0f,1.0f}) { Camera camera;camera.setFront({0.001f,sign*10,0});
+        REQUIRE(camera.getPitch()==nearFloat(sign*89*pi/180));
+        requireVector(camera.getFront(),glm::vec3(0.0174524064f,sign*0.9998476952f,0));
+        camera.processMouseInputs(0,0);REQUIRE(glm::length(camera.getFront())==nearFloat(1)); }
+    Camera camera;camera.setFront({0,1,0});REQUIRE(glm::length(camera.getFront())==nearFloat(1));
 }
 
 TEST_CASE("Animator uses 1-based top-to-bottom UVs and horizontal flipping", "[animator]")
 {
     // WHY: Non-square sheet corners and an interior flipped cell expose indexing and U/V mistakes.
     Animator animator(3, 8);
-    REQUIRE(animator.getFrame() == 0);
+    REQUIRE(animator.getFrame() == 1);
     REQUIRE(animator.isAnimationFinished());
     // Configure valid indices before UV access; the constructor's zero indices are sentinels.
     animator.setAnimation(1, 8, 1, 4.0f);
@@ -474,23 +394,13 @@ TEST_CASE("Single-frame animation remains on its cell while looping", "[animator
     }
 }
 
-TEST_CASE("Large animator dt advances once and discards excess time", "[animator]")
+TEST_CASE("Large animator dt catches up and retains the elapsed remainder", "[animator]")
 {
-    // WHY: Preserve legacy frame-rate-dependent timing instead of accidentally requiring catch-up.
-    Animator animator(4, 8);
-    animator.setAnimation(2, 4, 2, 4.0f);
-    requireVector(animator.updateUV(3.125f, true), glm::vec4(0.25f, 0.5f, 0.375f, 0.75f));
-    REQUIRE(animator.getFrame() == 3);
-    animator.updateUV(0.0f, true);
-    REQUIRE(animator.getFrame() == 3);
-    animator.updateUV(0.125f, true);
-    REQUIRE(animator.getFrame() == 3);
-    animator.updateUV(0.125f, true);
-    REQUIRE(animator.getFrame() == 4);
-    REQUIRE(animator.isAnimationFinished());
-    animator.updateUV(20.0f, true);
-    REQUIRE(animator.getFrame() == 2);
-    REQUIRE_FALSE(animator.isAnimationFinished());
+    Animator animator(4,8);animator.setAnimation(2,4,2,4);
+    requireVector(animator.updateUV(3.125f,true),glm::vec4(0.125f,0.5f,0.25f,0.75f));
+    REQUIRE(animator.getFrame()==2);animator.updateUV(0.125f,true);REQUIRE(animator.getFrame()==3);
+    animator.updateUV(0.25f,true);REQUIRE(animator.getFrame()==4);REQUIRE(animator.isAnimationFinished());
+    animator.updateUV(0.25f,true);REQUIRE(animator.getFrame()==2);
 }
 
 TEST_CASE("Game object constructor and position size setters preserve independent properties", "[game_obj]")

@@ -27,7 +27,7 @@ Vertex vertexAt(const glm::vec3& position)
     return Vertex(position, glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f));
 }
 
-/** @brief Own the vertices for as long as TriangleData retains its reference. */
+/** @brief Keep source vertices for comparisons with the owned triangle snapshot. */
 struct UnitTriangle
 {
     std::vector<Vertex> vertices{
@@ -126,7 +126,7 @@ TEST_CASE("TriangleData selects mesh indices and caches edges and a unit normal"
     REQUIRE(triangle.m_iA == 1);
     REQUIRE(triangle.m_iB == 2);
     REQUIRE(triangle.m_iC == 3);
-    REQUIRE(std::addressof(triangle.m_vA) == std::addressof(vertices[1].m_position));
+    REQUIRE(std::addressof(triangle.m_vA) != std::addressof(vertices[1].m_position));
     requireVec3(triangle.m_vA, {1.0f, -2.0f, 3.0f});
     requireVec3(triangle.m_e1, {2.0f, 0.0f, 0.0f});
     requireVec3(triangle.m_e2, {0.0f, 3.0f, 0.0f});
@@ -149,8 +149,7 @@ TEST_CASE("Ray preserves origin and an unnormalized or zero direction", "[geomet
     const Ray ray({-3.5f, 2.25f, -7.0f}, {0.0f, -4.0f, 2.0f});
     requireVec3(ray.m_origin, {-3.5f, 2.25f, -7.0f});
     requireVec3(ray.m_direction, {0.0f, -4.0f, 2.0f});
-    const Ray stationary({1.0f, -1.0f, 0.0f}, glm::vec3(0.0f));
-    requireVec3(stationary.m_direction, glm::vec3(0.0f));
+    REQUIRE_THROWS_AS(Ray({1.0f,-1.0f,0.0f},glm::vec3(0.0f)),std::invalid_argument);
 }
 
 TEST_CASE("Ray intersection returns a parameter rather than a normalized distance", "[geometry]")
@@ -238,10 +237,7 @@ TEST_CASE("Ray intersection rejects points beyond each triangle edge without cha
 TEST_CASE("Ray intersection rejects parallel coplanar and stationary rays", "[geometry][negative]")
 {
     const UnitTriangle fixture;
-    const std::array<Ray, 3> rays{{
-        Ray({0.25f, 0.25f, 1.0f}, {1.0f, 0.0f, 0.0f}),
-        Ray({0.25f, 0.25f, 0.0f}, {0.0f, 1.0f, 0.0f}),
-        Ray({0.25f, 0.25f, 1.0f}, {0.0f, 0.0f, 0.0f})}};
+    const std::array<Ray,2> rays{{Ray({0.25f,0.25f,1.0f},{1.0f,0.0f,0.0f}),Ray({0.25f,0.25f,0.0f},{0.0f,1.0f,0.0f})}};
     for (const auto& ray : rays)
     {
         CAPTURE(ray.m_origin.z, ray.m_direction.x, ray.m_direction.y);
@@ -309,25 +305,12 @@ TEST_CASE("Ray intersection accepts either determinant sign at the epsilon thres
     }
 }
 
-TEST_CASE("Ray intersection rejects a collinear triangle", "[geometry][negative]")
+TEST_CASE("Triangle construction rejects collinear vertices", "[geometry][negative]")
 {
-    const std::vector<Vertex> vertices{
-        vertexAt({-1.0f, 0.0f, 0.0f}),
-        vertexAt({0.0f, 0.0f, 0.0f}),
-        vertexAt({1.0f, 0.0f, 0.0f})};
-    const TriangleData triangle(0, 1, 2, vertices);
-    float parameter = 123.25f;
-    REQUIRE_FALSE(mollerTrumbore(Ray({0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}),
-                                triangle, parameter));
-    REQUIRE(parameter == Catch::Approx(123.25f));
+    const std::vector<Vertex> vertices{vertexAt({-1,0,0}),vertexAt({0,0,0}),vertexAt({1,0,0})};
+    REQUIRE_THROWS_AS(TriangleData(0,1,2,vertices),std::invalid_argument);
 }
 
-/**
- * @test Construct rays from known points and parameters on different planes.
- * @details Fixed barycentric samples include vertices, edges, and interiors.
- * This supplies an independent geometric oracle without copying the
- * Moller-Trumbore algorithm or relying on nondeterministic random input.
- */
 TEST_CASE("Deterministic ray samples recover known points on translated and tilted triangles",
           "[geometry][property]")
 {
@@ -421,14 +404,10 @@ TEST_CASE("Moving a BoundingBox updates both corners without accumulating displa
     requireVec2(box.m_size, {2.5f, 6.0f});
 }
 
-TEST_CASE("BoundingBox storage preserves signed extents without normalizing corners", "[collision]")
+TEST_CASE("BoundingBox rejects nonpositive extents", "[collision]")
 {
-    BoundingBox box({1.0f, -2.0f}, {-3.0f, 0.0f});
-    requireVec2(box.m_size, {-3.0f, 0.0f});
-    requireVec2(box.m_max, {-2.0f, -2.0f});
-    box.updateBB({-5.0f, 4.0f});
-    requireVec2(box.m_min, {-5.0f, 4.0f});
-    requireVec2(box.m_max, {-8.0f, 4.0f});
+    REQUIRE_THROWS_AS(BoundingBox({1,-2},{-3,1}),std::invalid_argument);
+    REQUIRE_THROWS_AS(BoundingBox({1,-2},{3,0}),std::invalid_argument);
 }
 
 TEST_CASE("Bounding boxes intersect for positive overlap containment and identical boxes",
@@ -518,11 +497,11 @@ TEST_CASE("Deterministic box samples preserve intersections under common transla
     }
 }
 
-TEST_CASE_METHOD(InputFixture, "Registering a keyboard key starts it released without polling",
+TEST_CASE_METHOD(InputFixture, "Registering a keyboard key starts it up without a release event",
                  "[input]")
 {
     input.registerKey(GLFW_KEY_W);
-    requireInputState(input, GLFW_KEY_W, KeyState::Released);
+    requireInputState(input, GLFW_KEY_W, KeyState::Up);
     REQUIRE(glfw_input_fake::keyPolls().empty());
     REQUIRE(glfw_input_fake::mouseButtonPolls().empty());
 }
@@ -561,7 +540,7 @@ TEST_CASE_METHOD(InputFixture, "Keyboard press becomes held then released and ca
     input.update(nullptr);
     requireInputState(input, GLFW_KEY_W, KeyState::Released);
     input.update(nullptr);
-    requireInputState(input, GLFW_KEY_W, KeyState::Released);
+    requireInputState(input, GLFW_KEY_W, KeyState::Up);
     glfw_input_fake::setKey(GLFW_KEY_W, GLFW_PRESS);
     input.update(nullptr);
     requireInputState(input, GLFW_KEY_W, KeyState::Pressed);
@@ -582,7 +561,7 @@ TEST_CASE_METHOD(InputFixture, "Mouse buttons follow the same press held release
                  "[input][mouse]")
 {
     input.registerKey(GLFW_MOUSE_BUTTON_RIGHT);
-    requireInputState(input, GLFW_MOUSE_BUTTON_RIGHT, KeyState::Released);
+    requireInputState(input, GLFW_MOUSE_BUTTON_RIGHT, KeyState::Up);
     glfw_input_fake::setMouseButton(GLFW_MOUSE_BUTTON_RIGHT, GLFW_PRESS);
     input.update(nullptr);
     requireInputState(input, GLFW_MOUSE_BUTTON_RIGHT, KeyState::Pressed);
@@ -592,7 +571,7 @@ TEST_CASE_METHOD(InputFixture, "Mouse buttons follow the same press held release
     input.update(nullptr);
     requireInputState(input, GLFW_MOUSE_BUTTON_RIGHT, KeyState::Released);
     input.update(nullptr);
-    requireInputState(input, GLFW_MOUSE_BUTTON_RIGHT, KeyState::Released);
+    requireInputState(input, GLFW_MOUSE_BUTTON_RIGHT, KeyState::Up);
     glfw_input_fake::setMouseButton(GLFW_MOUSE_BUTTON_RIGHT, GLFW_PRESS);
     input.update(nullptr);
     requireInputState(input, GLFW_MOUSE_BUTTON_RIGHT, KeyState::Pressed);
@@ -668,7 +647,7 @@ TEST_CASE_METHOD(InputFixture, "Simultaneous keyboard and mouse controls transit
     glfw_input_fake::setMouseButton(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS);
     input.update(nullptr);
     requireInputState(input, GLFW_KEY_A, KeyState::Pressed);
-    requireInputState(input, GLFW_KEY_D, KeyState::Released);
+    requireInputState(input, GLFW_KEY_D, KeyState::Up);
     requireInputState(input, GLFW_MOUSE_BUTTON_LEFT, KeyState::Pressed);
 
     glfw_input_fake::setKey(GLFW_KEY_A, GLFW_RELEASE);
@@ -688,7 +667,7 @@ TEST_CASE_METHOD(InputFixture, "Registering an existing key resets its legacy st
     input.update(nullptr);
     requireInputState(input, GLFW_KEY_W, KeyState::Held);
     input.registerKey(GLFW_KEY_W);
-    requireInputState(input, GLFW_KEY_W, KeyState::Released);
+    requireInputState(input, GLFW_KEY_W, KeyState::Up);
     input.update(nullptr);
     requireInputState(input, GLFW_KEY_W, KeyState::Pressed);
     REQUIRE(glfw_input_fake::keyPolls().size() == 3);
@@ -743,32 +722,19 @@ TEST_CASE_METHOD(InputFixture, "Action start and ongoing states reflect subseque
 }
 
 /**
- * @test justFinished is a legacy released-state query, not a one-frame edge.
- * @details It is true before the first press and persists while released.
- * Locking down this behavior avoids silently inventing a fourth input state.
+ * @test justFinished is true for one release sample, never initially or on later Up samples.
  */
-TEST_CASE_METHOD(InputFixture, "Action justFinished is true initially and persists while released",
-                 "[actions][legacy]")
+TEST_CASE_METHOD(InputFixture, "Action justFinished is a one-frame release edge",
+                 "[actions][dev]")
 {
-    input.registerKey(GLFW_KEY_SPACE);
-    actions.bind(Action::P1Jump, GLFW_KEY_SPACE);
-    REQUIRE(actions.justFinished(Action::P1Jump));
-    for (int frame = 0; frame < 3; ++frame)
-    {
-        CAPTURE(frame);
-        input.update(nullptr);
-        REQUIRE(actions.justFinished(Action::P1Jump));
-    }
-    glfw_input_fake::setKey(GLFW_KEY_SPACE, GLFW_PRESS);
-    input.update(nullptr);
+    input.registerKey(GLFW_KEY_SPACE);actions.bind(Action::P1Jump,GLFW_KEY_SPACE);
     REQUIRE_FALSE(actions.justFinished(Action::P1Jump));
-    glfw_input_fake::setKey(GLFW_KEY_SPACE, GLFW_RELEASE);
-    for (int frame = 0; frame < 3; ++frame)
-    {
-        CAPTURE(frame);
-        input.update(nullptr);
-        REQUIRE(actions.justFinished(Action::P1Jump));
-    }
+    for(int i=0;i<3;++i) { input.update(nullptr);REQUIRE_FALSE(actions.justFinished(Action::P1Jump)); }
+    glfw_input_fake::setKey(GLFW_KEY_SPACE,GLFW_PRESS);input.update(nullptr);
+    REQUIRE(actions.justStarted(Action::P1Jump));
+    glfw_input_fake::setKey(GLFW_KEY_SPACE,GLFW_RELEASE);input.update(nullptr);
+    REQUIRE(actions.justFinished(Action::P1Jump));
+    for(int i=0;i<3;++i) { input.update(nullptr);REQUIRE_FALSE(actions.justFinished(Action::P1Jump)); }
 }
 
 TEST_CASE_METHOD(InputFixture, "Rebinding an action switches its input without affecting other actions",
@@ -785,7 +751,7 @@ TEST_CASE_METHOD(InputFixture, "Rebinding an action switches its input without a
 
     actions.bind(Action::P1MoveLeft, GLFW_KEY_D);
     REQUIRE_FALSE(actions.justStarted(Action::P1MoveLeft));
-    REQUIRE(actions.justFinished(Action::P1MoveLeft));
+    REQUIRE_FALSE(actions.justFinished(Action::P1MoveLeft));
     REQUIRE(actions.justStarted(Action::MoveLeft));
     glfw_input_fake::setKey(GLFW_KEY_D, GLFW_PRESS);
     input.update(nullptr);

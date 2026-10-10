@@ -1,4 +1,6 @@
 #include "cat.h"
+#include "../../core/validation.h"
+#include <algorithm>
 
 #include "game_data.h"
 #include "projectile_manager.h"
@@ -34,6 +36,8 @@ void Cat::render(const SpriteRenderer& spriteRenderer, Shader& shader) const
 
 void Cat::autoInput(float dt, float playerXpos)
 {
+	validation::time(dt);
+	if (m_state == State::Dead || m_state == State::Hit) return;
 	incrementTimers(dt);
 	if (!m_onGround || !m_canMove) return;	// if cat is on air dont modify its state
 	else if (abs(m_body.getHorizontalPosition() - playerXpos) < 200.0f) setJumpMove();	// blast trigger by position
@@ -57,13 +61,13 @@ void Cat::attackHandler(float dt, ProjectileManager& projectileSys, glm::vec2 pl
 {
 	if (m_state != State::Attack) return;		
 
-	bool shootCond = m_sprite.getAnimator().getFrame() == gameData::catShootFrame;
+	bool shootCond = m_sprite.getAnimator().passedFrame(gameData::catShootFrame);
 	if (shootCond && !m_energyBallFired)		
 	{
 		shootEnergyBall(projectileSys, playerPosition, gameData::energyBallSpeed);	// cast energy ball on target = playerPosition
 		m_energyBallFired = true;
 	}
-	else if (m_sprite.getAnimator().isAnimationFinished())
+	if (m_sprite.getAnimator().isAnimationFinished())
 	{
 		m_state = State::Idle;
 		m_energyBallFired = false;
@@ -82,7 +86,8 @@ void Cat::shootEnergyBall(ProjectileManager& projectilesSys, glm::vec2 target, f
 	else pos.x += 0.5f * m_body.getSize().x;
 
 	/* Projectile direction. */
-	glm::vec2 dir = glm::normalize(target - m_body.getPosition());
+	glm::vec2 difference = target - m_body.getPosition();
+	glm::vec2 dir = glm::length(difference)>0 ? glm::normalize(difference) : glm::vec2(m_facingRight?1.0f:-1.0f,0.0f);
 
 	/* Projectile velocity. */
 	glm::vec2 vel = speed * dir;
@@ -171,7 +176,7 @@ void Cat::hasBeenHit()
 
 void Cat::deathHandler()
 {
-	if (m_lives == 0 && m_state != State::Hit)	// only first time in
+	if (m_lives == 0 && m_state != State::Hit && m_state != State::Dead)	// only first time in
 	{
 		m_canMove = false;	// blocks inputs
 		m_state = State::Hit;
@@ -186,6 +191,8 @@ void Cat::deathHandler()
 
 void Cat::update(float dt, ProjectileManager& projectileSys, glm::vec2 playerPosition, float cameraPos)
 {
+	validation::time(dt);
+	if (m_state == State::Dead) return;
 	/* Texture and animation update. */
 	updateFacing(playerPosition.x);
 	updateAnimation();
@@ -200,6 +207,8 @@ void Cat::update(float dt, ProjectileManager& projectileSys, glm::vec2 playerPos
 	attackHandler(dt, projectileSys, playerPosition);
 	jumpMoveHandler(dt, projectileSys, playerPosition.x, cameraPos);
 	deathHandler();
+	m_BB.updateBB(m_body.getPosition() + gameData::bbOffsetPosition);
+	updateAnimation();
 }
 
 void Cat::resetCat()
@@ -212,10 +221,14 @@ void Cat::resetCat()
 	m_facingRight = false;
 	m_canMove = true;
 	m_onGround = true;
+	m_setJumpMove = false;
+	m_blastCharge = true;
 	m_attackTimer = 0.0f;
 	m_energyBallFired = false;
 	m_blastTimer = 0.0f;
 	m_blastCount = 0;
+	m_BB.updateBB(m_body.getPosition() + gameData::bbOffsetPosition);
+	updateAnimation();
 }
 
 
@@ -232,7 +245,13 @@ void Cat::updateAnimation()
 		/* operator[] for unordered_map gives error because playerAnimations is declared const.
 		 * So the use of the function at() solves this issue. */
 		const AnimationData& anim = gameData::catAnimations.at(m_state);
-		m_sprite.setAnimation(anim.startFrame, anim.endFrame, anim.animationLine, anim.fps);
+		m_sprite.setAnimation(anim.startFrame, anim.endFrame, anim.animationLine, anim.fps,
+            m_state != State::Attack && m_state != State::Hit && m_state != State::Dead);
 		m_prevState = m_state;
 	}
+}
+void Cat::constrainToArena(float width) {
+    validation::require(validation::finite(width) && width >= m_body.getSize().x, "Arena must contain actor width");
+    m_body.setHorizontalPosition(std::clamp(m_body.getHorizontalPosition(),0.0f,width-m_body.getSize().x));
+    m_BB.updateBB(m_body.getPosition()+gameData::bbOffsetPosition);
 }

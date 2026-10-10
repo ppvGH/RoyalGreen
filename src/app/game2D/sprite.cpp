@@ -13,9 +13,9 @@ Sprite::Sprite(const std::string texName, int sheetRows, int sheetColumns) :
 }
 
 
-void Sprite::setAnimation(int start, int end, int line, float fps)
+void Sprite::setAnimation(int start, int end, int line, float fps, bool loop)
 {
-	m_animator.setAnimation(start, end, line, fps);
+	m_animator.setAnimation(start, end, line, fps, loop);
 }
 
 

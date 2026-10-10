@@ -1,4 +1,7 @@
 #include "texture.h"
+#include "../core/validation.h"
+#include <utility>
+#include <stdexcept>
 #include "../app/scene3D/scene_data.h"
 #include <iostream>
 
@@ -23,12 +26,12 @@ Texture::Texture(const TexParams& params, unsigned char* data):
 
 void Texture::genColorMap(const TexParams& params, unsigned char* data)
 {
+    validation::require(params.m_width>0 && params.m_height>0,"Texture dimensions must be positive");
 
 	/* Check if m_ID is already set to another value different than 0. */
 	if (m_ID != 0)
 	{
-		std::cerr << "ERROR::TEXTURE::genColorMap: Texture is already initialized. Fatal error.";
-		return;
+		throw std::logic_error("Texture is already initialized");
 	}
 
 	/* Generation and binding. */
@@ -45,16 +48,16 @@ void Texture::genColorMap(const TexParams& params, unsigned char* data)
 	glTexImage2D(GL_TEXTURE_2D, 0, params.m_format, params.m_width, params.m_height, 0, params.m_format, GL_UNSIGNED_BYTE, data);
 	// glGenerateMipmap(GL_TEXTURE_2D); not needed for now.
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(m_target, 0);
 }
 
 void Texture::genDepthMap(int width, int height)
 {
+    validation::require(width>0 && height>0,"Depth texture dimensions must be positive");
 	/* Check if m_ID is already set to another value different than 0. */
 	if (m_ID != 0)
 	{
-		std::cerr << "ERROR::TEXTURE::genDepthMap: Texture is already initialized. Fatal error.";
-		return;
+		throw std::logic_error("Texture is already initialized");
 	}
 
 	/* Generation and binding. */
@@ -83,12 +86,12 @@ void Texture::genCubeDepthMap()
 	/* Check if m_ID is already set to another value different than 0. */
 	if (m_ID != 0)
 	{
-		std::cerr << "ERROR::TEXTURE::genDepthMap: Texture is already initialized. Fatal error.";
-		return;
+		throw std::logic_error("Texture is already initialized");
 	}
 
 	/* Generation and binding for a cube map texture. */
 	glGenTextures(1, &m_ID);
+    m_target=GL_TEXTURE_CUBE_MAP;
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_ID);
 
 	/* Parameters setting.*/
@@ -112,11 +115,18 @@ void Texture::genCubeDepthMap()
 
 void Texture::bind() const
 {
-	glBindTexture(GL_TEXTURE_2D, m_ID);
+	glBindTexture(m_target, m_ID);
 }
 
 void Texture::unbind() const
 {
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(m_target, 0);
 }
 
+
+Texture::~Texture() { if(m_ID) glDeleteTextures(1,&m_ID); }
+Texture::Texture(Texture&& other) noexcept:m_ID(std::exchange(other.m_ID,0)),m_target(other.m_target) {}
+Texture& Texture::operator=(Texture&& other) noexcept {
+    if(this!=&other) { if(m_ID)glDeleteTextures(1,&m_ID); m_ID=std::exchange(other.m_ID,0); m_target=other.m_target; }
+    return *this;
+}

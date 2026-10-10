@@ -32,6 +32,7 @@ public:
 
 	/* Reset initial values. */
 	void resetCat();
+	void constrainToArena(float width);
 
 	/* Getter. */
 	glm::vec2 getPosition() const { return m_body.getPosition(); }

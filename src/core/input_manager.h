@@ -2,13 +2,13 @@
 
 /** @file
  * Frame-sampled input state. Poll GLFW events before update(), then query actions.
- * Released is a persistent state, not a one-frame release event.
+ * Pressed and Released last one sample; Held and Up are level states.
  */
 
 #include <unordered_map>
 #include "commonGL.h"
 
-enum class KeyState { Pressed, Released, Held };
+enum class KeyState { Pressed, Released, Held, Up };
 
 
 class InputManager
@@ -16,22 +16,21 @@ class InputManager
 public:
 	InputManager() = default;
 
-	/** Register a GLFW keyboard or mouse code; re-registration resets it to Released. */
+	/** Register a GLFW keyboard or mouse code; re-registration resets it to Up. */
 	void registerKey(int key);
 
 	/** Sample registered codes once per frame using a valid GLFW window.
-	 * A press transitions Released -> Pressed -> Held; release stays Released.
+	 * Down transitions Up/Released -> Pressed -> Held; up transitions
+	 * Pressed/Held -> Released -> Up.
 	 * Very short taps between samples can be missed, so this is a polling API.
 	 */
 	void update(GLFWwindow* window);
 
-	/* Info about a certain state of a given key.
-	 * If key exists and its state is (P,H,R) returns true.
-	 * N.B. the Held state can suddenly appear as a single fast tap covers 4 frames at least. */
+	/* Unknown codes query false. Held excludes the initial Pressed sample. */
 
 	bool isPressed(int key) const;
 	bool isHeld(int key) const;
-	/** True for a registered key that is currently up, including before its first press. */
+	/** True only on the first up sample after press/hold; false at registration. */
 	bool isReleased(int key) const;
 
 	/** GLFW mouse codes occupy [GLFW_MOUSE_BUTTON_1, GLFW_MOUSE_BUTTON_LAST]. */

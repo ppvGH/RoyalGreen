@@ -1,4 +1,6 @@
 #include "player.h"
+#include "../../core/validation.h"
+#include <algorithm>
 #include "sprite_renderer.h"
 #include "game_data.h"
 #include "projectile_manager.h"
@@ -22,7 +24,7 @@ Player::Player(const std::string& texName, glm::vec2 position, glm::vec2 size, g
 
 void Player::inputHandler(const ActionMap& actionMap2D, float dt, ProjectileManager& projectilesSys)
 {
-	if (!m_canMove) return;
+	if (!m_canMove || m_state == State::Dead) return;
 
 	if (isIdle(actionMap2D)) atIdle();
 
@@ -117,14 +119,14 @@ void Player::attackHandler(ProjectileManager& projectilesSys)
 	// enter function only if State::Attack
 	if (m_state != State::Attack) return;	
 
-	bool shootingFrameCond = m_sprite.getAnimator().getFrame() == gameData::playerShootFrame;
+	bool shootingFrameCond = m_sprite.getAnimator().passedFrame(gameData::playerShootFrame);
 	
 	if (shootingFrameCond && !m_shotFired)
 	{
 		shootArrow(projectilesSys);
 		m_shotFired = true;		// shoots only once
 	}
-	else if (m_sprite.getAnimator().isAnimationFinished())		//else makes it skip first time in the function
+	if (m_sprite.getAnimator().isAnimationFinished())		//else makes it skip first time in the function
 	{
 		m_state = State::Idle;
 		m_canMove = true;
@@ -182,6 +184,8 @@ void Player::printNewState(const ActionMap& actionMap2D)
 
 void Player::update(float dt, ProjectileManager& projectileSys)
 {
+	validation::time(dt);
+	if (m_state == State::Dead) return;
 	/* Texture update.*/
 	updateAnimation();
 	m_sprite.updateTexture(dt,m_facingRight);
@@ -195,6 +199,8 @@ void Player::update(float dt, ProjectileManager& projectileSys)
 	jumpHandler(dt);
 	attackHandler(projectileSys);
 	deathHandler();
+	m_BB.updateBB(m_body.getPosition() + gameData::bbOffsetPosition);
+	updateAnimation();
 }
 
 void Player::render(const SpriteRenderer& spriteRenderer, Shader& shader) const
@@ -216,6 +222,8 @@ void Player::resetPlayer()
 	m_canMove = true;
 	m_shotFired = false;
 	m_isHit = false;
+	m_BB.updateBB(m_body.getPosition() + gameData::bbOffsetPosition);
+	updateAnimation();
 }
 
 void Player::setAnimation(int start, int end, int line, float fps)
@@ -231,7 +239,13 @@ void Player::updateAnimation()
 		/* operator[] for unordered_map gives error because playerAnimations is declared const.
 		 * So the uses of the function at() solves this issue. */
 		const AnimationData& anim = gameData::playerAnimations.at(m_state);
-		m_sprite.setAnimation(anim.startFrame, anim.endFrame, anim.animationLine, anim.fps);
+		m_sprite.setAnimation(anim.startFrame, anim.endFrame, anim.animationLine, anim.fps,
+            m_state != State::Attack && m_state != State::Hit && m_state != State::Dead);
 		m_prevState = m_state;
 	}
+}
+void Player::constrainToArena(float width) {
+    validation::require(validation::finite(width) && width >= m_body.getSize().x, "Arena must contain actor width");
+    m_body.setHorizontalPosition(std::clamp(m_body.getHorizontalPosition(),0.0f,width-m_body.getSize().x));
+    m_BB.updateBB(m_body.getPosition()+gameData::bbOffsetPosition);
 }

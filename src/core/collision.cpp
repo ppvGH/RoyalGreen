@@ -1,4 +1,5 @@
 #include "collision.h"
+#include "validation.h"
 #include "utilities.h"
 #include <iostream>
 
@@ -7,10 +8,13 @@ BoundingBox::BoundingBox(glm::vec2 pos, glm::vec2 size):
 	m_max(pos + size),
 	m_size(size)
 {
+    validation::require(validation::finite(pos) && validation::finite(size) && validation::finite(m_max)
+        && size.x > 0 && size.y > 0, "Bounding box requires finite position and positive size");
 }
 
 void BoundingBox::updateBB(glm::vec2 pos)
 {
+	validation::require(validation::finite(pos) && validation::finite(pos+m_size), "Bounding box position must be finite");
 	m_min = pos; 
 	m_max = pos + m_size; 
 }

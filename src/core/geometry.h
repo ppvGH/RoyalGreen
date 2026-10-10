@@ -15,9 +15,9 @@
 // #########################################################################
 
 /** Precomputed triangle edges for repeated picking queries.
- * The first vertex is borrowed: keep vertices alive and do not reallocate or
- * modify their positions while this object is used. Indices must be valid and
- * the triangle non-degenerate; otherwise construction is outside the contract.
+ * Owns a snapshot of the first vertex and edges: later mesh storage changes do
+ * not invalidate it. Rebuild the cache after editing geometry. Invalid indices,
+ * nonfinite vertices and degenerate triangles throw before use.
  */
 struct TriangleData
 {
@@ -25,7 +25,7 @@ struct TriangleData
 	unsigned int m_iA, m_iB, m_iC;
 
 	/* Vertex A. */
-	const glm::vec3& m_vA;
+	glm::vec3 m_vA;
 	/* e1 = B - A;	 e2 = C - A. */
 	glm::vec3 m_e1, m_e2;
 
@@ -61,7 +61,7 @@ struct Ray
 
 /** Test a two-sided ray/triangle hit with the Moller-Trumbore algorithm.
  * @param localRay Ray transformed into the triangle's object coordinates.
- * @param triangleData Precomputed, non-degenerate triangle with live vertices.
+ * @param triangleData Owned snapshot of a non-degenerate triangle.
  * @param tOut Written only on success; its previous value survives a miss.
  * @return True for barycentric coordinates inside the triangle, including edges
  * within sceneData::intersectionEpsilon (1e-6). Near-zero determinants and hits

@@ -14,6 +14,9 @@ public:
 
 	SpriteRenderer() = delete;
 	SpriteRenderer(int width, int height);
+    ~SpriteRenderer();
+    SpriteRenderer(const SpriteRenderer&) = delete;
+    SpriteRenderer& operator=(const SpriteRenderer&) = delete;
 
 	/* TODO: ADD ROTATION */
 	void drawSprite(Shader& shader, Texture& texture, 
@@ -25,6 +28,7 @@ public:
 private:
 	/* One quadVAO is used to render all sprites, just changing sizes and textures. */
 	unsigned int m_quadVAO;
+    unsigned int m_quadVBO=0;
 
 	/* Shader currently used to draw. PASSED BY ARGUMENT FROM GAME, so
 	 * stuff know only who is the spriterenderer and what shader are they using. */

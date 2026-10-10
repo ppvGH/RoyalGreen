@@ -1,6 +1,7 @@
 #include "utilities.h"
+#include "validation.h"
 
-#include "../app/scene3D/scene.h"
+
 
 #include <iostream>
 #include <cmath>
@@ -8,11 +9,11 @@
 GLFWwindow* initGLFWwindow(const char* title, float scale)
 {
 
-    if (scale > 1 || scale < 0)
+    if (!validation::finite(scale) || scale > 1 || scale <= 0)
     {
-        std::cout << "ABORT::initGLFWwindow: scale is not in range [0,1]." << std::endl;
+        std::cout << "ABORT::initGLFWwindow: scale is not in range (0,1]." << std::endl;
         glfwTerminate();
-        throw std::runtime_error("initGLFWwindow: scale is not in range [0,1].");
+        throw std::runtime_error("initGLFWwindow: scale is not in range (0,1].");
         return nullptr;
     }
     if (!glfwInit())
@@ -38,6 +39,9 @@ GLFWwindow* initGLFWwindow(const char* title, float scale)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#endif
 
     // Window management
     GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, title, nullptr, nullptr);
@@ -54,6 +58,7 @@ GLFWwindow* initGLFWwindow(const char* title, float scale)
 
 GLFWwindow* initGLFWwindow(int width, int height, const char* title)
 {
+    validation::require(width>0 && height>0,"Window dimensions must be positive");
     if (!glfwInit())
     {
         std::cerr << "ERROR::GLFW::glfwInit failure." << std::endl;
@@ -65,6 +70,9 @@ GLFWwindow* initGLFWwindow(int width, int height, const char* title)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#endif
 
     // Window management
     GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
@@ -81,11 +89,10 @@ GLFWwindow* initGLFWwindow(int width, int height, const char* title)
 
 bool initGLAD(GLFWwindow* window)
 {
+    if (!window)return false;
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cerr << "ERROR::GLAD::gladLoadGLLoader failure." << std::endl;
-        glfwDestroyWindow(window);
-        glfwTerminate();
 
         return false;
     }

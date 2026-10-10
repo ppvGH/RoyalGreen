@@ -1,126 +1,46 @@
 #include "resource_manager.h"
-
-#include <glad/glad.h>
-
 #include <fstream>
+#include <filesystem>
 #include <sstream>
-#include <iostream>
-
+#include <memory>
+#include <stdexcept>
+#ifdef _WIN32
+#define STBI_WINDOWS_UTF8
+#endif
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
 #define STBI_ONLY_JPEG
-#include "stb_image.h" 
-
-Shader& ResourceManager::loadShader(const std::string& pathVert, const std::string& pathFrag, const std::string& name)
-{
-	// loads vertex and fragment shader source code as two strings from filepaths
-	std::string srcVert = loadFileToString(pathVert);
-	std::string srcFrag = loadFileToString(pathFrag);
-
-	// stores the shader with its name
-	shadersMap[name].linkProgram(srcVert, srcFrag);
-	
-	// returns the shader stored in the unordered map
-	return shadersMap[name];
+#include "stb_image.h"
+Shader& ResourceManager::loadShader(const std::string& v,const std::string& f,const std::string& name) {
+    auto vertex=loadFileToString(v),fragment=loadFileToString(f);
+    Shader value;value.linkProgram(vertex,fragment);
+    return shadersMap.insert_or_assign(name,std::move(value)).first->second;
 }
-
-Shader& ResourceManager::loadShader(const std::string& pathVert, const std::string& pathGeom, const std::string& pathFrag, const std::string& name)
-{
-	// loads vertex, geometry and fragment shader source code as three strings from filepaths
-	std::string srcVert = loadFileToString(pathVert);
-	std::string srcGeom = loadFileToString(pathGeom);
-	std::string srcFrag = loadFileToString(pathFrag);
-
-	// stores the shader with its name
-	shadersMap[name].linkProgram(srcVert, srcGeom, srcFrag);
-
-	// returns the shader stored in the unordered map
-	return shadersMap[name];
+Shader& ResourceManager::loadShader(const std::string& v,const std::string& g,const std::string& f,const std::string& name) {
+    auto vertex=loadFileToString(v),geometry=loadFileToString(g),fragment=loadFileToString(f);
+    Shader value;value.linkProgram(vertex,geometry,fragment);
+    return shadersMap.insert_or_assign(name,std::move(value)).first->second;
 }
-
-Texture& ResourceManager::loadTexture(const std::string& pathTex, TexParams& params, const std::string& name)
-{
-	const char* path = pathTex.c_str();
-
-	/* Retrieve data from stbi. */
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);	// flip needed
-	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
-
-	if (data)
-	{
-		/* Correct parameters for the texture retrieved from data.*/
-		if (params.m_width == 0) params.m_width = width;
-		if (params.m_height == 0) params.m_height = height;
-
-		GLenum format = (nrChannels == 3) ? GL_RGB : GL_RGBA;
-		params.m_format = format;
-
-		/* Storing the texture in the map. */
-		texturesMap[name] = Texture(params, data);
-
-		stbi_image_free(data);
-	}
-	else
-	{
-		std::cout << "Failed to load texture: " << path << std::endl;
-		stbi_image_free(data);
-	}
-
-	return texturesMap[name];
+Texture& ResourceManager::loadTexture(const std::string& path,TexParams params,const std::string& name) {
+    int width=0,height=0,channels=0;stbi_set_flip_vertically_on_load(true);
+    std::unique_ptr<unsigned char,decltype(&stbi_image_free)> data(stbi_load(path.c_str(),&width,&height,&channels,STBI_rgb_alpha),stbi_image_free);
+    if(!data)throw std::runtime_error("Cannot load texture '"+path+"': "+(stbi_failure_reason()?stbi_failure_reason():"unknown decoder error"));
+    if((params.m_width && params.m_width!=width)||(params.m_height && params.m_height!=height))throw std::invalid_argument("Texture dimensions do not match decoded image: "+path);
+    params.m_width=width;params.m_height=height;params.m_format=GL_RGBA;
+    Texture value(params,data.get());
+    return texturesMap.insert_or_assign(name,std::move(value)).first->second;
 }
-
-Shader& ResourceManager::getShader(const std::string& name)
-{
-	// iterates through the map to find the shader with its name
-	auto it = shadersMap.find(name);
-	if (it != shadersMap.end())
-	{
-		return it->second;
-	}
-	else
-	{
-		std::cerr << "ERROR::RESOURCE_MANAGER::getShader: Shader \"" << name << "\" not found." << std::endl;
-		throw std::runtime_error("GetShader failure.");
-	}
+Shader& ResourceManager::getShader(const std::string& name) { auto it=shadersMap.find(name);if(it==shadersMap.end())throw std::runtime_error("Unknown shader: "+name);return it->second; }
+Texture& ResourceManager::getTexture(const std::string& name) { auto it=texturesMap.find(name);if(it==texturesMap.end())throw std::runtime_error("Unknown texture: "+name);return it->second; }
+std::string ResourceManager::loadFileToString(const std::string& path) {
+    std::ifstream file(std::filesystem::u8path(path),std::ios::binary);
+    if(!file)throw std::runtime_error("Cannot read shader file: "+path);
+    std::ostringstream data;data<<file.rdbuf();
+    if(file.bad() || data.str().empty())throw std::runtime_error("Empty or unreadable shader file: "+path);
+    return data.str();
 }
-
-Texture& ResourceManager::getTexture(const std::string& name)
-{
-	auto it = texturesMap.find(name);
-	if (it != texturesMap.end())
-	{
-		return it->second;
-	}
-	else
-	{
-		std::cerr << "ERROR::RESOURCE_MANAGER::getTexture: Texture\"" << name << "\" not found." << std::endl;
-		throw std::runtime_error("getTexture failure.");
-	}
-}
-
-
-
-std::string ResourceManager::loadFileToString(const std::string& pathShaderStage)
-{
-	// read file from path
-	std::ifstream fileShaderStage(pathShaderStage);
-	if (!fileShaderStage.is_open())
-	{
-		std::cerr << "ERROR::SHADER:: File load failure " << std::endl;
-		return "";
-	}
-
-	// create buffer
-	std::stringstream bufferShaderStage;
-
-	// stream content into buffer
-	bufferShaderStage << fileShaderStage.rdbuf();
-
-	// close file
-	fileShaderStage.close();
-
-	// returns buffer content as a string
-	return bufferShaderStage.str();
-
+void ResourceManager::clear() {
+    // Unbind before deleting owners; the context must still exist.
+    if(glUseProgram)glUseProgram(0);
+    texturesMap.clear();shadersMap.clear();
 }

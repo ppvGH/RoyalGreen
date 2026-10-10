@@ -53,9 +53,16 @@ public:
 	void unbind() const;
 	unsigned int getID() const { return m_ID; };
 
+    Texture(const Texture&) = delete;
+    Texture& operator=(const Texture&) = delete;
+    Texture(Texture&& other) noexcept;
+    Texture& operator=(Texture&& other) noexcept;
+    ~Texture();
+
 private:
 	/* Texture identifier. */
 	unsigned int m_ID;
+    unsigned int m_target = GL_TEXTURE_2D;
 	
 };
 

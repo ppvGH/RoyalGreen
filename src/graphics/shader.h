@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <string>
+#include <vector>
+#include <utility>
 
 
 class Shader
@@ -39,20 +41,19 @@ public:
 	~Shader();
 
 
+    Shader(const Shader&) = delete;
+    Shader& operator=(const Shader&) = delete;
+    Shader(Shader&& other) noexcept;
+    Shader& operator=(Shader&& other) noexcept;
+
 private:
 	/* Shader program identifier. */
 	unsigned int m_ID;
+    Shader& buildProgram(const std::vector<std::pair<unsigned int,std::string>>& sources);
 
 	/* Creates and compiles a shader from a string
 	 > returns the shader id;
 	 - type can only be "GL_VERTEX_SHADER" or "GL_FRAGMENT_SHADER"; */
 	unsigned int compile(unsigned int type, const std::string& source);
 
-	/* Shader compile error check function.
-	 - id is the shader identifier;
-	 - type can only be "GL_VERTEX_SHADER" or "GL_FRAGMENT_SHADER"; */
-	void compileErrorCheck(unsigned int id, unsigned int type) const;
-
-	/* Shader program link error check function.*/
-	void linkErrorCheck() const;
 };

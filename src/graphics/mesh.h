@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <stdexcept>
 
 #include "vertex.h"
 #include "../core/geometry.h"
@@ -25,6 +26,11 @@ public:
 
 	/* Default constructor. */
 	Mesh();
+    ~Mesh();
+    Mesh(const Mesh&) = delete;
+    Mesh& operator=(const Mesh&) = delete;
+    Mesh(Mesh&&) noexcept;
+    Mesh& operator=(Mesh&&) noexcept;
 
 	/* Initializes VAO, VBO, EBO. */
 	void setup();
@@ -40,6 +46,9 @@ public:
 	glm::vec3 getGlobalNormal() const;
 
 	bool intersectRayTriangle(const Ray& localRay, float& tOut) const;
+    // Snapshot geometry for picking; skip zero-area imported faces without
+    // changing draw indices. Call again after editing CPU vertices/indices.
+    void rebuildTriangleCache();
 
 	/* VAO getter. */
 	unsigned int getVAO() const { return m_VAO; };
@@ -55,10 +64,11 @@ public:
 	/* Shader related methods.*/
 	Shader* getShader() const { return m_shader; }
 	void setShader(Shader& shader) { m_shader = &shader; }
-	void useShader() const { m_shader->use(); }
+	void useShader() const { if(!m_shader)throw std::logic_error("Mesh has no shader");m_shader->use(); }
 
 
 private:
+    void release() noexcept;
 
 	/* Mesh identifier for the Vertex Array Object. */
 	unsigned int m_VAO;

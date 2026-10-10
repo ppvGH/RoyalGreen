@@ -78,10 +78,10 @@ Scene::Scene(int width, int height) :
 
 }
 
-void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
+void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D, float dt)
 {
 	/* Disable 3D cam inputs when animation is ongoing. */
-	if (!isAnyAnimationOn()) cam3DinputHandler(window, actionMap3D);	//removed m_usecam3D from conditions if(m_useCam3D && ..)
+	if (!isAnyAnimationOn()) cam3DinputHandler(window, actionMap3D, dt);	//removed m_usecam3D from conditions if(m_useCam3D && ..)
 
 	if (actionMap3D.justStarted(Action::StartAnimation))	// just during testing (bind to key K)
 	{
@@ -101,22 +101,23 @@ void Scene::input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D)
 	if (actionMap3D.justStarted(Action::ToggleAim)) toggleAim();
 }
 
-void Scene::cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D)
+void Scene::cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D, float dt)
 {
 	//if (m_animationIsOn) m_cursorCentered = false;	// added to cameraAnimation.
 	//if (!m_useCam3D || m_animationIsOn) return;		// added to input3DHandler.
 
 	/* ------- Keyboard input: WASD movements. ------- */
-	if (actionMap3D.ongoing(Action::MoveForward))	m_cam3D.moveForward(m_cam3D.getKeyboardSpeed());
-	if (actionMap3D.ongoing(Action::MoveLeft))		m_cam3D.moveLeft(m_cam3D.getKeyboardSpeed());
-	if (actionMap3D.ongoing(Action::MoveBackward))	m_cam3D.moveBackward(m_cam3D.getKeyboardSpeed());
-	if (actionMap3D.ongoing(Action::MoveRight))		m_cam3D.moveRight(m_cam3D.getKeyboardSpeed());
+	if (actionMap3D.ongoing(Action::MoveForward))	m_cam3D.moveForward(dt);
+	if (actionMap3D.ongoing(Action::MoveLeft))		m_cam3D.moveLeft(dt);
+	if (actionMap3D.ongoing(Action::MoveBackward))	m_cam3D.moveBackward(dt);
+	if (actionMap3D.ongoing(Action::MoveRight))		m_cam3D.moveRight(dt);
 
 	/* ------- Mouse input: rotations. ------- */
 
 	/* Retrieving window center coordinates. */
 	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
+	// Cursor coordinates use logical window units, including on Retina displays.
+	glfwGetWindowSize(window, &width, &height);
 	int centerX = std::floor(width * 0.5);
 	int centerY = std::floor(height * 0.5);
 
@@ -585,12 +586,12 @@ void Scene::initAim()
 		 0.0f,  aimLength,   1.0f, 0.0f, 0.0f
 	};
 
-	unsigned int aimVBO;
+
 	glGenVertexArrays(1, &m_aimVAO);
-	glGenBuffers(1, &aimVBO);
+	glGenBuffers(1, &m_aimVBO);
 
 	glBindVertexArray(m_aimVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, aimVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_aimVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(aimVerts), aimVerts, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -599,3 +600,5 @@ void Scene::initAim()
 	glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 }
+Scene::~Scene() { if(m_aimVAO)glDeleteVertexArrays(1,&m_aimVAO);if(m_aimVBO)glDeleteBuffers(1,&m_aimVBO); }
+void Scene::resize(int width,int height) { if(width<=0 || height<=0)return;m_width=width;m_height=height;m_cam3D.setAspect(static_cast<float>(width)/height); }

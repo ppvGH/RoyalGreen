@@ -14,6 +14,7 @@ void CollisionSystem::checkCollision()
 	
 	for (auto& p : m_projectileSystem.getProjectiles())
 	{
+		if (!p->getStatus()) continue;
 		if (p.get()->getOwner() == ProjectileOwner::Cat)	// cat's energy balls
 		{
 			if (intersectBB(gameObjToBoundingBox(p.get()->getGameObj()), m_player.getBB()))		// target: player

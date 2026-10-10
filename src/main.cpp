@@ -1,40 +1,23 @@
-//#include "core/commonGL.h"
-
-//#include <imgui.h>
-//#include <backends/imgui_impl_glfw.h>
-//#include <backends/imgui_impl_opengl3.h>
-
-//#include <glm/glm.hpp>
-//#include <glm/gtx/transform.hpp>
 #include <iostream>
-
-//#include <filesystem> // std::filesystem::current_path(), useful for debug
-//#include <stdexcept> //runtimeerror
-
+#include <memory>
+#include <stdexcept>
+#include <algorithm>
 #include "core/callbacks.h"
 #include "core/utilities.h"
-//#include "core/resource_manager.h"  // contains shader.h and texture.h too
-//#include "graphics/camera.h"
-//#include "graphics/model.h"
+#include "core/runtime_options.h"
+#include "core/graphics_checks.h"
 #include "app/scene3D/scene.h"
 #include "app/scene3D/scene_data.h"
 #include "app/ui_manager.h"
-//#include "app/arcade.h"
-//#include "app/game2D/sprite_renderer.h"
-//#include "app/game2D/game.h"
-
-//#include "core/input_manager.h"
-//#include "core/action_map.h"
-
-#include "app/path.h"             // contains all assets filepath
-#include "app/game2D/game_data.h" // contains game related data
-
-/* Runs on GPU (only nvidia for now). */
-extern "C"
-{
-    _declspec(dllexport) int NvOptimusEnablement = 1;
+#include "app/path.h"
+#include "app/game2D/game_data.h"
+#ifdef _WIN32
+// Driver-selection hints; Intel, AMD and NVIDIA OpenGL drivers are supported.
+extern "C" {
+    __declspec(dllexport) unsigned long NvOptimusEnablement=1;
+    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance=1;
 }
-
+#endif
 void assetLoader()
 {
     // shaders
@@ -112,139 +95,63 @@ void keyBindings2D(ActionMap& actionMap)
 }
 
 
-int main()
-{
-    /* GLFW init and window with display ratio. */
-    GLFWwindow* window = initGLFWwindow("Royal Green", 0.7);
-    //GLFWwindow* window = initGLFWwindow(500,800,"Royal Green");  // window with custom size
-    glfwSetWindowPos(window, 400, 200);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    /* GUI. */
-    UIManager ui;
-    ui.init(window);
-
-    /* Retrieving window size and setting its center. */
-    int width = 0;
-    int height = 0;
-    glfwGetFramebufferSize(window, &width, &height);
-    
-    
-    /* GLAD init and depth test enabling. */
-    if(!initGLAD(window)) return -1;
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // #########################################################################
-    // ###########################  Loading assets  ############################
-    // #########################################################################
-    assetLoader();
-    
-    // #########################################################################
-    // ############################  Inputs init  ##############################
-    // #########################################################################
-
-    InputManager input;
-    keyRegistering(input); 
-
-    ActionMap action3DMap(input);
-    keyBindings3D(action3DMap);
-
-    ActionMap action2DMap(input);
-    keyBindings2D(action2DMap);
-
-    // #########################################################################
-    // ###########################  Scene and Game  ############################
-    // #########################################################################
-    // Generating scene
-    Scene scene(width, height);
-    // Computing shadow mapping. (needed just once because lights are static).
-    scene.depthPass();
-
-    /* Callbacks. (after scene declaration) */
-    Callbacks::initCallbacks(window);
-
-    /* 2D Game to be rendered into the FBO. */
-
-    constexpr int screenWidth = 600;
-    constexpr int screenHeight = 600;
-    Game gameTest(screenWidth, screenHeight);
-
-    ResourceManager::getShader(sceneData::CRTShaderName).use();
-    // x, y are the viewport width, height respectively and z is the aspect ratio
-    ResourceManager::getShader(sceneData::CRTShaderName).setVector3f("viewportResolution", 
-        glm::vec3(width, height, static_cast<float>(width)/ static_cast<float>(height)));
-    
-    // #########################################################################
-    // #############################  Render Loop  #############################
-    // #########################################################################
-    std::cout<< "Rendered with: " <<glGetString(GL_RENDERER)<<std::endl;
-    float lastFrame = 0.0f;
-        while (!glfwWindowShouldClose(window))
-        {
-            /* Polling. */
+namespace {
+struct GlfwCleanup { ~GlfwCleanup() { glfwTerminate(); } };
+struct ResourceCleanup { ~ResourceCleanup() { ResourceManager::clear(); } };
+}
+int main(int argc,char** argv) {
+    try {
+        std::vector<std::string> arguments(argv+1,argv+argc);
+        const auto options=runtime::parseOptions(arguments);
+        if(options.help) { std::cout<<runtime::usage();return 0; }
+        Path::configure(runtime::resolveAssets(runtime::executablePath(),options.assets));
+        GlfwCleanup glfwCleanup;
+        std::unique_ptr<GLFWwindow,decltype(&glfwDestroyWindow)> window(
+            options.width?initGLFWwindow(options.width,options.height,"RoyalGreen"):initGLFWwindow("RoyalGreen",options.windowScale),glfwDestroyWindow);
+        if(!window)throw std::runtime_error("Cannot create an OpenGL 3.3 window; check the graphics driver and desktop session");
+        if(!initGLAD(window.get()))throw std::runtime_error("Cannot initialize OpenGL functions");
+        ResourceCleanup resources;
+        glfwSetWindowPos(window.get(),400,200);glfwSetInputMode(window.get(),GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+        glfwSwapInterval(1);
+        glEnable(GL_DEPTH_TEST);glEnable(GL_BLEND);glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        UIManager ui;ui.init(window.get());
+        int width=0,height=0;glfwGetFramebufferSize(window.get(),&width,&height);
+        if(width<=0 || height<=0)throw std::runtime_error("Initial framebuffer dimensions are invalid");
+        assetLoader();
+        InputManager input;keyRegistering(input);
+        ActionMap actions3D(input),actions2D(input);keyBindings3D(actions3D);keyBindings2D(actions2D);
+        Scene scene(width,height);scene.getCam3D().setKeyboardSpeed(options.cameraSpeed);scene.getCam3D().setMouseSpeed(options.mouseSensitivity);
+        scene.depthPass();Callbacks::initCallbacks(window.get());
+        Game game(600,600);
+        std::cout<<"Rendered with: "<<glGetString(GL_RENDERER)<<std::endl;
+        if(options.graphicsCheck) { game.render();glViewport(0,0,width,height);scene.setArcadeScreenTex(game.getFBOTex());scene.drawScene();runGraphicsChecks();std::cout<<"PASS: graphics/resource/lifetime checks"<<std::endl;return 0; }
+        float lastFrame=static_cast<float>(glfwGetTime());
+        const double started=glfwGetTime();
+        while(!glfwWindowShouldClose(window.get())) {
             glfwPollEvents();
-
-
-            // #########################################################################
-            // ############################ Inputs managing ############################
-            // #########################################################################
-            float dt = getDeltaTime(lastFrame); 
-
-
-            /* Cursor to the center of the window and camera inputs. 
-             * When the animation is on camera inputs are disabled, and
-             * cursorCentered is set to false so the cursor gets centered again
-             * when the animation is finished, because cursor pos can still change during animation. */
-            input.update(window);
-
-            if (ui.isMenuOpen()) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            else
-            {
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                if (scene.isInput3DEnabled()) scene.input3DHandler(window, action3DMap);
-                else if (scene.isInput2DEnabled()) gameTest.input2DHandler(action2DMap, dt);
+            float dt=std::min(getDeltaTime(lastFrame),0.25f);
+            glfwGetFramebufferSize(window.get(),&width,&height);
+            if(width<=0 || height<=0) { glfwWaitEventsTimeout(0.05);continue; }
+            scene.resize(width,height);
+            ResourceManager::getShader(sceneData::CRTShaderName).use().setVector3f("viewportResolution",glm::vec3(width,height,static_cast<float>(width)/height));
+            input.update(window.get());
+            if(ui.isMenuOpen())glfwSetInputMode(window.get(),GLFW_CURSOR,GLFW_CURSOR_NORMAL);
+            else {
+                glfwSetInputMode(window.get(),GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+                if(scene.isInput3DEnabled())scene.input3DHandler(window.get(),actions3D,dt);
+                else if(scene.isInput2DEnabled())game.input2DHandler(actions2D,dt);
             }
-
-            /*GUI*/
-            ui.beginFrame();    
-            //if (ImGui::GetIO().WantCaptureKeyboard) std::cout << "capture\n";
-            ui.drawUI(scene, gameTest, width, height);
-        
-
-            // #########################################################################
-            // ############### 2D rendering into the FrameBuffer Object ################
-            // #########################################################################
-
-            // update and render the game in the FBO only when display is on
-            if(scene.isDisplayOn())
-            {
-                if (!ui.isMenuOpen()) gameTest.update(dt);   // if gameMenu is open stop the update
-                gameTest.render();
+            int logicalWidth=0,logicalHeight=0;glfwGetWindowSize(window.get(),&logicalWidth,&logicalHeight);
+            ui.beginFrame();ui.drawUI(scene,game,logicalWidth,logicalHeight);
+            if(scene.isDisplayOn()) {
+                if(!ui.isMenuOpen() && scene.isInput2DEnabled())game.update(dt);
+                game.render();
             }
-
-            // reset viewport   
-            glViewport(0, 0, width, height);
-
-            /* Set game FBO texture as the texture for arcade display material. (texture override)*/
-            scene.setArcadeScreenTex(gameTest.getFBOTex());
-       
-            // #########################################################################
-            // ########################## 3D scene rendering ###########################
-            // #########################################################################
-
-            scene.update();
-            scene.drawScene();
-
-            ui.render(); //over everything
-
-            glfwSwapBuffers(window);
-       
+            glViewport(0,0,width,height);scene.setArcadeScreenTex(game.getFBOTex());
+            scene.update();scene.drawScene();ui.render();glfwSwapBuffers(window.get());
+            if(options.exitAfter>0 && glfwGetTime()-started>=options.exitAfter)glfwSetWindowShouldClose(window.get(),true);
         }
-    ui.shutdown();
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    return 0;
+        return 0;
+    } catch(const std::exception& error) { std::cerr<<"RoyalGreen: "<<error.what()<<std::endl;return 1; }
 }

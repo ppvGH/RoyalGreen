@@ -18,7 +18,7 @@ from check_source_unchanged import strip_comments
 ROOT = Path(__file__).resolve().parents[1]
 ASSET_DIRS = {"SHADERS_DIR": "shaders", "MESHES_DIR": "meshes", "TEXTURE_DIR": "textures"}
 PATH_PATTERN = re.compile(
-    r'inline\s+const\s+std::string\s+(\w+)\s*=\s*std::string\((\w+)\)\s*\+\s*"([^"]+)"\s*;'
+    r'inline\s+(?:const\s+)?std::string\s+(\w+)\s*=\s*std::string\((\w+)\)\s*\+\s*"([^"]+)"\s*;'
 )
 
 

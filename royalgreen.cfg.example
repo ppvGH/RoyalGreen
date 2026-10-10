@@ -1,0 +1,6 @@
+# Optional: pass --config royalgreen.cfg.example
+width=1280
+height=720
+camera_speed=1.35
+mouse_sensitivity=0.001
+# assets=res

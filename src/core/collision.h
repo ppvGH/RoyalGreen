@@ -2,7 +2,7 @@
 
 /** @file
  * Axis-aligned collision primitives in 2D game coordinates (pixels).
- * Sizes must be positive; constructors deliberately do not validate inputs.
+ * Finite positions and positive sizes are checked; invalid inputs throw invalid_argument.
  */
 
 #include <glm/glm.hpp>

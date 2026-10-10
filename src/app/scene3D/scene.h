@@ -16,6 +16,8 @@ public:
 
 	/* Scene constructor with window dimensions. */
 	Scene(int width, int height);
+    ~Scene();
+    void resize(int width,int height);
 
 
 	void update();
@@ -35,7 +37,7 @@ public:
 	void setInput3D(bool input3D) { if (input3D) m_input2D = false; m_input3D = input3D; }
 	void setInput2D(bool input2D) { if (input2D) m_input3D = false; m_input2D = input2D; }
 
-	void input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D);
+	void input3DHandler(GLFWwindow* window, const ActionMap& actionMap3D, float dt);
 
 	bool picking() const;
 
@@ -61,7 +63,7 @@ public:
 	// #########################################################################
 
 	/* 3D camera input handler. */
-	void cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D	);
+	void cam3DinputHandler(GLFWwindow* window, const ActionMap& actionMap3D, float dt);
 
 	/* Getter for the animationIsOn boolean. */
 	bool isAnyAnimationOn() const { return m_animInIsOn || m_animOutIsOn; }
@@ -188,6 +190,7 @@ private:
 
 	/* Sight VAO. */
 	unsigned int m_aimVAO;
+    unsigned int m_aimVBO=0;
 	/* Control variable for sight. */
 	bool m_aimIsOn;
 	void toggleAim() { m_aimIsOn = !m_aimIsOn; }

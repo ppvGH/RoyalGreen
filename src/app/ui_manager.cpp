@@ -1,4 +1,5 @@
 #include "ui_manager.h"
+#include <stdexcept>
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
@@ -22,8 +23,8 @@ void UIManager::init(GLFWwindow* window)
 
 	ImGui::StyleColorsDark();
 
-	ImGui_ImplGlfw_InitForOpenGL(window, false);
-	ImGui_ImplOpenGL3_Init("#version 130");
+	if(!ImGui_ImplGlfw_InitForOpenGL(window,false)) { ImGui::DestroyContext();throw std::runtime_error("Cannot initialize ImGui GLFW backend"); }
+    if(!ImGui_ImplOpenGL3_Init("#version 330")) { ImGui_ImplGlfw_Shutdown();ImGui::DestroyContext();throw std::runtime_error("Cannot initialize ImGui OpenGL backend"); }
 
 	m_initialized = true;
 }
@@ -221,3 +222,5 @@ void UIManager::drawDebugOverlay(Scene& scene, Game& game, int width, int height
 
 	ImGui::End();
 }
+
+UIManager::~UIManager() { shutdown(); }

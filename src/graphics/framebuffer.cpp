@@ -1,4 +1,5 @@
 #include "framebuffer.h"
+#include "../core/validation.h"
 #include "../app/scene3D/scene_data.h"
 #include <glad/glad.h>
 #include <iostream>
@@ -9,10 +10,14 @@ Framebuffer::Framebuffer(int width, int height, char type):
 	m_height(height),
 	m_tex()
 {
+	validation::require(width>0 && height>0,"Framebuffer dimensions must be positive");
+    try {
 	/* m_tex member is initialized in either one of the following branches */
 	if (type == sceneData::FBOtypeColor) genColorFBO(width, height);
 	else if (type == sceneData::FBOtypeDepth) genDepthFBO(width, height);
 	else if (type == sceneData::FBOtypeCubeDepth) genCubeDepthFBO();
+    else throw std::invalid_argument("Unknown framebuffer type");
+    } catch(...) { if(m_ID)glDeleteFramebuffers(1,&m_ID);m_ID=0;throw; }
 }
 
 
@@ -28,7 +33,7 @@ void Framebuffer::genColorFBO(int width, int height)
 
 	/* Check for FBO completeness. */
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cerr << "ERROR::FRAMEBUFFER::genColorFBO: FBO not complete." << std::endl;
+		throw std::runtime_error("Framebuffer is incomplete");
 
 	/* Unbind. */
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -50,7 +55,7 @@ void Framebuffer::genDepthFBO(int width, int height)
 
 	/* Check for completeness. */
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cerr << "ERROR::FRAMEBUFFER::genDepthFBO: FBO not complete." << std::endl;
+		throw std::runtime_error("Framebuffer is incomplete");
 
 	/* Unbind. */
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -72,7 +77,7 @@ void Framebuffer::genCubeDepthFBO()
 
 	/* Check for completeness. */
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cerr << "ERROR::FRAMEBUFFER::genCubeDepthFBO: FBO not complete, status:" << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
+		throw std::runtime_error("Framebuffer is incomplete");
 
 	/* Unbind. */
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -90,3 +95,5 @@ void Framebuffer::unbind() const
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+
+Framebuffer::~Framebuffer() { if(m_ID)glDeleteFramebuffers(1,&m_ID); }

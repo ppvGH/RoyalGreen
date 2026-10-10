@@ -4,6 +4,9 @@ project(RoyalGreenTests LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 include(FetchContent)
 enable_testing()
@@ -15,28 +18,24 @@ set(CATCH_INSTALL_EXTRAS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.7.1
-    GIT_SHALLOW TRUE
+    GIT_TAG fa43b77429ba76c462b1898d6cd2f2d7a9416b14
 )
 FetchContent_Declare(
     glm
     GIT_REPOSITORY https://github.com/g-truc/glm.git
-    GIT_TAG 0.9.9.8
-    GIT_SHALLOW TRUE
+    GIT_TAG bf71a834948186f4097caa076cd2663c69a10e1e
     SOURCE_SUBDIR royalgreen_headers_only
 )
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG 3.4
-    GIT_SHALLOW TRUE
+    GIT_TAG 7b6aead9fb88b3623e3b3725ebb42670cbe4c579
     SOURCE_SUBDIR royalgreen_headers_only
 )
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG v1.91.9
-    GIT_SHALLOW TRUE
+    GIT_TAG 97428e8ac99e339ce05eee531cf55b77b29ea709
     SOURCE_SUBDIR royalgreen_headers_only
 )
 # Match the app's resolved stb revision, never a moving branch or a shallow SHA.
@@ -57,6 +56,11 @@ add_executable(royalgreen_tests
     game_camera_tests.cpp
     gameplay_tests.cpp
     mesh_tests.cpp
+    dev_regression_tests.cpp
+    window_failure_tests.cpp
+    "${ROYALGREEN_ROOT}/src/core/utilities.cpp"
+    "${ROYALGREEN_ROOT}/src/core/runtime_options.cpp"
+    "${ROYALGREEN_ROOT}/src/app/game2D/game_session.cpp"
     glfw_input_fake.cpp
     "${ROYALGREEN_ROOT}/src/core/geometry.cpp"
     "${ROYALGREEN_ROOT}/src/core/collision.cpp"
@@ -97,10 +101,10 @@ catch_discover_tests(royalgreen_tests DISCOVERY_TIMEOUT 30)
 
 add_test(NAME assets.integrity
     COMMAND "${Python3_EXECUTABLE}" "${ROYALGREEN_ROOT}/scripts/verify_assets.py")
-add_test(NAME sources.comments_only
-    COMMAND "${Python3_EXECUTABLE}" "${ROYALGREEN_ROOT}/scripts/check_source_unchanged.py")
+add_test(NAME history.preserved
+    COMMAND "${Python3_EXECUTABLE}" "${ROYALGREEN_ROOT}/scripts/check_history_preserved.py")
 add_test(NAME repository.validators
     COMMAND "${Python3_EXECUTABLE}" -m unittest discover
             -s "${ROYALGREEN_ROOT}/tests" -p test_repository_checks.py)
-set_tests_properties(assets.integrity sources.comments_only repository.validators
+set_tests_properties(assets.integrity history.preserved repository.validators
     PROPERTIES WORKING_DIRECTORY "${ROYALGREEN_ROOT}")

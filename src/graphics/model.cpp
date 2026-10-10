@@ -14,6 +14,7 @@ Model::Model(const std::string& filepath, Shader* shader):
 
 void Model::initShader(Shader* shader)
 {
+	if(!shader)throw std::invalid_argument("Model shader must not be null");
 	for (auto& mesh : m_meshes)	mesh.setShader(*shader);
 }
 
@@ -188,8 +189,7 @@ void Model::loadModel(const std::string& filepath)
 	/* Error checker. */
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		std::cerr << "ERROR ASSIMP: " << importer.GetErrorString() << std::endl;
-		return;
+		throw std::runtime_error("Cannot import model '"+filepath+"': "+importer.GetErrorString());
 	}
 
 	/* Need to pupulate m_materials before processNode to ensure a correct 
@@ -224,6 +224,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 Mesh Model::processMesh(aiMesh* mesh, aiNode* node)
 {
 	
+	if(!mesh->HasNormals())throw std::runtime_error("Model mesh has no vertex normals");
 	/* Temporary mesh object. */
 	Mesh tMesh;
 	/* Setup the material index of the temporary mesh with. */
@@ -263,15 +264,7 @@ Mesh Model::processMesh(aiMesh* mesh, aiNode* node)
 		for (int ni = 0; ni < face.mNumIndices; ni++)		
 			tMesh.m_indices.push_back(face.mIndices[ni]);
 	}
-	/* Loop over triangles. Not needed for loading the model, but only for ray-triangle intersection purpose. */
-	for (int ni = 0; ni < tMesh.m_indices.size(); ni += 3)
-	{
-		unsigned int iA = tMesh.m_indices[ni];
-		unsigned int iB = tMesh.m_indices[ni+1];
-		unsigned int iC = tMesh.m_indices[ni+2];
-		
-		tMesh.m_triangleData.emplace_back(iA, iB, iC, tMesh.m_vertices);
-	}
+	tMesh.rebuildTriangleCache();
 	/* Generates VAO, VBO, EBO for the mesh.*/
 	tMesh.setup();
 

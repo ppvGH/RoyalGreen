@@ -10,6 +10,9 @@ class UIManager
 {
 public:
 	UIManager();
+    ~UIManager();
+    UIManager(const UIManager&)=delete;
+    UIManager& operator=(const UIManager&)=delete;
 
 	void init(GLFWwindow* window);
 	void shutdown();

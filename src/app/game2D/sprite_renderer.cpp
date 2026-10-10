@@ -55,13 +55,12 @@ void SpriteRenderer::initData()
 
     };
 
-    GLuint VBO;
     glGenVertexArrays(1, &m_quadVAO);
-    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &m_quadVBO);
 
     glBindVertexArray(m_quadVAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), quadVerts, GL_STATIC_DRAW);
     // pos
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -72,3 +71,5 @@ void SpriteRenderer::initData()
 
     glBindVertexArray(0);
 }
+
+SpriteRenderer::~SpriteRenderer() { if(m_quadVAO)glDeleteVertexArrays(1,&m_quadVAO);if(m_quadVBO)glDeleteBuffers(1,&m_quadVBO); }

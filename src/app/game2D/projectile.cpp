@@ -14,7 +14,7 @@ Projectile::Projectile(const std::string& texName,
 
 void Projectile::update(float dt)
 {
-	m_body.updatePosition(dt);
+	if (m_active) m_body.updatePosition(dt);
 }
 
 void Projectile::render(const SpriteRenderer& spriteRenderer, Shader& shader) const

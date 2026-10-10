@@ -9,6 +9,9 @@ public:
 	Framebuffer() = delete;
 
 	Framebuffer(int width, int height, char type);
+    ~Framebuffer();
+    Framebuffer(const Framebuffer&) = delete;
+    Framebuffer& operator=(const Framebuffer&) = delete;
 
 
 	void bind() const;

@@ -2,17 +2,18 @@
 #include "commonGL.h"
 #include <glm/glm.hpp>
 
-class Scene;	// scene.h is included in utilities.cpp
+class Scene;
 
 
 /* Initialize GLFW and creates a window with same ratio as the user display.
- * Default scale correspond to full screen. */
+ * Scale must be finite in (0,1]; GLFW/window failures return null. */
 GLFWwindow* initGLFWwindow(const char* title = "", float scale = 1);
 
 /* Initialize GLFW and creates a window with custom width and height. */
 GLFWwindow* initGLFWwindow(int width, int height, const char* title);
 
-/* Initializes GLAD and destroys window if an error occurs */
+/* Load GL functions with a current context; false for null/failure.
+ * Window destruction and GLFW termination remain the caller's responsibility. */
 bool initGLAD(GLFWwindow* window);
 
 

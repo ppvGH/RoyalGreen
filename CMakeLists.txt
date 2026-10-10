@@ -1,70 +1,14 @@
-cmake_minimum_required(VERSION 3.15)
-project(royalgreen)
-
+cmake_minimum_required(VERSION 3.24)
+project(royalgreen VERSION 0.2.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-include(FetchContent)
-
-# GLFW ------------------------------------------------------------------------
-FetchContent_Declare(
-  glfw
-  GIT_REPOSITORY https://github.com/glfw/glfw.git
-  GIT_TAG 3.4
-)
-FetchContent_MakeAvailable(glfw)
-
-# ImGui -----------------------------------------------------------------------
-FetchContent_Declare(
-  imgui
-  GIT_REPOSITORY https://github.com/ocornut/imgui.git
-  GIT_TAG v1.91.9
-)
-FetchContent_MakeAvailable(imgui)
-
-# Assimp ----------------------------------------------------------------------
-FetchContent_Declare(
-  assimp
-  URL https://github.com/assimp/assimp/archive/refs/tags/v6.0.2.tar.gz
-  EXCLUDE_FROM_ALL
-)
-
-# Lighter build without tests / samples / tools
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)         
-set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)      
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE) 
-set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)    
-
-# Importers
-set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
-
-# Exporters
-set(ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_OBJ_EXPORTER OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_GLTF_EXPORTER OFF CACHE BOOL "" FORCE)
-
-FetchContent_MakeAvailable(assimp)
-
-# stb (header-only) ------------------------------------------------------------
-FetchContent_Declare(
-  stb
-  GIT_REPOSITORY https://github.com/nothings/stb.git
-  GIT_TAG master
-)
-FetchContent_MakeAvailable(stb)
-
-# GLM (header-only) ------------------------------------------------------------
-FetchContent_Declare(
-  glm
-  GIT_REPOSITORY https://github.com/g-truc/glm.git
-  GIT_TAG 0.9.9.8
-)
-FetchContent_MakeAvailable(glm)
-
-# OpenGL -----------------------------------------------------------------------
+set(CMAKE_CXX_EXTENSIONS OFF)
+option(ROYALGREEN_STATIC_RUNTIME "Embed MSVC runtime for portable Windows packages" ON)
+if(MSVC AND ROYALGREEN_STATIC_RUNTIME)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+include(cmake/dependencies.cmake)
 find_package(OpenGL REQUIRED)
-
 # Create ImGui lib -------------------------------------------------------------
 add_library(imgui_lib
   ${imgui_SOURCE_DIR}/imgui.cpp
@@ -90,6 +34,9 @@ target_link_libraries(imgui_lib PUBLIC glfw)
 # Exe --------------------------------------------------------------------------
 add_executable(royalgreen
   src/main.cpp
+  src/core/runtime_options.cpp
+  src/core/graphics_checks.cpp
+  src/app/game2D/game_session.cpp
 
   src/core/callbacks.cpp
   src/core/utilities.cpp
@@ -148,13 +95,23 @@ target_link_libraries(royalgreen PRIVATE
   imgui_lib
   OpenGL::GL
 )
-# Directories definition --------------------------------------------------------
-target_compile_definitions(royalgreen PRIVATE
-  SHADERS_DIR="${CMAKE_SOURCE_DIR}/res/shaders/"
-  MESHES_DIR="${CMAKE_SOURCE_DIR}/res/meshes/"
-  TEXTURE_DIR="${CMAKE_SOURCE_DIR}/res/textures/"
-)
 
-# Installation rules -----------------------------------------------------------
-install(TARGETS royalgreen 
-        RUNTIME DESTINATION bin)
+# Development binaries get their own asset copy; no source paths are embedded.
+add_custom_command(TARGET royalgreen POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/res" "$<TARGET_FILE_DIR:royalgreen>/res")
+install(TARGETS royalgreen RUNTIME DESTINATION .)
+install(DIRECTORY res DESTINATION .)
+install(FILES docs/release-readme.md docs/asset-provenance.md royalgreen.cfg.example DESTINATION .)
+install(FILES "${glfw_SOURCE_DIR}/LICENSE.md" DESTINATION third-party RENAME GLFW-LICENSE.md)
+install(FILES "${imgui_SOURCE_DIR}/LICENSE.txt" DESTINATION third-party RENAME IMGUI-LICENSE.txt)
+install(FILES "${assimp_SOURCE_DIR}/LICENSE" DESTINATION third-party RENAME ASSIMP-LICENSE.txt)
+install(FILES "${stb_SOURCE_DIR}/LICENSE" DESTINATION third-party RENAME STB-LICENSE.txt)
+install(FILES "${glm_SOURCE_DIR}/copying.txt" DESTINATION third-party RENAME GLM-LICENSE.txt)
+install(FILES external/glad/include/glad/glad.h DESTINATION third-party RENAME GLAD-notice.h)
+install(FILES external/glad/include/KHR/khrplatform.h DESTINATION third-party RENAME KHR-notice.h)
+install(FILES "${assimp_SOURCE_DIR}/contrib/zlib/LICENSE" DESTINATION third-party RENAME ZLIB-LICENSE.txt)
+set(CPACK_GENERATOR ZIP)
+set(CPACK_PACKAGE_NAME RoyalGreen)
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_FILE_NAME "RoyalGreen-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+include(CPack)

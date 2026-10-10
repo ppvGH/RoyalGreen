@@ -1,4 +1,5 @@
 #include "geometry.h"
+#include "validation.h"
 #include "../app/scene3D/scene_data.h"
 #include <iostream>
 #include "utilities.h"
@@ -10,12 +11,15 @@ TriangleData::TriangleData(unsigned int iA, unsigned int iB, unsigned int iC, co
 	m_iA(iA),
 	m_iB(iB),
 	m_iC(iC),
-	m_vA(vertices[iA].getPosition()),				 
-	m_e1(vertices[iB].getPosition() - m_vA),
-	m_e2(vertices[iC].getPosition() - m_vA),
-	m_normal(glm::normalize(glm::cross(m_e1, m_e2)))
+	m_vA(vertices.at(iA).getPosition()),
+	m_e1(vertices.at(iB).getPosition() - m_vA),
+	m_e2(vertices.at(iC).getPosition() - m_vA),
+	m_normal(glm::cross(m_e1, m_e2))
 
 {
+    validation::require(validation::finite(m_vA) && validation::finite(m_e1) && validation::finite(m_e2)
+        && validation::finite(m_normal) && glm::length(m_normal)>0, "Triangle must be finite and nondegenerate");
+    m_normal = glm::normalize(m_normal);
 }
 
 // #########################################################################
@@ -23,9 +27,10 @@ TriangleData::TriangleData(unsigned int iA, unsigned int iB, unsigned int iC, co
 // #########################################################################
 
 Ray::Ray(const glm::vec3& origin, const glm::vec3& direction) :
-	m_origin(origin),
-	m_direction(direction)
+    m_origin(origin), m_direction(direction)
 {
+    validation::require(validation::finite(origin) && validation::finite(direction)
+        && glm::length(direction)>0, "Ray requires finite origin and nonzero finite direction");
 }
 
 // #########################################################################

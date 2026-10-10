@@ -146,7 +146,7 @@ TEST_CASE_METHOD(GameplayFixture, "Player constructor preserves its body and ini
 
 /** @test Walking uses ongoing(), so a fresh press alone deliberately does not walk. */
 TEST_CASE_METHOD(GameplayFixture, "Player legacy walking starts on held input in either direction",
-                 "[gameplay][player][legacy]")
+                 "[gameplay][player][contract]")
 {
     for (int key : {GLFW_KEY_D, GLFW_KEY_A})
     {
@@ -169,7 +169,7 @@ TEST_CASE_METHOD(GameplayFixture, "Player legacy walking starts on held input in
 }
 
 TEST_CASE_METHOD(GameplayFixture, "Player legacy simultaneous walking inputs favor left and releasing stops movement",
-                 "[gameplay][player][legacy]")
+                 "[gameplay][player][contract]")
 {
     auto player = makePlayer({100.0f, gameData::groundLevel});
     holdKeys({GLFW_KEY_A, GLFW_KEY_D});
@@ -222,8 +222,8 @@ TEST_CASE_METHOD(GameplayFixture, "Player jump accepts horizontal input rejects 
     requireVec2(player.getGameObj().getVelocity(), glm::vec2(0.0f));
 }
 
-TEST_CASE_METHOD(GameplayFixture, "Player legacy attack emits once and needs an idle animation update before rearming",
-                 "[gameplay][player][projectile][legacy]")
+TEST_CASE_METHOD(GameplayFixture, "Player attack emits once and rearms immediately",
+                 "[gameplay][player][projectile][contract]")
 {
     auto player = makePlayer();
     beginPlayerAttack(player);
@@ -253,20 +253,10 @@ TEST_CASE_METHOD(GameplayFixture, "Player legacy attack emits once and needs an 
         player.update(frameTime, projectiles);
     REQUIRE(player.getState() == State::Idle);
 
-    // The previous animation is still Attack at its final frame. An immediate
-    // new attack therefore ends on update(0), before another arrow can fire.
-    pollKeys({});
-    beginPlayerAttack(player);
-    REQUIRE(player.getState() == State::Idle);
-    REQUIRE(projectiles.getProjectiles().size() == 1);
-
-    // An intervening idle animation update lets the next attack select frame 1.
-    player.update(0.0f, projectiles);
-    pollKeys({});
-    beginPlayerAttack(player);
-    REQUIRE(player.getState() == State::Attack);
-    advancePlayerToShootingFrame(player);
-    REQUIRE(projectiles.getProjectiles().size() == 2);
+    // The state transition selects Idle immediately, so an immediate new
+    // attack starts from its first frame and emits a second arrow once.
+    pollKeys({});beginPlayerAttack(player);REQUIRE(player.getState()==State::Attack);
+    advancePlayerToShootingFrame(player);REQUIRE(projectiles.getProjectiles().size()==2);
 }
 
 TEST_CASE_METHOD(GameplayFixture, "Player facing left emits an arrow with negative speed from its left origin",
@@ -307,8 +297,8 @@ TEST_CASE_METHOD(GameplayFixture, "Player hit is deferred to update stops moveme
 }
 
 /** @test Reset changes the body immediately; the existing BB is refreshed only by update(). */
-TEST_CASE_METHOD(GameplayFixture, "Player legacy reset restores controls but leaves the bounding box until update",
-                 "[gameplay][player][legacy]")
+TEST_CASE_METHOD(GameplayFixture, "Player reset restores controls and bounds immediately",
+                 "[gameplay][player][contract]")
 {
     auto player = makePlayer({300.0f, 200.0f});
     player.hasBeenHit();
@@ -319,7 +309,7 @@ TEST_CASE_METHOD(GameplayFixture, "Player legacy reset restores controls but lea
     requireVec2(player.getPosition(), gameData::playerPosition);
     requireVec2(player.getGameObj().getVelocity(), glm::vec2(0.0f));
     REQUIRE(player.getState() == State::Idle);
-    requireVec2(player.getBB().m_min, previousBox.m_min);
+    requireVec2(player.getBB().m_min,gameData::playerPosition+gameData::bbOffsetPosition);
     player.update(0.0f, projectiles);
     requireVec2(player.getBB().m_min, gameData::playerPosition + gameData::bbOffsetPosition);
     pollKeys({GLFW_KEY_SPACE});
@@ -468,8 +458,8 @@ TEST_CASE_METHOD(GameplayFixture, "Cat attack emits once from the facing side an
     }
 }
 
-TEST_CASE_METHOD(GameplayFixture, "Cat legacy reset restores lives and timers but refreshes its bounding box on update",
-                 "[gameplay][cat][legacy]")
+TEST_CASE_METHOD(GameplayFixture, "Cat reset restores lives timers flags and bounds immediately",
+                 "[gameplay][cat][contract]")
 {
     auto cat = makeCat({600.0f, 200.0f});
     cat.autoInput(2.01f, 0.0f);
@@ -483,7 +473,7 @@ TEST_CASE_METHOD(GameplayFixture, "Cat legacy reset restores lives and timers bu
     requireVec2(cat.getGameObj().getVelocity(), glm::vec2(0.0f));
     REQUIRE(cat.getLives() == gameData::catLives);
     REQUIRE(cat.getState() == State::Idle);
-    requireVec2(cat.getBB().m_min, previousBox.m_min);
+    requireVec2(cat.getBB().m_min,gameData::catPosition+gameData::bbOffsetPosition);
     cat.update(0.0f, projectiles, {0.0f, gameData::groundLevel}, 0.0f);
     requireVec2(cat.getBB().m_min, gameData::catPosition + gameData::bbOffsetPosition);
     cat.autoInput(2.0f, 0.0f);
@@ -492,9 +482,9 @@ TEST_CASE_METHOD(GameplayFixture, "Cat legacy reset restores lives and timers bu
     REQUIRE(cat.getState() == State::Attack);
 }
 
-/** @test The original death handler re-enters Hit even after the death animation state. */
-TEST_CASE_METHOD(GameplayFixture, "Cat legacy death handler returns Dead to Hit on the next update",
-                 "[gameplay][cat][legacy]")
+/** @test Death remains terminal until an explicit reset. */
+TEST_CASE_METHOD(GameplayFixture, "Cat death is terminal through subsequent input and updates",
+                 "[gameplay][cat][contract]")
 {
     auto cat = makeCat();
     for (int hit = 0; hit < gameData::catLives; ++hit)
@@ -509,7 +499,7 @@ TEST_CASE_METHOD(GameplayFixture, "Cat legacy death handler returns Dead to Hit 
     cat.autoInput(3.0f, target.x);
     REQUIRE(cat.getState() == State::Dead);
     cat.update(0.0f, projectiles, target, 0.0f);
-    REQUIRE(cat.getState() == State::Hit);
+    REQUIRE(cat.getState() == State::Dead);
     REQUIRE(cat.getLives() == 0);
 }
 
@@ -532,15 +522,15 @@ TEST_CASE_METHOD(GameplayFixture, "Projectile stores owner and supplied signed v
     }
 }
 
-TEST_CASE_METHOD(GameplayFixture, "Projectile legacy inactive status does not stop direct position integration",
-                 "[gameplay][projectile][legacy]")
+TEST_CASE_METHOD(GameplayFixture, "Inactive projectiles stay still until cleanup",
+                 "[gameplay][projectile][contract]")
 {
     Projectile projectile(gameData::energyBallTexName, {10.0f, 20.0f}, {2.0f, 2.0f},
                           {-4.0f, 8.0f}, true, ProjectileOwner::Cat);
     projectile.setStatus(false);
     REQUIRE_FALSE(projectile.getStatus());
     projectile.update(0.5f);
-    requireVec2(projectile.getPosition(), {8.0f, 24.0f});
+    requireVec2(projectile.getPosition(),{10.0f,20.0f});
     projectile.setStatus(true);
     REQUIRE(projectile.getStatus());
 }
@@ -657,8 +647,8 @@ TEST_CASE_METHOD(GameplayFixture, "Collision ignores projectile edge contact and
 }
 
 /** @test CollisionSystem does not filter inactive projectiles; manager cleanup ends repeat damage. */
-TEST_CASE_METHOD(GameplayFixture, "Collision legacy inactive projectiles damage again until manager cleanup",
-                 "[gameplay][collision][legacy]")
+TEST_CASE_METHOD(GameplayFixture, "Collision ignores inactive projectiles before manager cleanup",
+                 "[gameplay][collision][contract]")
 {
     auto player = makePlayer();
     auto cat = makeCat();
@@ -667,14 +657,14 @@ TEST_CASE_METHOD(GameplayFixture, "Collision legacy inactive projectiles damage 
     projectiles.getProjectiles().front()->setStatus(false);
     CollisionSystem collisions(player, cat, projectiles);
     collisions.checkCollision();
-    REQUIRE(cat.getLives() == gameData::catLives - 1);
+    REQUIRE(cat.getLives() == gameData::catLives);
     collisions.checkCollision();
-    REQUIRE(cat.getLives() == gameData::catLives - 2);
+    REQUIRE(cat.getLives() == gameData::catLives);
     REQUIRE_FALSE(projectiles.getProjectiles().front()->getStatus());
     projectiles.update(0.0f, 2000.0f, -2000.0f, 2000.0f, -2000.0f);
     REQUIRE(projectiles.getProjectiles().empty());
     collisions.checkCollision();
-    REQUIRE(cat.getLives() == gameData::catLives - 2);
+    REQUIRE(cat.getLives() == gameData::catLives);
 }
 
 TEST_CASE_METHOD(GameplayFixture, "Multiple player projectile collisions saturate cat lives and start its Hit state",
