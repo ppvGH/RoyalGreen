@@ -1,5 +1,7 @@
 # Improvement report
 
+> Historical audit of `sac4ap`. Proposals were subsequently authorized on **sac4ap-dev**; see [implementation report](improvements-implemented.md). Descriptions below refer to the earlier code.
+
 [Documentation index](index.md) · [Testing scope](testing.md) · [Exam readiness](exam-readiness.md)
 
 This report records proposed production changes for the owner's review. **None

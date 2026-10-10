@@ -1,55 +1,42 @@
 # RoyalGreen
 
-[![sac4ap verification](https://github.com/ppvGH/RoyalGreen/actions/workflows/sac4ap.yml/badge.svg?branch=sac4ap)](https://github.com/ppvGH/RoyalGreen/actions/workflows/sac4ap.yml?query=branch%3Asac4ap)
+[![sac4ap-dev verification](https://github.com/ppvGH/RoyalGreen/actions/workflows/sac4ap-dev.yml/badge.svg?branch=sac4ap-dev)](https://github.com/ppvGH/RoyalGreen/actions/workflows/sac4ap-dev.yml?query=branch%3Asac4ap-dev)
 
-RoyalGreen is a C++17/OpenGL 3.3 desktop application: explore a retro arcade room, select its cabinet, and play a small 2D combat game rendered on the cabinet screen. The room includes imported Blender models, materials, lighting, and shadows.
+RoyalGreen is a C++17/OpenGL application: explore a 3D arcade room, select the cabinet, and play its embedded 2D encounter against a cat. Models, lighting, shadows, sprite animation, projectiles and menus form one working demonstration.
 
-**[English documentation](docs/index.md)** provides installation instructions, a playable tutorial, architecture and API references, and testing guidance. This is an educational project with known limitations; see [validation](docs/validation.md) for recorded results.
+This **sac4ap-dev** branch implements the [approved improvements](docs/improvements-implemented.md) and fixes the arena view at its initial position. **main** retains the original project; **sac4ap** retains the comments, documentation and tests adaptation. All original commits remain ancestors of this branch; new work has real resumption dates.
 
-The `sac4ap` branch adapts this project for the Software and Computing for Applied Physics exam. It preserves all **263 original commits** and changes existing production files only through comments; the original application CMake files and assets remain unchanged. See [exam readiness](docs/exam-readiness.md) for assessment evidence and [the improvement report](docs/improvement-report.md) for proposed changes.
+## Run on Windows x64
 
-## Quickstart on Windows
+Extract the entire Windows ZIP and run `royalgreen.exe`, keeping `res/` beside it. The package includes its C/C++ runtime and library dependencies. You need a Windows 10/11 x64 desktop and a graphics driver supporting **OpenGL 3.3 Core**. Intel/AMD CPUs are suitable; the GPU need not be NVIDIA. Windows ARM, Linux and macOS need their own builds; compatibility through emulation is not promised.
 
-Use Windows 10/11 x64, Visual Studio 2022 with the v143 C++ tools and a Windows SDK, Git, and **CMake 3.24 or newer within the 3.x series**. A graphics driver supporting OpenGL 3.3 Core is required. Initial configuration downloads dependencies.
-
-Run these commands in PowerShell:
+Build a package locally with Visual Studio 2022 C++ tools, Git, Python 3.10+ and CMake 3.31.6:
 
 ```powershell
-git clone --branch sac4ap https://github.com/ppvGH/RoyalGreen.git
-Set-Location RoyalGreen
-cmake --version
-cmake -S . -B build/app -G "Visual Studio 17 2022" -A x64
-cmake --build build/app --config Debug --target royalgreen --parallel
-.\build\app\Debug\royalgreen.exe
+git clone --branch sac4ap-dev https://github.com/ppvGH/RoyalGreen.git
+cd RoyalGreen
+.\scripts\package_release.ps1
 ```
 
-For Release, build with `--config Release` and run `.\build\app\Release\royalgreen.exe`. See [installation and troubleshooting](docs/installation.md), including tool setup and running on another machine.
+The verified ZIP, SHA256 and asset manifest are under `build/packages/`. The script creates local artifacts; GitHub release publication is a separate step. [Installation](docs/installation.md) includes source build instructions for Windows, Linux and macOS, troubleshooting and relocation checks.
 
-A self-built executable uses resource paths embedded from **your clone folder**. Keep that folder and its `res/` directory in place. The original install target does not produce a standalone package.
+## Play and verify
 
-## First play
-
-Use **W/A/S/D** and the mouse to explore. **F** toggles fixed camera height, **T** toggles the aiming cross, and **H** toggles help. Aim at the arcade cabinet, left-click, and choose **Play**.
-
-Inside the game: **A/D** move, **W** jumps, **S** shoots, **M** opens the menu, and **H** toggles help. The menu offers **Return to game**, **Reset game**, and **Exit game**. **Esc** or the window close button closes the application. Follow the [tutorial](docs/tutorial.md) for a complete example.
-
-## Checks
-
-The separate test project leaves the original application CMake project intact. With Python 3.10+ installed:
+WASD/mouse explore; left-click the cabinet and choose **Play**. In the game A/D move, W jumps, S shoots, M opens the menu, H toggles help. The view stays fixed and actors remain within the arena. Esc closes the application. See the [tutorial](docs/tutorial.md) for a complete session and configuration examples.
 
 ```powershell
-python scripts/verify_assets.py
-python scripts/check_source_unchanged.py
-cmake -S tests -B build/tests -G "Visual Studio 17 2022" -A x64
-cmake --build build/tests --config Debug --parallel
-ctest --test-dir build/tests -C Debug --output-on-failure
+.\scripts\run_checks.ps1 -Configuration Debug -BuildApplication
+.\scripts\run_checks.ps1 -Configuration Release -BuildApplication
+.\build\app\Release\royalgreen.exe --graphics-check
 ```
 
-See [automated testing](docs/testing.md) and the [manual checklist](docs/manual-testing.md) for coverage, limitations, and result records.
+The CPU suite runs without a window; the last command requires a real OpenGL desktop. See [testing scope](docs/testing.md) and [development validation](docs/development-validation.md) for results and limits.
+
+[Documentation](docs/index.md) contains architecture, API contracts, dependencies, manual checks and exam evidence. Asset attribution/project licensing still needs the owner's inventory; see [asset provenance](docs/asset-provenance.md).
 
 ## Preview
 
-Repository screenshots illustrate the project; they are not evidence of a new test run.
+Historical repository screenshots illustrate appearance; they are not new validation evidence.
 
 ![The RoyalGreen arcade room](preview/panoramic.png)
 ![The 2D game on the arcade cabinet](preview/game1.png)

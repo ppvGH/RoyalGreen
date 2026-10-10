@@ -1,189 +1,145 @@
 # API reference
 
-[Documentation index](index.md) · [Architecture](architecture.md) · [Testing](testing.md)
+[Documentation index](index.md) · [Architecture](architecture.md) · [Testing scope](testing.md)
 
-RoyalGreen is an executable, not an installed reusable SDK. These are its source interfaces. Include paths in the examples are relative to the `src/` include directory used by the application. Link the corresponding implementation files and dependencies when using a fragment.
+RoyalGreen is an executable, not an installed SDK. Source examples use `src/` include paths and require the corresponding implementation files/dependencies. Graphics allocation/drawing/deletion requires a current context and loaded GLAD functions. Default ID-zero owners permit CPU fixtures without GPU calls.
 
-There are no executable flags, HTTP endpoints, or external configuration schemas. `int main()` runs the graphical application. Unless stated otherwise, graphics-related construction and methods require a current OpenGL context with loaded GLAD functions and the expected named resources already loaded.
+## Runtime options and assets
 
-## Geometry: Ray, TriangleData, mollerTrumbore
+[Header](../src/core/runtime_options.h) · [Paths](../src/app/path.h)
 
-[Header](../src/core/geometry.h) · [Implementation](../src/core/geometry.cpp)
+`runtime::parseOptions(const std::vector<std::string>&)` returns `Options`. Defaults: dimensions 0/0, monitor scale 0.7, camera speed 1.35 units/s, sensitivity 0.001 radians/cursor unit, no automatic close. It recognizes flags/config keys listed in the [tutorial](tutorial.md). Invalid values/unknown names throw `invalid_argument`; unreadable configuration throws `runtime_error`. CLI overrides config. Relative config assets resolve beside the config file.
+
+`executablePath()` returns the real executable location using the platform API. `resolveAssets(executable, explicitRoot={})` validates shaders/meshes/textures directories. Explicit invalid roots throw; default search checks `res/` beside the executable, one directory above, then `../share/royalgreen/res`. `Path::configure(root)` assigns the named resource paths before loading. No source-checkout path is compiled into the EXE.
+
+## Geometry and collision
+
+[Geometry header](../src/core/geometry.h) · [Collision header](../src/core/collision.h)
 
 ```cpp
 Ray(const glm::vec3& origin, const glm::vec3& direction);
-TriangleData(unsigned int iA, unsigned int iB, unsigned int iC,
+TriangleData(unsigned int a, unsigned int b, unsigned int c,
              const std::vector<Vertex>& vertices);
-bool mollerTrumbore(const Ray& localRay,
-                    const TriangleData& triangleData, float& tOut);
+bool mollerTrumbore(const Ray& ray, const TriangleData& triangle, float& tOut);
+BoundingBox(glm::vec2 position, glm::vec2 size);
+bool intersectBB(const BoundingBox& a, const BoundingBox& b);
 ```
 
-`Ray` stores the supplied origin and direction without normalization. `TriangleData` stores vertex indices, a reference to vertex A, edge vectors B-A/C-A, and a normalized cross-product normal. Indices must be valid, the triangle should be nondegenerate, and the vertex storage must outlive the triangle without reallocating its referenced position.
+Ray requires finite origin/nonzero finite direction and keeps its magnitude. TriangleData owns vertex-A/edge/normal snapshots; invalid indices throw `out_of_range`, nonfinite/zero-area geometry throws `invalid_argument`. Editing/reallocating/destroying vertex storage cannot invalidate a snapshot; rebuild it to reflect edits.
 
-The ray and triangle must share coordinates, normally object coordinates. The function uses Moller-Trumbore intersection with `sceneData::intersectionEpsilon = 1e-6`: it rejects a near-zero determinant, tests barycentric coordinates with tolerance, and rejects `t < -epsilon`. Both faces can be hit. On success it writes `tOut`; on failure it leaves it unchanged. Very small negative hits can be accepted.
+Ray/triangle coordinates must match, normally object coordinates. Moller-Trumbore is two-sided; epsilon 1e-6 applies to determinant, barycentric bounds and negative t rejection. Tiny negative t within tolerance is accepted. A miss leaves `tOut` unchanged; a hit writes the parameter in `origin+t*direction`, a distance only for unit directions.
 
 ```cpp
-#include "core/geometry.h"
-#include <vector>
-
 std::vector<Vertex> vertices{
-    Vertex({0, 0, 0}, {0, 0, 1}, {0, 0}),
-    Vertex({1, 0, 0}, {0, 0, 1}, {1, 0}),
-    Vertex({0, 1, 0}, {0, 0, 1}, {0, 1})
+    Vertex({0,0,0}, {0,0,1}, {0,0}),
+    Vertex({1,0,0}, {0,0,1}, {1,0}),
+    Vertex({0,1,0}, {0,0,1}, {0,1})
 };
-TriangleData triangle(0, 1, 2, vertices);
-Ray ray({0.25f, 0.25f, 1.0f}, {0.0f, 0.0f, -2.0f});
-float t = -1.0f;
-bool hit = mollerTrumbore(ray, triangle, t); // true; t = 0.5
+TriangleData triangle(0,1,2,vertices);
+float t=-1;
+bool hit=mollerTrumbore(Ray({0.25f,0.25f,1},{0,0,-2}),triangle,t);
+// hit=true, t=0.5; hit distance is 1.
 ```
 
-The hit point is `ray.m_origin + t * ray.m_direction`. Here the origin-to-hit distance is 1, while `t` is 0.5. Do not label an unnormalized ray parameter as distance.
+BoundingBox requires finite position, positive finite extents and finite maximum corner. It stores lower-left min, size and max=min+size; `updateBB(position)` relocates both corners and validates finiteness. Strict X/Y overlap is required: edge/corner contact is false. Public fields must remain valid if edited directly; intersection is discrete with no epsilon/swept collision.
 
-## Collision: BoundingBox and intersectBB
+## Input and utilities
 
-[Header](../src/core/collision.h) · [Implementation](../src/core/collision.cpp)
+[InputManager](../src/core/input_manager.h) · [ActionMap](../src/core/action_map.h) · [Utilities](../src/core/utilities.h)
 
-`BoundingBox(glm::vec2 pos, glm::vec2 size)` sets `m_min = pos`, `m_max = pos + size`, and `m_size = size`. `updateBB(pos)` relocates min/max using the stored size. Supply finite positions and positive sizes for ordinary rectangles; input validation is not implemented.
+Register keyboard/mouse codes separately from action binding. Poll GLFW events, call `InputManager::update(window)` once, then query. Registration starts Up. Down samples transition Up/Released -> Pressed -> Held; up samples transition Pressed/Held -> Released -> Up. Pressed/Released last one sample. Unknown codes query false. Polling may miss taps between samples.
 
-`bool intersectBB(const BoundingBox&, const BoundingBox&)` returns true only for strict overlap in X and Y. Edge/corner contact is false. It is a discrete test, not continuous collision detection.
+ActionMap borrows InputManager, which must outlive it. `bind` replaces an action's code; `justStarted`, `ongoing`, `justFinished` query Pressed, Held, Released. Held excludes the first Pressed sample; unbound/unregistered inputs return false.
 
-```cpp
-#include "core/collision.h"
+`initGLFWwindow(title,scale)` checks finite scale in (0,1]; the sized overload checks positive dimensions. GLFW/window failures return null. `initGLAD(window)` returns false for null/load failure without destroying caller-owned resources. Main owns window/GLFW cleanup. `getDeltaTime(float& last)` returns seconds and advances last; main initializes last after startup and caps long frames.
 
-BoundingBox a({0, 0}, {1, 1});
-BoundingBox b({1, 0}, {1, 1});
-bool touching = intersectBB(a, b); // false
-b.updateBB({0.5f, 0.0f});
-bool overlapping = intersectBB(a, b); // true
-```
-
-## Body movement: GameObj
-
-[Header](../src/app/game2D/game_obj.h) · [Implementation](../src/app/game2D/game_obj.cpp)
-
-`GameObj(position, size, velocity)` stores 2D vectors. It provides position/size/velocity getters and setters, including separate horizontal/vertical components. `updatePosition(float dt)` applies `position += velocity * dt`.
-
-Use seconds for `dt`, game units for position/size, and game units per second for velocity. This method does not apply gravity, clamp world bounds, or update another object's bounding box. Player/cat logic does those operations separately.
-
-```cpp
-#include "app/game2D/game_obj.h"
-
-GameObj body({0, 100}, {100, 100}, {200, 0});
-body.updatePosition(0.5f); // position is (100, 100)
-```
-
-## Animation: Animator
-
-[Header](../src/app/game2D/animator.h) · [Implementation](../src/app/game2D/animator.cpp)
-
-| Method | Contract |
-| --- | --- |
-| `Animator(int sheetRows, int sheetColumns)` | Stores grid dimensions; constructor frame/row state starts at zero. Supply positive dimensions. |
-| `setAnimation(int start, int end, int line, float fps)` | Sets the inclusive frame range, row, duration `1/fps`, current frame to start, and accumulator to zero. Use one-based frame/row indices within the sheet and positive finite FPS. |
-| `updateUV(float dt, bool facingRight)` | Add elapsed seconds. If a frame duration is reached, advance one frame, wrap past end to start, and reset the accumulator. Return `(uLeft, vBottom, uRight, vTop)`; left-facing swaps U values. |
-| `getFrame()` | Current frame index. |
-| `isAnimationFinished()` | Whether current frame equals end; not a persistent completion event. |
-
-Call `setAnimation()` before using a character animation. The code does not validate ranges/FPS and does not catch up multiple frames after a long update. A one-frame animation is already “finished” at its only frame.
-
-```cpp
-#include "app/game2D/animator.h"
-
-Animator animation(6, 13);
-animation.setAnimation(1, 9, 3, 10.0f);
-glm::vec4 rightUV = animation.updateUV(0.0f, true);  // frame 1
-glm::vec4 leftUV = animation.updateUV(0.0f, false);  // same frame, U swapped
-animation.updateUV(0.5f, true); // advances only to frame 2
-```
+Callbacks forward key/mouse events to ImGui and Escape requests close. Framebuffer callback changes the viewport; main separately refreshes scene projection and logical UI dimensions.
 
 ## Camera
 
-[Header](../src/graphics/camera.h) · [Implementation](../src/graphics/camera.cpp)
+[Header](../src/graphics/camera.h)
 
-`Camera()` uses `sceneData` defaults. `Camera(position, fovy, aspect, near, far)` initially faces the world origin. There is no target argument. Supply a nonzero position, a nondegenerate front direction, a positive aspect ratio, `0 < fovy < 180`, and `0 < near < far`; these conditions are caller responsibilities.
-
-| Interface | Meaning |
-| --- | --- |
-| `getPerspectiveProjMatrix()` | Perspective matrix; constructor FOV is in **degrees** and converted to radians internally. |
-| `getOrthoProj(width, height)` | Orthographic range `[0,width] x [0,height]` with near/far -1/1. |
-| `getViewMatrix()`, `getTarget()` | View from position toward position + front; target getter returns that point. |
-| `getPosition()`, `getFront()`, `getYaw()`, `getPitch()` | Position/direction and orientation; yaw/pitch are **radians**. |
-| `setAspect()`, `setPosition()`, `setFront()` | Set projection aspect, position, or front. `setFront()` recomputes angles and basis; provide a normalized nonsingular front. |
-| `setGrounded(float)`, `getGrounded()` | Float setter converts to the stored boolean. Forward/backward movement clamps Y to the stored altitude when grounded. |
-| `moveForward/Backward/Right/Left/Up/Down(float dx)` | Displacement is keyboard sensitivity x basis direction x dx. These methods do not interpret dx as seconds. |
-| `rotateOnXAxis()`, `rotateOnYAxis()` | Change yaw/pitch using mouse sensitivity; these helpers alone do not refresh basis vectors. |
-| `processMouseInputs(offX, offY)` | Update angles/basis and clamp pitch to +/-89 degrees. Offsets are multiplied by sensitivity into radians. |
-| `getMouseSpeed()`, `getKeyboardSpeed()` | Current source-defined sensitivities. |
-
-In the application, `Scene` passes keyboard sensitivity as `dx`, so sensitivity is applied twice per movement call and no frame-time factor is used. Camera movement has no room collision.
-
-```cpp
-#include "graphics/camera.h"
-
-Camera camera({2.0f, 1.7f, 0.0f}, 45.0f, 16.0f / 9.0f, 0.1f, 20.0f);
-camera.processMouseInputs(10.0f, 0.0f);
-glm::mat4 view = camera.getViewMatrix();
-glm::mat4 projection = camera.getPerspectiveProjMatrix();
-```
-
-## Input, actions, callbacks, and utilities
+`Camera(position,fovy,aspect,near,far)` faces the origin. Position must be finite, nonzero and not parallel to world Y, 0<fovy<180 degrees, aspect>0 and 0<near<far. Invalid inputs throw `invalid_argument`. Default construction uses scene defaults with horizontal -X front.
 
 | Interface | Contract |
 | --- | --- |
-| [InputManager](../src/core/input_manager.h) `registerKey`, `update`, `isPressed/Held/Released`, `isMouseButton` | Register a GLFW key/button, poll a valid window, then query its state. Initial registered state is Released; first down poll is Pressed, subsequent down polls are Held. Unknown keys query false. Mouse buttons use `glfwGetMouseButton`. |
-| [ActionMap](../src/core/action_map.h) constructor, `bind`, `justStarted`, `ongoing`, `justFinished` | Holds a reference to an InputManager; bind replaces a logical action's key. Queries map to Pressed, Held, Released. Unbound actions return false. |
-| [Callbacks](../src/core/callbacks.h) `initCallbacks` and callback functions | Register framebuffer/key/mouse callbacks; forward key/mouse events to ImGui. Escape requests window closure. Framebuffer callback updates only the viewport. |
-| [Utilities](../src/core/utilities.h) `initGLFWwindow` overloads | Title/scale overload defaults to empty title and scale 1; sized overload takes width/height/title. Scale must be in [0,1] or it throws. GLFW/window failures return null; the existing caller does not fully guard all failures. |
-| `initGLAD(window)` | Load GL entry points; false on failure, with window destruction/GLFW termination. |
-| `getDeltaTime(float& lastFrame)` | Return current GLFW time minus lastFrame and update lastFrame, in seconds. |
-| `printVec2/3/4`, `printMat4` | Print vectors or a matrix to stdout for diagnostics. |
+| `moveForward/Backward/Right/Left/Up/Down(float dt)` | Finite signed seconds, displacement speed*basis*dt; reverse sign reverses direction |
+| `setKeyboardSpeed`, `setMouseSpeed` | Finite nonnegative scene units/s or radians/cursor unit |
+| `setGrounded(float)` | Nonzero becomes true; captures current Y; forward/backward then lock that altitude |
+| `setPosition(vec3)` | Finite position and saved height, orientation retained |
+| `setFront(vec3)` | Finite nonzero direction, normalize, clamp pitch +/-89 degrees and refresh basis |
+| `rotateOnXAxis/YAxis`, `processMouseInputs` | Finite offsets*sensitivity, immediate basis refresh; pitch clamped |
+| `setAspect` | Finite positive ratio |
+| `getViewMatrix`, `getTarget` | View/target from eye toward eye+front |
+| `getPerspectiveProjMatrix` | FOV degrees converted to radians |
+| `getOrthoProj(width,height)` | Positive dimensions, [0,width] x [0,height], near/far=-1/1 |
+| `getPosition/Front/Yaw/Pitch/MouseSpeed/KeyboardSpeed/Grounded` | Position, unit direction, angles in radians, current settings |
 
-`ActionMap::justFinished()` reports the **Released state**, so it remains true while a registered key is up; it is not a one-frame release event. `ongoing()` is false on the initial Pressed frame. InputManager and window/resource dependencies must outlive their users.
+Right/left use local right. Up/down use local up and update saved altitude when grounded. No room collision is implemented.
 
-## Resources and graphics
+```cpp
+Camera camera({2,1.7f,0},45,16.0f/9,0.1f,20);
+camera.setKeyboardSpeed(1.35f);
+camera.moveForward(1.0f/60); // one sixtieth of a second
+camera.processMouseInputs(10,0);
+```
 
-| Interface | Methods/defaults and responsibilities |
+## Body, animation and sprites
+
+[GameObj](../src/app/game2D/game_obj.h) stores position/size/velocity; `updatePosition(dt)` applies position+=velocity*dt. It alone does not apply gravity, enforce arena bounds or refresh another object's bounding box. Positions/sizes are game units, velocity units/s and elapsed time seconds.
+
+[Animator](../src/app/game2D/animator.h) requires positive sheet rows/columns and starts with a valid one-cell clip. `setAnimation(start,end,row,fps,bool loop=true)` validates one-based ranges/row and positive finite FPS, resets current frame/remainder. `updateUV(dt,facingRight)` validates finite nonnegative time, consumes all complete intervals and retains remainder. Returned UV is (uLeft,vBottom,uRight,vTop); left facing swaps U. Nonlooping clips clamp at end; looping clips wrap.
+
+`isAnimationFinished()` means current==end, persistent only for nonlooping clips. `passedFrame(frame)` includes the current frame and all crossed frames in the last update. A one-cell clip is already finished. Gameplay uses a separate emitted-shot guard, so a shoot frame crossed after a long update still fires only once.
+
+```cpp
+Animator clip(6,13);
+clip.setAnimation(1,8,2,25,false);
+clip.updateUV(0.5f,true);
+// final frame 8; passedFrame(5)=true and isAnimationFinished()=true
+```
+
+[Sprite](../src/app/game2D/sprite.h) borrows a named Texture; setAnimation forwards loop mode, updateTexture applies UV, render draws through SpriteRenderer. Names must exist before construction. SpriteRenderer owns its quad VAO/VBO and is noncopyable. Background's (0,0) optional render position/size means use its stored default; GameHUD draws life icons.
+
+## Resources and OpenGL owners
+
+| Interface | Contract |
 | --- | --- |
-| [ResourceManager](../src/core/resource_manager.h) | Static public shader/texture maps; `loadShader` accepts vertex/fragment paths or vertex/geometry/fragment paths plus a logical name; `loadTexture(path, TexParams&, name)` loads/flips a PNG and can fill zero dimensions. `getShader/getTexture` return references and throw on missing names. Texture-load failure logs and may return an ID-zero entry. |
-| [Shader](../src/graphics/shader.h) | Default program ID 0; `linkProgram` overloads compile/link **source strings**; `use` returns a reference. `getID`, `setInt/Float/Vector2f/Vector3f/Vector4f/Matrix4fv` expose program/uniform operations. Activate the appropriate program before setting uniforms. Errors are logged; destructor deletes a nonzero program. |
-| [TexParams / Texture](../src/graphics/texture.h) | TexParams defaults: dimensions 0, RGBA, repeat wrapping, linear filters. Texture defaults to ID 0; image constructor and `genColorMap` create color textures; `genDepthMap(width,height)` creates a 2D depth texture; `genCubeDepthMap()` uses scene shadow dimensions. `bind/unbind` operate on GL_TEXTURE_2D, so cube maps need explicit cube-map binding. `getID` returns the GL handle. |
-| [Framebuffer](../src/graphics/framebuffer.h) | `Framebuffer(width,height,type)` supports `'c'` color, `'d'` 2D depth, `'m'` depth cube. `bind/unbind`, `getID/getTex/getWidth/getHeight` expose state. Cube allocation uses scene shadow dimensions; unknown type leaves ID 0. Completeness failure logs. |
-| [Vertex](../src/graphics/vertex.h) | Position, normal, UV constructor/public fields and getters; no default constructor. |
-| [Mesh](../src/graphics/mesh.h) | Public vertex/index/triangle collections and material index. `setup/draw/getVAO` manage upload/draw; `getCenter` averages vertex positions; `getGlobalNormal` normalizes summed normals, meaningful for planar meshes with a nonzero normal sum. `intersectRayTriangle` chooses the smallest accepted t. `resizeUV`, `m_mixTex`, and `getShader/setShader/useShader` control rendering. |
-| [Model](../src/graphics/model.h) | `Model(filepath, Shader*)` imports OBJ and initializes meshes. `getMesh(name)` throws if absent; `getMaterial(name)` uses that **mesh's name** and material index. `draw`, `setShader`, `printMeshNames`, model-matrix access, and world-position methods operate on the model. `intersectRayTriangle` chooses the smallest accepted mesh hit. |
-| [Material](../src/graphics/material.h) | Color/shininess setters, `setUseTex/toggleTex/overrideTex`, and `apply(Shader&)` set supported uniforms and optionally bind the referenced texture. Default colors/shininess are zero, texture null, texture use false. Texture override does not transfer ownership. |
+| [ResourceManager](../src/core/resource_manager.h) | Named public maps own shaders/textures. loadShader accepts stage file paths/name, reads before compilation, then inserts only on success. loadTexture(path,TexParams **by value**,name) decodes/flips PNG/JPEG to RGBA, fills zero dimensions, rejects explicit mismatch and inserts only on success. getShader/getTexture throw runtime_error for unknown names. clear must run with context alive after borrowers are gone. |
+| [Shader](../src/graphics/shader.h) | Default ID0; move-only program owner. linkProgram accepts stage **source strings**, throws with compiler/linker log and preserves previous program on failure. use throws for ID0. Uniform setters require the appropriate program active. Destructor deletes nonzero program; partial stage/program cleanup is exception-safe. |
+| [Texture / TexParams](../src/graphics/texture.h) | ID0 default; move-only. Params default dimensions0, RGBA, repeat, linear. Color/depth allocations need positive sizes and an unallocated owner. Cube depth uses scene shadow dimensions. bind/unbind use its stored 2D/cube target. Destructor deletes its handle. |
+| [Framebuffer](../src/graphics/framebuffer.h) | Positive dimensions, type c/d/m for color/depth/cube; invalid type throws, incomplete FBO throws. Owns its texture and FBO; noncopyable. bind/unbind and ID/texture/dimension getters expose it. Cube faces use scene shadow dimensions. |
+| [Mesh](../src/graphics/mesh.h) | Move-only VAO/VBO/EBO owner with public vertices/indices/material index. setup uploads, draw issues GL draw. getCenter requires nonempty geometry, getGlobalNormal a finite nonzero normal sum. rebuildTriangleCache snapshots indexed geometry, omits zero-area faces without altering draw indices; bad index/range fails. intersectRayTriangle writes nearest accepted t on hit only. Shader pointer is borrowed; useShader throws if unset. |
+| [Model](../src/graphics/model.h) | Imports OBJ/MTL, initializes meshes and requires a nonnull borrowed shader. Missing/bad import throws. getMesh throws for missing name; getMaterial(string) identifies the material via a **mesh name**. draw/setShader/world/model matrix methods operate on model. Picking requires object-coordinate ray and returns nearest t. Keep mesh vector storage stable after named lookup creation. |
+| [Material](../src/graphics/material.h) | Colors/shininess/useTexture uniforms and optional borrowed texture; defaults zero colors/shininess, null texture, use=false. overrideTex transfers no ownership. |
 
-Model/mesh intersections require an already transformed object-coordinate ray; they do not transform it internally. Empty hit searches return false without writing the output. Supply nonempty geometry for center/normal calculations. Imported OBJ files need normals; the loader does not generate them.
+GPU objects must be released before context termination. Do not clear/replace map entries while sprite/material references are live. Public geometry changes require cache rebuilding/upload and stable model lookup storage. Imported normals/material names remain asset contracts.
 
-Keep shader/texture objects alive while pointers/references use them. Do not resize public model/mesh vectors after initialization: mesh lookup pointers and triangle vertex references can become invalid. The existing graphics wrappers are not complete RAII ownership types; see [lifetime limitations](architecture.md#resource-lifetime-and-error-handling).
+## Gameplay coordination
+
+[GameSession](../src/app/game2D/game_session.h) constructs a CPU encounter from arena width/height; dimensions must contain actors and ground. Named actor/projectile textures are prerequisites even without rendering.
+
+| Interface | Meaning |
+| --- | --- |
+| `input(actions,dt)` | Menu/help then player commands/cat AI; paused menu blocks actor input |
+| `update(dt)` | Finite nonnegative seconds; paused sessions stop; actors/bounds/projectiles/collisions update in order; death opens menu |
+| `reset()` | Clear shots, initial positions/velocities/flags/timers/clips/lives/bounds immediately; menu closed, help preference retained |
+| `cameraX()` | Always zero |
+| `isMenuOpen/closeMenu/help/toggleHelp` | CPU menu/help state |
+| `player/cat/projectiles` | Owned components exposed for coordination/fixtures |
+
+[Game](../src/app/game2D/game.h) wraps this session in background/HUD/quad rendering and a framebuffer. Its existing input/update/reset/menu methods forward to the session; render draws a fixed view. The game texture is borrowed by the cabinet until the game is destroyed.
+
+Player and Cat own body/bounds/state and borrow sprites. update handles gravity/clips and state transitions; attacks use crossed shoot frames; reset refreshes bounds immediately. Dead is terminal until reset. constrainToArena(width) clamps the full quad to [0,width-size.x] and refreshes bounds. Player hit starts a terminal hit/death sequence; cat hits reduce its nine lives and enable its barrage condition.
+
+ProjectileManager owns emitted projectiles, moves and removes inactive/out-of-bounds shots, renders and resets. Boundary cleanup tests projectile position, not its full quad. Inactive Projectile::update does nothing. CollisionSystem borrows actors/manager, ignores inactive shots and marks an accepted hit inactive immediately, preventing duplicate hits before removal.
 
 ## Scene and UI
 
-| Interface | Methods and observable behavior |
-| --- | --- |
-| [Scene](../src/app/scene3D/scene.h) | Construct with initial framebuffer dimensions; `input3DHandler/cam3DinputHandler` process room input, `picking` tests the cabinet ray, `update` advances transitions, `drawScene/depthPass` draw lighting/shadows. Input getters/setters gate the two contexts. Camera/animation getters, `cameraInAnimation/cameraOutAnimation`, and `switchCameraGrounded` control camera state. Display methods wrap Arcade; aim and menu/help methods expose flags. |
-| [Arcade](../src/app/scene3D/arcade.h) | Construct from model path; `setScreen` references a texture; `screenSwitch/isDisplayOn` control power; `setShader` chooses CRT for a powered display during the normal lighting pass. `draw/setWCSPosition/getModel` wrap the model. |
-| [Room](../src/app/scene3D/room.h) | Construct from model path and optional floor texture pointer (default null). `setFloor` overrides/tile-enables the floor material. `setShader/draw/setWCSPosition/getModel` wrap the model. |
-| [UIManager](../src/app/ui_manager.h) | `init(window)`, `beginFrame()`, `drawUI(scene,game,width,height)`, `render()`, `shutdown()`; `isMenuOpen()` reports menu state from the latest UI draw. Init/shutdown guard repeated calls. UI draw changes input and scene/game state through menu buttons. |
+[Scene](../src/app/scene3D/scene.h) coordinates room/cabinet/lights and state. input3DHandler/cam3DinputHandler take elapsed seconds; resize refreshes dimensions/aspect. Picking tests cabinet geometry without a selection-distance/room-occlusion limit. Camera approach/return are stepped transitions; mutually exclusive input flags gate exploration/game commands. Static shadow maps are built by depthPass; drawScene renders room/aim. Its owned GL objects are destroyed with context alive.
 
-Scene animation methods return whether the relevant animation remains active; they are stepped over frames, not blocking operations. Cabinet selection has no distance threshold or room-occlusion check. Screen texture, display mesh/material names, floor names, and lamp names must match the supplied assets. The [tutorial](tutorial.md) is the working user-level example of these interfaces.
+Arcade borrows game screen texture and selects CRT/power-button appearance. Room wraps its model/tiled-floor texture. Asset mesh/material/shader logical names must match.
 
-## Game and sprite interfaces
+[UIManager](../src/app/ui_manager.h) initializes checked ImGui backends, begins/draws/renders frames and shuts them down through destructor/explicit shutdown. drawUI receives logical window dimensions; GPU viewport uses physical framebuffer dimensions. Menu buttons change scene/game state. It is noncopyable and init/shutdown guard repeated calls. See the tutorial for menu labels and manual checklist for full UI behavior.
 
-| Interface | Methods and responsibilities |
-| --- | --- |
-| [Game](../src/app/game2D/game.h) | Construct with target dimensions; `input2DHandler` routes player and automatic cat input; `update(dt)` moves/animates, manages projectiles/collisions and death menu; `render()` draws to its FBO. `resetGame()` invokes component resets. Getters expose sprite renderer, FBO texture, camera X, cat lives, and menu/help state; methods close the menu/toggle help. |
-| [Player](../src/app/game2D/player.h) | Texture-name/position/size/velocity constructor; `inputHandler/update/render/resetPlayer`; getters expose body, bounds, position, size, texture, state. `hasBeenHit()` sets a flag consumed by update. Attacks fire at configured animation frame 5. |
-| [Cat](../src/app/game2D/cat.h) | Same basic construction data; `autoInput/update/attackHandler/jumpMoveHandler/render/resetCat`; getters expose body, bounds, position, state, lives. `hasBeenHit()` reduces lives while positive and enables the barrage flag. Automatic attacks use timing, player position, and life-count triggers. |
-| [Projectile](../src/app/game2D/projectile.h) | Texture-name/position/size/velocity/facing/owner constructor. `update/render`; body/position/size/velocity/owner/status getters; `setStatus(false)` marks inactive. Owner is Player or Cat. |
-| [ProjectileManager](../src/app/game2D/projectile_manager.h) | `emit` owns a new projectile, `update(dt,right,left,top,bottom)` moves and removes inactive/out-of-bounds projectiles, `render` draws, `resetProjSys` clears, `getProjectiles` returns the mutable owned vector. Boundary checks use projectile position, not its full rectangle. |
-| [CollisionSystem](../src/app/game2D/collision_system.h) | Construct with player/cat/projectile-manager references. `checkCollision()` tests cat projectiles against player bounds and player projectiles against cat bounds, marks projectiles inactive, and notifies targets. No general world/body collision. |
-| [Sprite](../src/app/game2D/sprite.h) | Texture name plus optional sheet rows/columns (both default 1). `setAnimation/updateTexture/render`; texture/animator getters. References an already-loaded texture. |
-| [SpriteRenderer](../src/app/game2D/sprite_renderer.h) | Construct with projection dimensions; `drawSprite(shader,texture,position,size,uv)` draws a quad; default UV is (0,0,1,1). |
-| [Background](../src/app/game2D/background.h) | Texture-name/position/size constructor; `render` accepts optional position/size; each (0,0) argument selects the stored default, so an explicit zero cannot override a nonzero stored value. |
-| [GameHUD](../src/app/game2D/gameHUD.h) | Life-texture-name constructor; `render(renderer,shader,position,size)` draws a life icon. |
-| [State](../src/app/game2D/state.h) / AnimationData | States Idle/Walk/Jump/Attack/Hit/Dead; `stateToString` returns uppercase names or UNKNOWN. AnimationData stores start/end/row/FPS. |
-
-All gameplay `dt` values are seconds. Names must match entries loaded by `assetLoader()`; these constructors are not independent of graphics resources. Reset methods restore selected fields rather than reconstructing every object; bounds are normally refreshed on update. Collision marks inactivity after the manager update, so removal usually occurs on the next update.
-
-The source interfaces are broader than the currently automated coverage. Use the [testing record](testing.md) for actual tested cases and outstanding gaps; the tables above do not imply that every method has a passing unit test.
+The reference is broader than automated coverage; [testing](testing.md) states what is actually asserted.

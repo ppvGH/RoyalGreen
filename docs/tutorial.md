@@ -11,8 +11,8 @@
 5. Left-click while aiming at the cabinet. The **Arcade** menu should appear. Choose **Exit** to dismiss this menu and keep exploring, or **Play** to start.
 6. After **Play**, wait for the camera approach animation, configured as a two-second first stage and a one-second second stage. The game appears on the cabinet display; 2D controls become active after the approach finishes.
 7. Hold **A/D** to move left/right. Press **W** to jump, then land. Press **S** while grounded to shoot an arrow in the direction the player faces. Shooting temporarily prevents movement; hold movement keys rather than expecting a brief tap to move continuously.
-8. Avoid the cat's energy balls. Successful arrows reduce its displayed lives; the cat starts with nine. A projectile hit on the player leads to its hit/death sequence. Combat and timing have existing limitations, so use the reset menu whenever needed.
-9. Press **M** to open the **Game Menu**. Test **Return to game**, then reopen the menu and choose **Reset game**. Reset restores the player and cat positions, nine cat lives, clears projectiles, and resets the scrolling camera.
+8. Avoid the cat's energy balls. Successful arrows reduce its displayed lives; the cat starts with nine. A projectile hit on the player leads to its hit/death sequence. Use the reset menu to start a new encounter.
+9. Press **M** to open the **Game Menu**. Test **Return to game**, then reopen the menu and choose **Reset game**. Reset restores the player and cat positions, nine cat lives, clears projectiles, and keeps the fixed arena view.
 10. Choose **Exit game** to reset the game, turn off the cabinet screen, and animate back to the room. Use **Esc** or the window close button when finished.
 
 Selection tests the arcade model's triangles, not every object in the room. A click away from the cabinet should not open its menu. There is no selection-distance limit or general room-occlusion test in the implementation.
@@ -43,13 +43,25 @@ These bindings come from [main.cpp](../src/main.cpp), the menus from [ui_manager
 
 ## Gameplay behavior
 
-The game is a single-player encounter with one autonomous cat enemy. It has scrolling, animated states, projectiles, and a life-icon HUD for the cat. Movement, gravity, and projectile updates use frame elapsed time in seconds. The cat attacks automatically and can use a jumping barrage; the player has no displayed multi-life counter.
+The game is a single-player encounter with one autonomous cat enemy. It has a fixed initial arena, animated states, projectiles, and a life-icon HUD for the cat. Movement, gravity, and projectile updates use frame elapsed time in seconds. The cat attacks automatically and can use a jumping barrage; the player has no displayed multi-life counter.
 
 Opening a menu pauses the main game update. The menu opens automatically when the game update observes a player or cat in the `Dead` state. This is not a separate victory/defeat screen. Choose **Reset game** to start another encounter or **Exit game** to explore again.
 
 ## Defaults and configuration
 
-The standard demo needs no file edits. The entry point is `int main()`: it does not parse command-line arguments. There is no application configuration-file loader, key-rebinding UI, save system, or runtime settings menu.
+The standard demo needs no source edits. The arena view stays at x=0; full actor quads remain in x=[0,500]. There is no level progression or horizontal scrolling.
+
+Run `royalgreen.exe --help` for options. Examples:
+
+```powershell
+.\royalgreen.exe --width 1280 --height 720 --camera-speed 2
+.\royalgreen.exe --config royalgreen.cfg.example
+.\royalgreen.exe --assets "D:\Games\RoyalGreen\res"
+```
+
+Configuration uses `key=value`, whitespace and full-line `#` comments. Keys: `width`, `height`, `window_scale`, `camera_speed`, `mouse_sensitivity`, `assets`, `exit_after`. CLI overrides the file independently of option order. Relative file assets resolve from that file's directory; relative CLI assets resolve from the working directory. A bad explicit root fails without fallback.
+
+Width/height are both positive integers (maximum 16384) or both zero for monitor scaling. Scale is in (0,1]; speed/sensitivity/exit interval are finite nonnegative. Zero `exit_after` disables automatic close. Unknown options/keys and malformed values fail clearly. No key-rebinding UI/save system is added.
 
 | Setting | Current default | Source |
 | --- | --- | --- |
@@ -57,8 +69,8 @@ The standard demo needs no file edits. The entry point is `int main()`: it does 
 | Graphics context | OpenGL 3.3 Core, double buffering | [utilities.cpp](../src/core/utilities.cpp) |
 | Game render target | 600 x 600 | [main.cpp](../src/main.cpp) |
 | Camera start | (2.0, 1.7, 0.0); fixed height initially off | [scene_data.h](../src/app/scene3D/scene_data.h) |
-| Camera projection | 45-degree vertical field of view; near 0.1, far 20; aspect set from initial framebuffer size | [camera.cpp](../src/graphics/camera.cpp), [scene.cpp](../src/app/scene3D/scene.cpp) |
-| Camera sensitivities | Mouse 0.001; keyboard 0.15 | [scene_data.h](../src/app/scene3D/scene_data.h) |
+| Camera projection | 45-degree vertical field of view; near 0.1, far 20; aspect updated from current framebuffer size | [camera.cpp](../src/graphics/camera.cpp), [scene.cpp](../src/app/scene3D/scene.cpp) |
+| Camera sensitivities | Mouse 0.001 radians/cursor unit; keyboard 1.35 scene units/s | [scene_data.h](../src/app/scene3D/scene_data.h) |
 | Shadow maps | 1024 x 1024 cube faces | [scene_data.h](../src/app/scene3D/scene_data.h) |
 | Helpers / aiming cross | Initially visible | [scene.cpp](../src/app/scene3D/scene.cpp), [game.cpp](../src/app/game2D/game.cpp) |
 | Game ground / gravity | Ground y = 100; acceleration = 1200 game units/s² | [game_data.h](../src/app/game2D/game_data.h) |
@@ -66,14 +78,14 @@ The standard demo needs no file edits. The entry point is `int main()`: it does 
 | Cat | Start (500, 100), sprite 100 x 100, nine lives | [game_data.h](../src/app/game2D/game_data.h) |
 | Arrow / ordinary energy-ball speed | 600 game units/s | [game_data.h](../src/app/game2D/game_data.h) |
 | Sprite grids | Six rows, thirteen columns; animation indices start at one | [game_data.h](../src/app/game2D/game_data.h), [animator.cpp](../src/app/game2D/animator.cpp) |
-| Resource directories | Absolute paths under the configured clone's `res/` | [CMakeLists.txt](../CMakeLists.txt), [path.h](../src/app/path.h) |
+| Resource directories | Executable-relative `res/`, or explicit assets root | [CMakeLists.txt](../CMakeLists.txt), [path.h](../src/app/path.h) |
 
-The 2D units are coordinates in the game render target, not real-world metres. Mouse sensitivity multiplies mouse offsets into angles in radians. The 3D movement code uses a per-call displacement and is not scaled by frame time in the application; do not interpret keyboard sensitivity as metres per second.
+The 2D units are coordinates in the game render target, not real-world metres. Mouse sensitivity multiplies mouse offsets into angles in radians. 3D movement is elapsed seconds times speed in scene units/s; those scene units are not calibrated metres.
 
 Editing these constants is development work and requires rebuilding. It is not part of the normal demo setup.
 
 ## Limitations to expect
 
-The camera can pass through room objects; there is no 3D collision system. Game collisions cover projectiles versus their opposing character, not general character/environment or character/character collisions. Resizing updates the OpenGL viewport but does not consistently update all stored dimensions, projection settings, and UI positions.
+The camera can pass through room objects; there is no 3D collision system. Game collisions cover projectiles versus their opposing character, not general character/environment or character/character collisions. Resizing refreshes viewport/projection and logical UI coordinates; full DPI/focus behavior still needs interactive checks.
 
-There is no save/load, score table, multiplayer, or runtime asset-selection interface. Menu/animation transitions and combat state changes should be exercised using the [manual checklist](manual-testing.md). Treat a reset or death behavior that differs from the checklist as a finding to record, not a result to silently mark passed.
+There is no save/load, score table, multiplayer, or asset-selection GUI (use --assets instead). Menu/animation transitions and combat state changes should be exercised using the [manual checklist](manual-testing.md). Treat a reset or death behavior that differs from the checklist as a finding to record, not a result to silently mark passed.

@@ -1,5 +1,7 @@
 # Validation record
 
+> Historical validation for **sac4ap**. Current results: [development validation](development-validation.md).
+
 [Documentation index](index.md) · [Testing](testing.md) · [Manual checklist](manual-testing.md)
 
 This record separates checks actually run from checks merely configured or
